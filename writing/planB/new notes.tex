@@ -1,0 +1,172 @@
+\documentclass[10pt]{article}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{arydshln}
+\usepackage{dsfont}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\textwidth}{6.325in}
+\setlength{\textheight}{8.25in}
+\setlength{\topmargin}{-0.4cm}
+\setlength{\evensidemargin}{0.6cm}
+\setlength{\oddsidemargin}{0.6cm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcounter{listacnt}\renewcommand{\thelistacnt}{\alph{listacnt}}
+\newenvironment{theoremlist}{\begin{list}{\textnormal{(\thelistacnt)}}%
+{\settowidth{\labelwidth}{(b)}%
+\setlength{\topsep}{1.5pt plus 0.5pt minus 0.5pt}%
+\setlength{\itemsep}{1pt plus 0.2pt minus 0.2pt}%
+\setlength{\parsep}{0.1pt plus 0.1pt minus 0.1pt}%
+\usecounter{listacnt}}}{\end{list}}
+\newcommand{\rr}{\mathbb{R}}
+\newcommand{\BA}{\mathcal{X}}
+\newcommand{\intrr}{\mathbb{IR}}
+\newcommand{\qq}{\mathbb{Q}}
+\newcommand{\cc}{\mathbb{C}}
+\newcommand{\zz}{\mathbb{Z}}
+\newcommand{\intcc}{\mathbb{IC}}
+\newcommand{\nn}{\mathbb{N}}
+\newcommand{\dd}{\mathbb{D}}
+\renewcommand{\Re}{\text{Re}}
+\renewcommand{\Im}{\text{Im}}
+\newcommand{\gvn}{\hspace{1mm}|\hspace{1mm}}
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+\newcommand{\intval}[1]{\tilde{#1}}
+\newcommand{\rad}{\operatorname{rad}}
+\newcommand{\norm}[1]{\left|\left| #1 \right|\right|}
+\newcommand{\abs}[1]{\left| #1 \right|}
+\newcommand{\pardiff}[2]{\frac{\partial #1}{\partial #2}}
+\DeclareMathOperator{\sgn}{sgn}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+\newcommand{\bydef}{\,\stackrel{\mbox{\tiny\textnormal{\raisebox{0ex}[0ex][0ex]{def}}}}{=}\,}
+\newcommand{\ba}{\overline{a}}
+\newcommand{\bx}{\overline{x}}
+\newcommand{\setof}[1]{\left\{#1\right\}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\C}{\mathbb{C}}
+
+\newtheorem{thm}{Theorem}%[section]
+\newtheorem{defn}{Definition}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{rem}{Remarks}
+\newtheorem{singRem}[rem]{Remark}
+\newtheorem{remark}[rem]{Remark}
+\newtheorem{example}{Example}
+\usepackage{multirow}
+%\numberwithin{equation}{section}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%\UseRawInputEncoding % Forces compatiblitity with new latex UTF encoding
+\begin{document}
+
+%\title{Comparison of active cases and rolling averages in pandemic closing-reopening cycles}
+%\author{Kevin E.\ M.\ Church}
+%\date{
+%    \small McGill University, Department of Mathematics and Statistics\\%
+%    \today}
+\title{Plan B setup and multiparameter notes}
+\maketitle
+
+\section{Example problems?}
+Here we build a list of equations (ODE/DDE/PDE) that exhibit this structure, in the sense that a) there is a point where the degenerate Hopf bifurcation occurs, OR b) there is a parameter regime in which there is a bubble.
+\begin{itemize}
+\item Lorenz-84: either we find a bifurcation that generates the bubble, or we do a continuation of the bubble using the scheme. In the latter case, this will correspond geometrically to a ``cylinder".
+\item The delay $SI$ model for which Victor initially proves his general result. He proves the bubble/bifurcation exists, but we can obtain some nonlocal results concerning its diameter and growth that is not possible from the normal form.
+\item Conversation with Victor: there should be lots of examples, but they may just be relatively hard to find. Add more parameters to models with Hopf bifurcations, you ``should" find them.
+\end{itemize}
+\section{Plan B: ODE}
+Let $\dot x=f(x,\alpha,\beta)$, $x\in\R^n$, be a polynomial vector field depending on scalar parameters $\alpha$ and $\beta$. Define for $\epsilon\in\R,$ $\tau>0$ and auxiliary $u\in\R^n$ the scaled vector field
+\begin{align*}
+\tilde f(y,u,\alpha,\beta,\epsilon)&=\left\{\begin{array}{ll}
+\epsilon^{-1}(f(u+\epsilon y,\alpha,\beta)-f(u,\alpha,\beta)),&\epsilon\neq 0\\
+D_xf(u,\alpha,\beta)y,&\epsilon=0.\end{array}\right.
+\end{align*}
+Then a periodic solution of period $2\pi\cdot\tau$ is equivalent to a $2\pi$-periodic solution of
+$$\dot y = \tau\tilde f(y,u,\alpha,\beta,\epsilon)$$
+and $\tilde f$ is polynomial.
+
+Since $\tilde f$ is polyomial, we can write it in the form
+$$\tilde f(y,u,\alpha,\beta,\epsilon) = \sum_{m=0}^Mp_m(u,\alpha,\beta,\epsilon)y^m$$
+for $p_m(u,\alpha,\beta,\tau,\epsilon)$ being an $m$-linear map on $\R^n$ depending smoothly on $(u,\alpha,\beta,\tau,\epsilon)$, and $y^m=[y,y,\dots,y]$ with $m$ copies of $y$ appearing in parentheses. Then the ODE for $y$ is equivalent in Fourier series $y=\sum_k e^{ikt}a_k$ to the equation
+\begin{align*}
+f_{PO}(a,u,\alpha,\beta,\tau,\epsilon)_k&\bydef-ika_k + \tau\sum_{m=0}^M\hspace{0.5mm}\sum_{n\in \Z^m_k}p_m(u,\alpha,\beta,\epsilon)[a_{n_1},\dots,a_{n_m}]=0,
+\end{align*}
+for $\Z_k^m=\{(n_1,\dots,n_m)\in\Z^m : \sum_i n_i = k\}.$ The above can of course be expressed in terms of Fourier convolutions more explicitly at the cost of heavier notation, but this is enough for the abstract setup.
+
+The ``plan B" zero-finding problem is $F(u,\tau,\epsilon,a,\alpha,\beta ; \overline u)=0$, where
+\begin{align}\label{zfp-B}
+F(u,\tau,\epsilon,u,\alpha,\beta; \overline u)=\left(\begin{array}{c}f(u,\alpha,\beta) \\ \Theta(a;\overline a) \\ G(a;\overline a) \\ f_{PO}(a,u,\alpha,\beta,\tau,\epsilon) \\  \end{array}\right).
+\end{align}
+Here $u\mapsto\Theta(u;\overline u)$ is an affine-linear phase condition that depends on some numerical data $\overline u$, $u\mapsto G(u;\overline u)$ is an affine-linear amplitude condition. Then $F$ is defined on $X\times\R^2$, where $X=\R^n\times\R\times\R\times U$ and $U$ is a space of bi-infinite sequences with suitable decay that we will need to choose. We identify some codomain $Y$ so that $F:X\times\R^2\rightarrow Y$. In the future, we will write this map simply as $F(z;\overline z)$, for $z=(u,\tau,\epsilon,a,\alpha,\beta)$.
+
+\begin{remark}
+Gameiro, Lessard and Pugliese use $\ell^\infty$ with algebraic decay for $U$ in their paper. They were interested in more general manifolds of steady states that might not necessarily have the kind of regularity that periodic orbits have. I think we should use $U=(\ell_\nu^1)^n$ for some $\nu>1$, since we have a priori analyticity and the Banach algebra properties are nice to have.
+\end{remark}
+
+\section{Plan B: DDE}
+A little bit changes with a delay equation. For the vector field
+$$\dot x(t)=f(x(t),x(t+\mu_1),\dots,x(t+\mu_J),\alpha,\beta)$$ for some (positive or negative) delays $\mu_1,\dots,\mu_J$, define the rescaled vector field
+\begin{align*}
+\tilde f(y_0,y_1,\dots,y_J,u,\alpha,\beta,\epsilon)=\left\{\begin{array}{ll}
+\epsilon^{-1}(f(u+\epsilon y_0,u+\epsilon y_1,\dots,u+\epsilon y_J,\alpha,\beta)-f(u,u,\dots,u,\alpha,\beta)),&\epsilon\neq 0\\
+\sum_{j=0}^J D_{x_j}f(u,\dots,u,\alpha,\beta)y_j,&\epsilon=0.\end{array}\right.
+\end{align*}
+The periodic orbit problem is equivalent to
+$$\dot y(t) = \tau\tilde f(y(t),y(t+\mu_1\tau^{-1}),\dots,y(t+\mu_J\tau^{-1}),\alpha,\beta).$$
+Note: $\tilde f$ is still polynomial, but the delays involve some non-polynomial nonlinearities. This isn't a big deal, but it is a change nonetheless.
+Denote $\tilde g(y,u,\alpha,\beta,\epsilon)=\tilde f(y_0,y_1,\dots,y_J,\alpha,\beta,\epsilon)$ for $y=(y_0,y_1,\dots,y_J)\in(\R^n)^{J+1}$. Then
+$$\tilde g(y,u,\alpha,\beta,\epsilon)=\sum_{m=0}^M p_m(u,\alpha,\beta,\epsilon)y^k.$$
+Define $h:\R^n\rightarrow(\R^n)^{J+1}$ by $h(u)=(u,u,\dots,u)$. The DDE for $y=\sum_k a_ke^{ikt}$ is then equivalent in Fourier series to $f_{PO}=0$, with
+\begin{align*}
+f_{PO}(u,x,\alpha,\beta,\tau,\epsilon)_k&\bydef-ika_k + \tau\sum_{m=0}^M\hspace{0.5mm}\sum_{n\in \Z^m_k}p_m(u,\alpha,\beta,\epsilon)[e^{in_1\tau^{-1}\mu}\odot h(a_{n_1}),\dots,e^{in_m\tau^{-1}\mu}\odot h(a_{n_m})],
+\end{align*}
+where $\mu=[\begin{array}{cccc}0&\mu_1&\cdots&\mu_J\end{array}]^\intercal$, the exponentials $e^{in\tau^{-1}\mu}$ are componentwise, and $\odot$ denotes componentwise scalar-vector multiplication: for $v\in\C^N$ and $h=(h_1,\dots,h_N)\in(\C^K)^N$, $$v\odot h = (v_1h_1,\dots,v_Nh_N).$$
+The ``big" zero-finding problem \eqref{zfp-B} is then symbolically unchanged.
+
+\section{Multi-parameter continuation}
+Let $F^{(M)}$ be a finite-dimensional projection of $F$, and let $X_M=\R^n\times\R\times\R\times U_M$ be the finite-dimensional domain. Suppose we have a triple $\overline x_i\in X_M$ for $i=1,2,3$ finitely-supported. Let $\phi^{(i)}_1,\phi^{(i)}_2\in X_M$ be approximate elements of the kernel of $DF^{(M)}(x_i)$, assumed linearly independent. Define $\overline\Phi_i=[\begin{array}{cc}\phi^{(i)}_1&\phi^{(i)}_2\end{array}]$. Define the interpolating zeroes and kernels
+\begin{align*}
+\overline x_s&=\overline x_0 + s_1(\overline x_1-\overline x_0) + s_2(\overline x_2-\overline x_0),\\
+\overline\Phi_s&=\overline\Phi_0 + s_1(\overline\Phi_1-\overline\Phi_0) + s_2(\overline\Phi_2 - \overline\Phi_0).
+\end{align*}
+Then, define a parameterized (by $s\in\Delta$) function $\mathcal{F}_s:X\times\R^2\rightarrow Y\times\R^2$ as follows:
+\begin{align*}
+\mathcal{F}_s(x)=\left(\begin{array}{c}F(x;\overline x_s) \\ \overline\Phi_s^\intercal(x-\overline x_s)\end{array}\right).
+\end{align*}
+The new (square-dimension) zero-finding problem is $\mathcal{F}_s(x)=0$.
+
+\begin{remark}
+To ensure correct gluing, it is necessary that cobordant simplices use the same data on their mutual edges. This means that the amount of padding can not be adjusted during the proof, and must be decided a priori.
+\end{remark}
+
+\section{Proof of the singular bifurcation}
+What I think we really need (partially based on a conversation I had with Victor, but also intuitive) is the following.
+\begin{itemize}
+\item A locally (near the bifurcation) invertible, smooth change of parameters $(\alpha,\beta)\mapsto(\gamma_1,\gamma_2)$ such that $\gamma_2=\gamma_2(\gamma_1,\epsilon)$ (as a projected component of the manifold) is a graph near $(0,0)$, where $(\gamma_1,\gamma_2)=(0,0)$ when $(\alpha,\beta)$ is close to the singular bifurcation.
+\item $\gamma_2$ has a strict local minimum somewhere near $(0,0)$.
+\end{itemize}
+We can show that there is a local minimum using the topological argument (check an interior point and the boundary of the simplex), but to get the strictness and the graph interpretation is more complicated. To do this, it is sufficient (assuming w.l.o.g.\ that $(\gamma_1,\gamma_2)=(\alpha,\beta)$ by doing the change of variables at the beginning) that we check a posteriori:
+\begin{itemize}
+\item For all $s\in\Delta$, $$C_1(s)\bydef\det\left[\begin{array}{cc}\partial_{s_1}\alpha (\tilde u(s)) & \partial_{s_2}\alpha(\tilde u(s)) \\ \partial_{s_1}\epsilon (\tilde u(s)) & \partial_{s_2}\epsilon(\tilde u(s)) \end{array}\right]\neq 0$$with $\tilde u:\Delta\rightarrow M$ the chart we think contains the minimum. This shows that we can invert $(s_1,s_2)\mapsto(\alpha,\epsilon)$ and that $\beta$ is a graph.
+\item Check some other big mess of stuff (a Hessian) is negative definite over $\Delta$. Specifically, we check the second differential of $(\alpha,\epsilon)\mapsto\beta(\alpha,\epsilon)$ is negative definite over $\tilde u(\Delta)$, which can be equivalently stated in terms of a uniform negative definiteness of some $s$-dependent matrix, for all $s\in\Delta$, using the local invertibility of $s\mapsto(\alpha,\epsilon)$.
+\end{itemize}
+I strongly suspect that these conditions can be checked analytically after the proof is done using the rigorous enclosure.
+\end{document}
