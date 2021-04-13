@@ -1,2 +1,12 @@
 
 .DS_Store
+
+*.m~
+
+*.aux
+
+*.log
+
+writing/dynamics_main.out
+
+*.gz
