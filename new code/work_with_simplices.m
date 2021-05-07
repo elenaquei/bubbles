@@ -4,6 +4,8 @@
 %
 % constraints: start from 7 points chosen by hand, with a "center", grow
 % according to "small gap angle first".
+global debug_bool
+debug_bool = 1;
 
 % the zero finding problem
 f=@(a,b,x) x - a^2 - b^2;
@@ -22,7 +24,7 @@ outer_points = [];
 % first circle of points
 n = 4;
 for theta = pi/n *[0:n*2-1]
-    y_new =  10^-2 * [sin(theta), cos(theta), 1];
+    y_new =  10^-1 * [sin(theta), cos(theta), 1];
     y(end+1,:) = project(y_new.', fy, DF);
     outer_points(end+1,:) = y(end,:);
 end
@@ -100,8 +102,8 @@ end
 % plot_list_of_simplices(list_of_simplices,list_of_nodes)
 
 % growing the manifold
+for k = 1:4
 gap_angle_vec = 0 * list_of_frontal_nodes;
-clockwise = gap_angle_vec;
 for i=1:length(list_of_frontal_nodes)
     node_index = list_of_frontal_nodes(i);
     node = list_of_nodes{node_index};
@@ -115,14 +117,17 @@ disp(gap_angle_vec)
 priority_node = list_of_frontal_nodes(priority_node_index);
 min_gap = gap_angle_vec(priority_node_index);
 
+%figure
+plot_list_of_simplices(list_of_simplices,list_of_nodes)
+pause(1)
+
 [list_of_nodes, list_of_simplices,list_of_frontal_nodes] =...
     grow_patch(list_of_nodes{priority_node},min_gap, ...
     list_of_nodes, list_of_simplices, fy, DF,list_of_frontal_nodes);
 
-figure
 plot_list_of_simplices(list_of_simplices,list_of_nodes)
 
-
+end
 % %
 % STRUCTURE
 % %
@@ -256,14 +261,17 @@ function [list_of_nodes, list_of_simplices,list_of_frontal_nodes] = ...
     grow_patch(node, min_gap, list_of_nodes, list_of_simplices, ...
     f, df,list_of_frontal_nodes, step_size)
 % select open edges
+global debug_bool
+
 out_nodes = open_edges(node, list_of_simplices);
 if min_gap<0
     out_nodes = out_nodes(2:-1:1);% flip order
+    %min_gap = abs(min_gap);
 end
 if nargin > 7
     h = step_size;
 else
-    h = 1;
+    h = norm(node.coordinates - list_of_nodes{out_nodes(1)}.coordinates);
 end
 
 % decide what to do depending on min_gap
@@ -287,27 +295,45 @@ elseif abs(min_gap)<pi/3
     verified = (1==0);
     frontal = (1==1);
     list_of_simplices{end+1} = create_simplex(number_simplex,verified,...
-        frontal, [node,out_nodes]); % DO we care about ordering?
+        frontal, [node.number,out_nodes]); % DO we care about ordering?
 else
     % create new points
     verified = (1==0);
     frontal = (1==1);
-    number_of_new_points = ceil(abs(min_gap)/pi*3);
-    gap_angle = abs(min_gap)/(number_of_new_points+2);
+    number_of_new_points = ceil(abs(min_gap)/pi*3)-1;
+    indices_new_points = zeros(number_of_new_points,1);
+    
     number_old_node = out_nodes(1);
     y_old = list_of_nodes{number_old_node}.coordinates;
     y_center = node.coordinates;
+    
+    proj_on_2 = @(u,v) dot(u,v)/dot(v,v)*v;
+    
+    tang_plane = null(df(y_center));
     U = [list_of_nodes{out_nodes(1)}.coordinates-y_center;
-        list_of_nodes{out_nodes(2)}.coordinates-y_center];
+        list_of_nodes{out_nodes(2)}.coordinates-y_center].';
     
+    % out nodes projected on the tangent plane
+    w1 = proj_on_2(U(:,1),tang_plane(:,1))+proj_on_2(U(:,1),tang_plane(:,2));
+    % w1 = w1/norm(w1);
+    w2 = proj_on_2(U(:,2),tang_plane(:,1))+proj_on_2(U(:,2),tang_plane(:,2));
+    % w2 = w2/norm(w2);
     
+    gap_angle_loc = min_gap /(number_of_new_points+2);
+    % s = linspace(0,1,number_of_new_points+1);
     
-    for i = 1:number_of_new_points-1
-        x_new = [ cos(i*gap_angle), sin(i*gap_angle)]; %create node in R^2
-        y_new = y_center + h * x_new * U;
-        coord = y_new;%extend_project(y_new.', f, df,y_center, y_old);
+    for i = 1:number_of_new_points
+        x_new = cos((i+1)*gap_angle_loc)*w1 + sin((i+1)*gap_angle_loc)*w2; 
+        x_new = x_new/norm(x_new);
+        y_new = y_center + h * x_new.';
+        if debug_bool && 1==0
+            hold on
+            plot3(y_center(1),y_center(2),y_center(3),'*')
+            plot3(y_old(1),y_old(2),y_old(3), 'o')
+        end
+        coord = project(y_new.', f, df);%extend_project(y_new.', f, df,y_center+tang_plane(:,1).', y_center+tang_plane(:,2).');
         number_new_node = length(list_of_nodes)+1;
-        list_of_nodes{end+1} = create_node(number_new_node, coord, frontal);
+        list_of_nodes{end+1} = create_node(number_new_node, coord.', frontal);
         number_simplex = length(list_of_simplices)+1;
         nodes_in_new_simplex = [number_new_node, number_old_node, number_center_node];
         % DO WE CARE ABOUT ORDER????
@@ -316,6 +342,7 @@ else
         
         list_of_frontal_nodes(end+1) = number_new_node;
         % update in for loop
+        indices_new_points(i) = number_new_node;
         number_old_node = number_new_node;
         y_old = y_new;
     end
@@ -324,7 +351,13 @@ else
     nodes_in_new_simplex = [out_nodes(2), number_old_node, number_center_node];
     % DO WE CARE ABOUT ORDER????
     list_of_simplices{end+1} = create_simplex(number_simplex,...
-            verified,frontal, nodes_in_new_simplex);
+        verified,frontal, nodes_in_new_simplex);
+    for  i = 1:length(indices_new_points)
+        index = indices_new_points(i);
+        list_of_nodes{index} = update_patches(list_of_nodes{index},list_of_simplices);
+    end
+    list_of_nodes{out_nodes(1)} = update_patches(list_of_nodes{out_nodes(1)},list_of_simplices);
+    list_of_nodes{out_nodes(2)} = update_patches(list_of_nodes{out_nodes(2)},list_of_simplices);
 end
 % if procedure successful, starting point is not frontal anymore
 list_of_frontal_nodes = setdiff(list_of_frontal_nodes,node.number);
@@ -507,7 +540,15 @@ alpha = abs(atan(new_vector(2)/new_vector(1)))+rotate_angle;
 
 end
 
+function alpha = angle_2(vector1,vector2)
+rotation_angle = angle(vector2);
+rotation_matrix = [ cos(rotation_angle), sin(rotation_angle);
+    -sin(rotation_angle), cos(rotation_angle)];
 
+rotated_edge1 = rotation_matrix * vector1;
+alpha = angle(rotated_edge1);
+
+end
 
 function [out_nodes,all_nodes] = open_edges(node, list_of_simplices)
 out_nodes = [];
