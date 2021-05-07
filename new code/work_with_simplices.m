@@ -20,8 +20,10 @@ y = center;
 outer_points = [];
 
 % first circle of points
-for theta = pi/3 *[0:5]
-    y(end+1,:) = [sin(theta), cos(theta), 1];
+n = 4;
+for theta = pi/n *[0:n*2-1]
+    y_new =  10^-2 * [sin(theta), cos(theta), 1];
+    y(end+1,:) = project(y_new.', fy, DF);
     outer_points(end+1,:) = y(end,:);
 end
 
@@ -34,15 +36,15 @@ for i = 0:10
 end
 
 list_of_nodes = y;
-list_of_simplices = cell(6,1);
+list_of_simplices = cell(n*2,1);
 simplex_1 = create_simplex(1,0,1, [1,2,3]);
 simplex_2 = create_simplex(2,0,1, [1,3,4]);
 simplex_3 = create_simplex(3,0,1, [1,5,4]);
 
-for i = 1:5
+for i = 1:n*2-1
     list_of_simplices{i} = create_simplex(i,0,1, [1,1+i,2+i]);
 end
-list_of_simplices{6} = create_simplex(6,0,1, [1,7,2]);
+list_of_simplices{n*2} = create_simplex(n*2,0,1, [1,n*2+1,2]);
 
 
 list_of_nodes = cell(size(y,1),1);
@@ -57,18 +59,18 @@ list_of_nodes = update_patches(list_of_nodes,list_of_simplices);
 % plot_simplex(simplex_2,list_of_nodes)
 % plot_simplex(simplex_3,list_of_nodes)
 
-figure;
-plot_list_of_simplices(list_of_simplices,list_of_nodes)
-hold on
-plot_patch(list_of_nodes{3},list_of_simplices,list_of_nodes)
+% figure;
+% plot_list_of_simplices(list_of_simplices,list_of_nodes)
+% hold on
+% plot_patch(list_of_nodes{3},list_of_simplices,list_of_nodes)
 
-list_of_frontal_nodes = 2:7;
-for i = 1:7
+list_of_frontal_nodes = 2:n*2+1;
+for i = 1:n*2+1
     if any(list_of_frontal_nodes==i) && list_of_nodes{i}.frontal~=1
         error('1');
     end
 end
-for i = 1:6
+for i = 1:n*2-1
     if list_of_nodes{list_of_frontal_nodes(i)}.frontal~=1
         error('2')
     end
@@ -83,19 +85,19 @@ end
 % hold on
 % plot_patch(list_of_nodes{7},list_of_simplices,list_of_nodes)
 
-close all
-[k,list_of_nodes,list_of_simplices,list_of_frontal_nodes] =...
-    equate(6,7,list_of_nodes,list_of_simplices,list_of_frontal_nodes);
-plot_list_of_simplices(list_of_simplices,list_of_nodes)
+% close all
+% [k,list_of_nodes,list_of_simplices,list_of_frontal_nodes] =...
+%    equate(6,7,list_of_nodes,list_of_simplices,list_of_frontal_nodes);
+% plot_list_of_simplices(list_of_simplices,list_of_nodes)
 
 % angle( [9,0])
 % angle ([1,1]) - pi/4
 % angle( [0,-1]) - 3*pi/2 
 
-coords_5 = project([0,-0.5,0.5]',fy,DF);
-list_of_nodes{5}.coordinates = coords_5';
+% coords_5 = project([0,-0.5,0.5]',fy,DF);
+% list_of_nodes{5}.coordinates = coords_5';
 
-plot_list_of_simplices(list_of_simplices,list_of_nodes)
+% plot_list_of_simplices(list_of_simplices,list_of_nodes)
 
 % growing the manifold
 gap_angle_vec = 0 * list_of_frontal_nodes;
@@ -104,25 +106,27 @@ for i=1:length(list_of_frontal_nodes)
     node_index = list_of_frontal_nodes(i);
     node = list_of_nodes{node_index};
     DF_x = DF(node.coordinates);
-    [gap_angle_vec(i),clockwise(i)] = gap_angle(node, DF_x, list_of_simplices, list_of_nodes);
+    gap_angle_vec(i) = gap_angle(node, DF_x, list_of_simplices, list_of_nodes);
 end
 disp(list_of_frontal_nodes)
 disp(gap_angle_vec)
 
-[min_gap, priority_node_index] = min(gap_angle_vec);
+[~, priority_node_index] = min(abs(gap_angle_vec));
 priority_node = list_of_frontal_nodes(priority_node_index);
-clockwise_ = clockwise(priority_node_index);
+min_gap = gap_angle_vec(priority_node_index);
 
-[list_of_nodes, list_of_simplices] = grow_patch(list_of_nodes{priority_node},...
-    min_gap, clockwise_, list_of_nodes, list_of_simplices, fy, DF);
+[list_of_nodes, list_of_simplices,list_of_frontal_nodes] =...
+    grow_patch(list_of_nodes{priority_node},min_gap, ...
+    list_of_nodes, list_of_simplices, fy, DF,list_of_frontal_nodes);
 
+figure
+plot_list_of_simplices(list_of_simplices,list_of_nodes)
 
 
 % %
 % STRUCTURE
 % %
 % TODO list:
-% - use gap angle to determine priority
 % - use gap angle to propose new approximations
 % - add the new nodes appropriately in new simplices
 
@@ -155,6 +159,21 @@ end
 
 end
 
+
+function x = Newton(x_approx, f, df)
+x = x_approx;
+tol = 10^-6;
+for iter = 1:100
+    step = df(x) \ f(x);
+    x = x - step;
+    if norm(step)<tol
+        break
+    end
+end
+if norm(step)>tol
+    warning('Did not converge')
+end
+end
 
 % works
 function node = create_node(number, coords, frontal)
@@ -234,14 +253,18 @@ end
 
 
 function [list_of_nodes, list_of_simplices,list_of_frontal_nodes] = ...
-    grow_patch(node, min_gap, clockwise, list_of_nodes, list_of_simplices, ...
-    fy, DF,list_of_frontal_nodes)
+    grow_patch(node, min_gap, list_of_nodes, list_of_simplices, ...
+    f, df,list_of_frontal_nodes, step_size)
 % select open edges
 out_nodes = open_edges(node, list_of_simplices);
-if clockwise
+if min_gap<0
     out_nodes = out_nodes(2:-1:1);% flip order
 end
-
+if nargin > 7
+    h = step_size;
+else
+    h = 1;
+end
 
 % decide what to do depending on min_gap
 %       equate open edges
@@ -249,13 +272,16 @@ end
 %       create new simplex
 % or 
 %       create new nodes
-if min_gap<pi/6
+
+number_center_node = node.number;
+
+if abs(min_gap)<pi/6
+    % DOESN'T WORK??
     [~,list_of_nodes, list_of_simplices,list_of_frontal_nodes] = ...
     equate(out_nodes(1),out_nodes(2),list_of_nodes, ...
     list_of_simplices,list_of_frontal_nodes);
-    return
    
-elseif min_gap<pi/3
+elseif abs(min_gap)<pi/3
     % create new simplex
     number_simplex = length(list_of_simplices)+1;
     verified = (1==0);
@@ -264,15 +290,65 @@ elseif min_gap<pi/3
         frontal, [node,out_nodes]); % DO we care about ordering?
 else
     % create new points
-    number_of_new_points = ceil(min_gap/pi*3);
-    gap_angle = min_gap/number_of_new_points;
-    for i = 1:number_of_new_points
-        c
+    verified = (1==0);
+    frontal = (1==1);
+    number_of_new_points = ceil(abs(min_gap)/pi*3);
+    gap_angle = abs(min_gap)/(number_of_new_points+2);
+    number_old_node = out_nodes(1);
+    y_old = list_of_nodes{number_old_node}.coordinates;
+    y_center = node.coordinates;
+    U = [list_of_nodes{out_nodes(1)}.coordinates-y_center;
+        list_of_nodes{out_nodes(2)}.coordinates-y_center];
+    
+    
+    
+    for i = 1:number_of_new_points-1
+        x_new = [ cos(i*gap_angle), sin(i*gap_angle)]; %create node in R^2
+        y_new = y_center + h * x_new * U;
+        coord = y_new;%extend_project(y_new.', f, df,y_center, y_old);
+        number_new_node = length(list_of_nodes)+1;
+        list_of_nodes{end+1} = create_node(number_new_node, coord, frontal);
+        number_simplex = length(list_of_simplices)+1;
+        nodes_in_new_simplex = [number_new_node, number_old_node, number_center_node];
+        % DO WE CARE ABOUT ORDER????
+        list_of_simplices{end+1} = create_simplex(number_simplex,...
+            verified,frontal, nodes_in_new_simplex);
+        
+        list_of_frontal_nodes(end+1) = number_new_node;
+        % update in for loop
+        number_old_node = number_new_node;
+        y_old = y_new;
     end
+    % last new simplex - reconnect to out edges
+    number_simplex = length(list_of_simplices)+1;
+    nodes_in_new_simplex = [out_nodes(2), number_old_node, number_center_node];
+    % DO WE CARE ABOUT ORDER????
+    list_of_simplices{end+1} = create_simplex(number_simplex,...
+            verified,frontal, nodes_in_new_simplex);
+end
+% if procedure successful, starting point is not frontal anymore
+list_of_frontal_nodes = setdiff(list_of_frontal_nodes,node.number);
+
 end
 
 
-
+function coord = extend_project(x_new, f, df, x1, x2)
+if size(x1,1)~=1
+    x1=x1.';
+end
+if size(x2,1)~=1
+    x2=x2.';
+end
+if size(x_new,1)~=1
+    x_new=x_new.';
+end
+F = @(x) [ dot(x,x1-x_new) - dot(x_new, x1-x_new);
+    dot(x,x2-x_new) - dot(x_new, x2-x_new);
+    f(x)];
+DF = @(x) [x1;
+    x2;
+    df(x)];
+coord = Newton(x_new.', F, DF);
 end
 
 
@@ -433,9 +509,9 @@ end
 
 
 
-function [out_nodes,in_nodes] = open_edges(node, list_of_simplices)
+function [out_nodes,all_nodes] = open_edges(node, list_of_simplices)
 out_nodes = [];
-in_nodes = [];
+all_nodes = [];
 for i = node.patch
     for j = list_of_simplices{i}.nodes
         if j == node.number
@@ -446,22 +522,23 @@ for i = node.patch
         else
             out_nodes(end+1) = j;
         end
-        in_nodes(end+1) = j;
+        all_nodes(end+1) = j;
     end
 end
+all_nodes = unique(all_nodes);
 end
 
-% from siplex 1994
-function [gap,clockwise] = gap_angle(node, DF_x, list_of_simplices, list_of_nodes)
+% from simplex 1994 - but negative gap angle when clockwise
+function [gap] = gap_angle(node, DF_x, list_of_simplices, list_of_nodes)
 
 U = null(DF_x);
 
-[out_nodes,in_nodes] = open_edges(node, list_of_simplices);
+[out_nodes,all_nodes] = open_edges(node, list_of_simplices);
 
 if length(out_nodes)~=2
     error('there are not two outnodes?!')
 end
-internal_nodes = setdiff(in_nodes,out_nodes);
+internal_nodes = setdiff(all_nodes,out_nodes);
 if isempty(internal_nodes)
     internal_coord = 1/2 *(list_of_nodes{out_nodes(1)}.coordinates + ...
         list_of_nodes{out_nodes(2)}.coordinates); % average of two open edges
@@ -500,11 +577,9 @@ angle_edge1 = angle(rotated_edge1);
 angle_internal_dir = angle(rotated_internal_dir);
 
 if angle_edge1 > angle_internal_dir
-    gap = 2 * pi - angle_edge1;
-    clockwise = (1==1);
+    gap = -(2 * pi - angle_edge1);
 else
     gap = angle_edge1;
-    clockwise = (1==0);
 end
 
 % figure
