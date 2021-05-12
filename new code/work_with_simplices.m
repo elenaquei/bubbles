@@ -24,7 +24,8 @@ outer_points = [];
 % first circle of points
 n = 4;
 for theta = pi/n *[0:n*2-1]
-    y_new =  10^-1 * [sin(theta), cos(theta), 1];
+    theta_rand = theta*(0.9 + 0*rand);
+    y_new =  10^-1 *(0.9 + 0*rand) * [sin(theta_rand), cos(theta_rand), 1];
     y(end+1,:) = project(y_new.', fy, DF);
     outer_points(end+1,:) = y(end,:);
 end
@@ -94,7 +95,7 @@ end
 
 % angle( [9,0])
 % angle ([1,1]) - pi/4
-% angle( [0,-1]) - 3*pi/2 
+% angle( [0,-1]) - 3*pi/2
 
 % coords_5 = project([0,-0.5,0.5]',fy,DF);
 % list_of_nodes{5}.coordinates = coords_5';
@@ -103,36 +104,35 @@ end
 
 % growing the manifold
 for k = 1:4
-gap_angle_vec = 0 * list_of_frontal_nodes;
-for i=1:length(list_of_frontal_nodes)
-    node_index = list_of_frontal_nodes(i);
-    node = list_of_nodes{node_index};
-    DF_x = DF(node.coordinates);
-    gap_angle_vec(i) = gap_angle(node, DF_x, list_of_simplices, list_of_nodes);
-end
-disp(list_of_frontal_nodes)
-disp(gap_angle_vec)
-
-[~, priority_node_index] = min(abs(gap_angle_vec));
-priority_node = list_of_frontal_nodes(priority_node_index);
-min_gap = gap_angle_vec(priority_node_index);
-
-%figure
-plot_list_of_simplices(list_of_simplices,list_of_nodes)
-pause(1)
-
-[list_of_nodes, list_of_simplices,list_of_frontal_nodes] =...
-    grow_patch(list_of_nodes{priority_node},min_gap, ...
-    list_of_nodes, list_of_simplices, fy, DF,list_of_frontal_nodes);
-
-plot_list_of_simplices(list_of_simplices,list_of_nodes)
-
+    gap_angle_vec = 0 * list_of_frontal_nodes;
+    for i=1:length(list_of_frontal_nodes)
+        node_index = list_of_frontal_nodes(i);
+        node = list_of_nodes{node_index};
+        DF_x = DF(node.coordinates);
+        gap_angle_vec(i) = gap_angle(node, DF_x, list_of_simplices, list_of_nodes);
+    end
+    disp(list_of_frontal_nodes)
+    disp(gap_angle_vec)
+    
+    [~, priority_node_index] = min(abs(gap_angle_vec));
+    priority_node = list_of_frontal_nodes(priority_node_index);
+    min_gap = gap_angle_vec(priority_node_index);
+    
+    %figure
+    plot_list_of_simplices(list_of_simplices,list_of_nodes)
+    pause(1)
+    
+    [list_of_nodes, list_of_simplices,list_of_frontal_nodes] =...
+        grow_patch(list_of_nodes{priority_node},min_gap, ...
+        list_of_nodes, list_of_simplices, fy, DF,list_of_frontal_nodes);
+    
+    plot_list_of_simplices(list_of_simplices,list_of_nodes)
+    
 end
 % %
 % STRUCTURE
 % %
 % TODO list:
-% - use gap angle to propose new approximations
 % - add the new nodes appropriately in new simplices
 
 % works 
@@ -263,10 +263,10 @@ function [list_of_nodes, list_of_simplices,list_of_frontal_nodes] = ...
 % select open edges
 global debug_bool
 
-out_nodes = open_edges(node, list_of_simplices);
-if min_gap<0
+[out_nodes, in_nodes] = open_edges(node, list_of_simplices);
+if 1==0 && min_gap<0
     out_nodes = out_nodes(2:-1:1);% flip order
-    %min_gap = abs(min_gap);
+    min_gap = abs(min_gap);
 end
 if nargin > 7
     h = step_size;
@@ -284,7 +284,6 @@ end
 number_center_node = node.number;
 
 if abs(min_gap)<pi/6
-    % DOESN'T WORK??
     [~,list_of_nodes, list_of_simplices,list_of_frontal_nodes] = ...
     equate(out_nodes(1),out_nodes(2),list_of_nodes, ...
     list_of_simplices,list_of_frontal_nodes);
@@ -311,25 +310,26 @@ else
     
     tang_plane = null(df(y_center));
     U = [list_of_nodes{out_nodes(1)}.coordinates-y_center;
-        list_of_nodes{out_nodes(2)}.coordinates-y_center].';
+        list_of_nodes{in_nodes(1)}.coordinates-y_center].';
     
     % out nodes projected on the tangent plane
     w1 = proj_on_2(U(:,1),tang_plane(:,1))+proj_on_2(U(:,1),tang_plane(:,2));
-    % w1 = w1/norm(w1);
     w2 = proj_on_2(U(:,2),tang_plane(:,1))+proj_on_2(U(:,2),tang_plane(:,2));
-    % w2 = w2/norm(w2);
+    
+    w1 = w1/norm(w1);
+    w2 = w2 - dot(w1,w2)*w2;
+    w2 = -w2 / norm(w2);
     
     gap_angle_loc = min_gap /(number_of_new_points+2);
-    % s = linspace(0,1,number_of_new_points+1);
+    s = linspace(0,1,number_of_new_points+2);
     
     for i = 1:number_of_new_points
-        x_new = cos((i+1)*gap_angle_loc)*w1 + sin((i+1)*gap_angle_loc)*w2; 
+        x_new = cos((i+1)*gap_angle_loc)*w1 + sin((i+1)*gap_angle_loc)*w2;
         x_new = x_new/norm(x_new);
         y_new = y_center + h * x_new.';
-        if debug_bool && 1==0
+        if debug_bool
             hold on
-            plot3(y_center(1),y_center(2),y_center(3),'*')
-            plot3(y_old(1),y_old(2),y_old(3), 'o')
+            plot3([y_center(1),y_new(1)],[y_center(2),y_new(2)],[y_center(3),y_new(3)], 'd')
         end
         coord = project(y_new.', f, df);%extend_project(y_new.', f, df,y_center+tang_plane(:,1).', y_center+tang_plane(:,2).');
         number_new_node = length(list_of_nodes)+1;
