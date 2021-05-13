@@ -64,7 +64,7 @@ Z0_s=[0*Z0, Z0Delta,0*Z0,Z0];
 
 % error handling
 if any(Z0_vector>1)
-    fprintf('Z0_cont computed, %d\n',max(Z0_vector));
+    fprintf('Z0_simplex computed, %d\n',max(Z0_vector));
 elseif talkative>1
-    fprintf('Z0_cont computed, %d\n',max(Z0_vector));
+    fprintf('Z0_simplex computed, %d\n',max(Z0_vector));
 end

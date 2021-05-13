@@ -171,6 +171,8 @@ if  ~ isempty(previous_iter) && ~isempty(previous_iter.Z1)
 else
     [Z1vector,new_iter_Z1,Z1s]=Z1_bound_cont(A0,A1,xBar0,xBar1,alpha0,...
         alpha1,Adagger_delta);
+    % [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar1,alpha0,...
+    %    alpha1,alpha1,Adagger_delta,Adagger_delta);
 end
 
 if talkative>1
@@ -183,6 +185,7 @@ end
 
 % Z2 BOUND
 [Z2vector,Z2s]=Z2_bound_cont(A0,A1,xBar0,xBar1,alpha0);
+% [Z2vector,Z2s]=Z2_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0);
 
 if talkative>1
     fprintf('\nComputed Z2, time %s\n\n',datestr(now,13));

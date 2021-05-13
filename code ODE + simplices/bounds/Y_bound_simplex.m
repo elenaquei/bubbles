@@ -245,14 +245,14 @@ Yvector=Y0+YDelta;
 
 %%
 if any(Yvector>1)
-    fprintf('Y_cont computed, %d\n',max(Yvector));
+    fprintf('Y_simplex computed, %d\n',max(Yvector));
     %error('Y_cont is bigger than 1, no interval found')
 elseif any(isnan(Yvector))
-    error('Y_cont is NaN, big troubles!')
+    error('Y_simplex is NaN, big troubles!')
 elseif talkative>1
 %    fprintf('Y_cont computed, %d\n',Yvector);
 %elseif talkative>0
-    fprintf('Y_cont computed, %d\n',max(Yvector));
+    fprintf('Y_simplex computed, %d\n',max(Yvector));
 end
 
 end
