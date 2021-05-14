@@ -34,7 +34,7 @@ P = Q(:,end-1:end)*Q(:,end-1:end).';
 % Project (xf-xc) for all fronal nodes xf, and complement avg., onto TM.
 yf = P*(xc_front-xc);
 yf(:,1) = yf(:,1)/norm(yf(:,1),2);  yf(:,2) = yf(:,2)/norm(yf(:,2),2);
-y0 = P*a;   y0 = (y0-xc)/norm((y0-xc),2);
+y0 = P*a;   y0 = y0/norm(y0,2);
 % Build R2 coordinate system around yf(:,1) and y0.
 Cmat = [yf(:,1),y0];
 yf2_R2 = Cmat\yf(:,2);  yf2_R2 = yf2_R2/norm(yf2_R2,2);
