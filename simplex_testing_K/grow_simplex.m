@@ -23,7 +23,7 @@ DF = @(X) [1, -2*X(2), -2*X(3)];
 [dim,n] = size(xc_int);
 % Gap complement direction.
 if n==1
-    a = xc_int;
+    a = xc_int - xc;
 else
     a = sum(xc_int,2)/n - xc;
     % a = xc_int(:,randi(n));   % Or pick a random interior one?
