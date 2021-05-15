@@ -1,1 +1,2 @@
 - The local coordinate system is "wrong" because it does not preserve relative angles. Fixing it will resolve imbalance in new vertices.
+- Fix: Gram schmidt the basis {y0,yf(:,1)}->{u,v}, map into R2 by x->(x\cdot u, x\cdot v). Inverse map with (a,b)->a*u + b*v. Should fix the angle problem.
