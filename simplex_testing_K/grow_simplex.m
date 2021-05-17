@@ -59,8 +59,7 @@ if angle_y0>angle_y2
 else
     beta2 = angle_y2 - angle_y0;
 end
-% Get gap angle in local coordinate system and infer orientation. POSSIBLE
-% BUG HERE.
+% Get gap angle in local coordinate system and infer orientation. 
 if beta1<beta2
     gap = beta1;
     yor = 1;
@@ -80,8 +79,7 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     R2frame = [y1_R2,y0_R2,y2_R2];
     yframe = [yf(:,1),y0,yf(:,2)];
 else
-    % Generate predictor "fan" in R2 coordinate system. %%POSSIBLE BUG
-    % HERE.
+    % Generate predictor "fan" in R2 coordinate system. 
     y_fan_R2 = zeros(2,n_new_simplex-1);
     for j=1:n_new_simplex-1
         theta = gap*j/n_new_simplex;
