@@ -1,4 +1,4 @@
-function [x_new,R2frame] = grow_simplex(xc,xc_front,xc_int,xc_h)
+function [x_new,R2frame,yframe] = grow_simplex(xc,xc_front,xc_int,xc_h)
 % INPUT 
 % xc : node to grow from.
 % xc_front : frontal nodes incident to xc; there should be 2.
@@ -36,31 +36,31 @@ yf = P*(xc_front-xc);
 yf(:,1) = yf(:,1)/norm(yf(:,1),2);  yf(:,2) = yf(:,2)/norm(yf(:,2),2);
 y0 = P*a;   y0 = y0/norm(y0,2);
 % Build R2 coordinate system around yf(:,1) and y0.
-Cmat = [yf(:,1),y0];
-yf2_R2 = Cmat\yf(:,2);  yf2_R2 = yf2_R2/norm(yf2_R2,2);
-% Compute angle beta1 clockwise from e1~yf(:,1) to yf2_R2.
-u=yf2_R2(1);    v=yf2_R2(2);
-phi = -atan2(v,u);
-if u>=0
-    if v<=0
-        beta1 = phi;
-    else
-        beta1 = 2*pi+phi;
-    end
-elseif u<0
-    if v<=0
-        beta1 = phi;
-    else
-        beta1 = 2*pi+phi;
-    end   
+R2b1 = y0;  R2b2 = yf(:,1) - dot(R2b1,yf(:,1))*R2b1;    
+R2b2 = R2b2/norm(R2b2,2);
+TM_to_R2 = [R2b1.'; R2b2.'];    % Tangent space to R2 transformation
+R2_to_TM = [R2b1, R2b2];        % Inverse transformation
+y0_R2 = TM_to_R2*y0;            % Representatives of y0, yf in R2
+y1_R2 = TM_to_R2*yf(:,1);
+y2_R2 = TM_to_R2*yf(:,2);
+% Compute angles relative to e1
+angle_y0 = get_angle_R2(y0_R2);
+angle_y1 = get_angle_R2(y1_R2);
+angle_y2 = get_angle_R2(y2_R2);
+% Compute angle beta1 clockwise from y1 to y2.
+if angle_y1>angle_y2
+    beta1 = 2*pi - (angle_y1 - angle_y2);
+else 
+    beta1 = angle_y2 - angle_y1;
 end
-% Compute angle beta2 clockwise from e2~y0 to yf2_R2.
-if beta1<3*pi/2
-    beta2 = beta1 + pi/2;
+% Compute angle beta2 clockwise from y0 to y2.
+if angle_y0>angle_y2
+    beta2 = 2*pi - (angle_y0 - angle_y2);
 else
-    beta2 = beta1 - 3*pi/2;
+    beta2 = angle_y2 - angle_y0;
 end
-% Get gap angle in local coordinate system and infer orientation.
+% Get gap angle in local coordinate system and infer orientation. POSSIBLE
+% BUG HERE.
 if beta1<beta2
     gap = beta1;
     yor = 1;
@@ -73,28 +73,32 @@ n_new_simplex = max(1,round(gap/(pi/3)));
 if gap < gap_min            % Gap is too small; merge simplices.
     x_new = [];
     R2frame = [];
+    yframe = [yf(:,1),y0,yf(:,2)];
     return
 elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     x_new = [xc,xc_front];
-    R2frame = [[1;0],[0;1],yf2_R2];
+    R2frame = [y1_R2,y0_R2,y2_R2];
+    yframe = [yf(:,1),y0,yf(:,2)];
 else
-    % Generate predictor "fan" in R2 coordinate system
+    % Generate predictor "fan" in R2 coordinate system. %%POSSIBLE BUG
+    % HERE.
     y_fan_R2 = zeros(2,n_new_simplex-1);
     for j=1:n_new_simplex-1
         theta = gap*j/n_new_simplex;
         Rtheta = [cos(theta),sin(theta); -sin(theta),cos(theta)];
         if yor == 1
-            y_fan_R2(:,j) = Rtheta*[1;0];
+            y_fan_R2(:,j) = Rtheta*y1_R2;
         elseif yor == 2
-            y_fan_R2(:,j) = Rtheta*yf(:,1);
+            y_fan_R2(:,j) = Rtheta*y2_R2;
         end
     end
-    R2frame = [[1;0],[0;1],yf2_R2,y_fan_R2];
+    R2frame = [y1_R2,y0_R2,y2_R2,y_fan_R2];
     % Push the "fan" back into the tangent space T_{xc}M, and scale.
-    y_fan = Cmat*y_fan_R2;
+    y_fan = R2_to_TM*y_fan_R2;
     x_fan = zeros(dim,n_new_simplex-1);
     for j=1:n_new_simplex-1
-        x_fan(:,j) = xc + y_fan(:,j)/norm(y_fan(:,j),2)*xc_h*tau;
+        y_fan(:,j) = y_fan(:,j)/norm(y_fan(:,j),2);
+        x_fan(:,j) = xc + y_fan(:,j)*xc_h*tau;
     end
     % Refine predictors with Gauss-Newton
     for j=1:n_new_simplex-1
@@ -114,6 +118,7 @@ else
     end
     % Output nodes list
     x_new = [xc,xc_front(:,yor),x_fan,xc_front(:,mod(yor,2)+1)];
+    yframe = [yf(:,1),y0,yf(:,2),y_fan];
 end
 
 end
