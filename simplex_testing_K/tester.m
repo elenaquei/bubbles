@@ -9,21 +9,24 @@ xc_front = [zeros(1,2);xc_front] + [0;xc(2:3)];
 xc_front(1,1) = xc_front(2,1)^2 + xc_front(3,1)^2;
 xc_front(1,2) = xc_front(2,2)^2 + xc_front(3,2)^2;
 xc_h = min([norm(xc,2),norm(xc-xc_front(:,1),2),norm(xc-xc_front(:,2),2)]);
-[x_new,R2frame] = grow_simplex(xc,xc_front,xc_int,xc_h);
+[x_new,R2frame,yframe] = grow_simplex(xc,xc_front,xc_int,xc_h);
 if isempty(x_new)
     tester
 else
     figure('units','normalized','outerposition',[0 0 1 1])
-    subplot(1,3,1)
+    subplot(2,2,1)
     plot_para_frame(x_new,xc);
     plotvect(xc(2:3),[0;0],'red')
     xlabel('a','FontSize',20)
     ylabel('b','FontSize',20)
     title('Parameter frame')
-    subplot(1,3,2)
+    subplot(2,2,2)
     plot_R2_frame(R2frame)
     title('Normalized tangent space projection on R2')
-    subplot(1,3,3)
+    subplot(2,2,3)
+    plot_tangent_frame(yframe);
+    title('Normalized tangent space - not projected.')
+    subplot(2,2,4)
     [~,m] = size(x_new);
     % Rotate coordinates so that (a,b) are in the plane.
     x_new = [x_new(2:end,:);x_new(1,:)];
