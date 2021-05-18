@@ -35,6 +35,10 @@ classdef full_problem
         % end CONSTRUCTOR
         
         
+        function y_xi_vector = feval(alpha, x_xi_vector, varagin)
+            y_xi_vector = apply( alpha, x_xi_vector,varagin{:});
+        end
+        
         % APPLY
         function y_xi_vector = apply( alpha, x_xi_vector,bool)
             % function y_xi_vector = apply( alpha, x_xi_vector,bool)

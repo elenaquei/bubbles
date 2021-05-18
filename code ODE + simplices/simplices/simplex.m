@@ -8,7 +8,7 @@ classdef simplex
         verification_coeff
     end
     methods
-        function simplex_x = simplex(nodes_number, number,verified,frontal,list_nodes)
+        function simplex_x = simplex(nodes_number, number, verified, frontal, list_nodes)
             if nargin <3 || iesmpty(verified)
                 verified = 0;
             end

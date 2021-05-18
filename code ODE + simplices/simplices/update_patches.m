@@ -1,10 +1,16 @@
-function list_of_nodes = update_patches(list_of_nodes,list_of_simplices)
+function list_of_nodes = update_patches(list_of_nodes,list_of_simplices, indices)
+
 if length(list_of_nodes)==1
     list_of_nodes_cell = cell(1,1);
     list_of_nodes_cell{1} = list_of_nodes;
     list_of_nodes = list_of_nodes_cell;
 end
-for j = 1:length(list_of_nodes)
+
+if nargin <3 || isempty(indices)
+    indices = 1:length(list_of_nodes);
+end
+
+for j = indices
     list_of_nodes{j}.patch = [];
     for k = 1: length(list_of_simplices)
         list_of_nodes{j} = add_simplex_to_patch(list_of_nodes{j},...

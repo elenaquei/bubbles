@@ -13,6 +13,7 @@ function [s, x_n,sol_2] = continuation_Hopf ( lambda0, x0, f, n_nodes, n_iter,..
 % s             string, path where to save results
 % eigenvec      approximation of the eigenvector at the Hopf bifurcation
 % eigenval      approximation of the eigenvalue at the Hopf bifurcation
+
 % index_saddle  variable of the Hopf bifurcation
 %
 % OUTPUTS
@@ -107,28 +108,9 @@ if x_dot_0(3)*sol_2.scalar(3)>0 % I want the ampitude to go through 0
 end
 
 
-% first_iter = 500; % 55 for Lorenz84 
-% if n_iter_in >first_iter
-%     n_iter = first_iter;
-%     n_iter_in  = n_iter_in - first_iter;
-% else
-%     n_iter = n_iter_in;
-%     n_iter_in = 0;
-% end
-
 use_intlab = temp_intval;
 
 [s, x_n] = continuation ( sol_2, big_Hopf, n_iter, h, x_dot_0,s, 10^-6, ...
     bool_Hopf, bool_fancy_scalar, bool_saddle, index_saddle);
 
-% if n_iter_in>0
-%     s_second_part = strcat(s,'_after_Hopf');
-%     [y_n, y_n_dot, F_new] = hopf_gluing(s,f);
-%     [s, x_n] = continuation ( y_n, F_new, n_iter_in, h, y_n_dot,s_second_part,...
-%         10^-6, 0, bool_fancy_scalar, bool_saddle, index_saddle); 
-%     % for example_hopf, a saddle node is found numerically but not
-%     % validated
-% end
-
-return
 end

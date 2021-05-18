@@ -1,12 +1,9 @@
-function [flag,Imin,Imax,new_iter,Yvector,Z0vector,Z1vector,Z2vector,new_step,Ys] = ...
-    radii_polynomials_simplex(xBar0,xBar1,xBar2,...
-    alpha0,alpha1,alpha2,previous_iter0,previous_iter1,DH0,DH1,DH2,A0,A1,A2)
+function [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,simplex, list_of_nodes] = ...
+    radii_polynomials_simplex(simplex, list_of_nodes)%xBar0,xBar1,xBar2,...
+    %alpha0,alpha1,alpha2,previous_iter0,previous_iter1)
 % INPUT:
-% xBar0      Xi_vector, approximate solution of the problem in x_0;
-% xBar1      Xi_vector, approximate solution of the problem in x_1;
-% alpha0,alpha1      full_problem, coefficients of the ODE equations;
-% DH0        derivative in x_0 (DEFAULT: computed);
-% DH1        derivative in x_1 (DEFAULT: computed);
+% simplex   instance of the class simplex - validation material
+% list_of_nodes     cell of instances of the node class
 %
 % OUTPUT:
 % flag      0  - program failed
@@ -14,12 +11,12 @@ function [flag,Imin,Imax,new_iter,Yvector,Z0vector,Z1vector,Z2vector,new_step,Ys
 %           2  - really good (consider decreasing delta)
 % Imin      positive real value, left bound of the interval;
 % Imax      positive real value, right bound of the interval;
-% new_iter  storage of elements that are useful for next computation
 % Yvector   value of the Y bound
 % Z0vector  value of the Z0 bound
 % Z1vector  value of the Z1 bound
 % Z2vector  value of the Z2 bound
-% new_step  euristic approximation of the new stepsize
+% simplex   updated with the validation stepsize
+% list_of_nodes     updated with the validation results
 %
 % In this function, the radii polynomial refering to the given problem and
 % solutions are computed.
@@ -29,24 +26,21 @@ global Display
 global talkative
 
 % ERROR Spotting
-if isempty(DH0)
-    DH0 = derivative_to_matrix(derivative(alpha0,xBar0,0));
+
+if length(list_of_nodes) == 3
+    indeces = [1,2,3];
+else
+    indeces = simplex.nodes_number;
 end
-if isempty(DH1)
-    DH1 = derivative_to_matrix(derivative(alpha1,xBar1,0));
-end
-if isempty(DH2)
-    DH2 = derivative_to_matrix(derivative(alpha2,xBar2,0));
-end
-if any(size(DH0)~=size(DH1))
-    error('Sizes of derivatives must be equal.')
-end
-if length(size(DH0))>2
-    error('Derivatives must be matrices.')
-end
-if size(DH0,1)~=size(DH0,2)
-    error('Derivatives must be square matrices.');
-end
+
+xBar0 = list_of_nodes{indeces(1)}.coordinates;
+xBar1 = list_of_nodes{indeces(2)}.coordinates;
+xBar2 = list_of_nodes{indeces(3)}.coordinates;
+
+alpha0 = list_of_nodes{indeces(1)}.problem;
+alpha1 = list_of_nodes{indeces(2)}.problem;
+alpha2 = list_of_nodes{indeces(3)}.problem;
+
 
 if xBar0.size_scalar~=xBar1.size_scalar
     error('Scalar dimensions are not consistent.')
@@ -181,10 +175,10 @@ end
 % Z1 BOUND
 if  ~ isempty(previous_iter) && ~isempty(previous_iter.Z1)
     [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar1,alpha0,...
-        alpha1,alpha1,Adagger_delta,Adagger_delta,previous_iter0.Z1,previous_iter1.Z1);
+        alpha1,alpha1,Adagger_delta1,Adagger_delta2,previous_iter0.Z1,previous_iter1.Z1);
 else
     [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar1,alpha0,...
-        alpha1,alpha1,Adagger_delta,Adagger_delta);
+        alpha1,alpha1,Adagger_delta1,Adagger_delta2);
 end
 
 if talkative>1
@@ -203,6 +197,8 @@ if talkative>1
 end
 new_iter=struct('Y',new_iter_Y,'Z1',new_iter_Z1,'Z1_extrema',Z1s(:,end),...
     'Z0_extrema',Z0s(:,end),'Y_extrema',Ys(:,end),'Z2',Z2vector);
+
+list_of_nodes{indeces(3)}.previous_validation = new_iter;
 
 % computation of the radius
 try
@@ -223,6 +219,8 @@ end
 
 % adapttive stepsize
 new_step = ideal_stepsize(Imin, Imax, Ys, Z0s, Z1s, Z2s);
+
+simplex.verification_coeff = new_step;
 
 % plot
 if Display
