@@ -1,4 +1,3 @@
-
 global nu
 global use_intlab
 global talkative
@@ -22,56 +21,80 @@ step_size = 10^-4;
 n_iter =5;
 save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
 
+% starting parameters
+%  (alpha,I,epsilon,gamma) = (0.1, 0.4, 0.2480, 1) 
+alpha = 0.1;
+I_fix = 0.4;
+epsilon_fix = 0.2480;
+% gamma = 1; % will not be coded for simplicity
+
 % construct the numerical solution with forward integration from known
 % initial conditions
-init_coord  = [-1.2595115397689e+01  -1.6970525307084e+01   27];
-approx_period = 2.3059072639398e+00;
+init_coord  = [0.5667, 0.4864];
+approx_period = 14.85;
 
 % right hand side
-f=@(t,x);
+f=@(t,x)[x(1)*(x(1)-alpha)*(1-x(1))-x(2)+I_fix;epsilon_fix*( x(1)-x(2) )];
 
 % forward integration
-[tout, yout] = ode45(f,[0,approx_period],init_coord);
+[tout, yout] = ode45(f,linspace(0,approx_period,n_nodes*2),init_coord);
+
 
 % transformation to Xi_vector from time series
-xXi = time_series2Xi_vec(tout,yout,n_nodes);
+x_sol = time_series2Xi_vec(tout,yout,n_nodes);
 
 
 % definition of the vector field in the form of a string
 
 % ?- \dot x1 + x1^2 - x1 \alpha - x1^3- \alphau x1 - x2 + I\n - \dot x2 + \epsilon x1 - \epsilon \gamma x2
 %
-string_FHN = '- dot x1 + l1 x1^2 - l1 alpha x1 -l1  x1^3 - alpha l1 x1^2 - l1 x2 + I \n - dot x2 + epsilon l1 x1 - epsilon*gamma l1 x2'; % general FHN
+string_FHN = '- dot x1 + l1 x1^2 - alpha l1 x1 -l1  x1^3 - alpha l1 x1^2 - l1 x2 + I \n - dot x2 + epsilon l1 x1 - epsilon l1 x2'; % general FHN
 % plug in all the variables
-string_FHN_vars = strrep(string_FHN, 'epsilon*gamma' , num2str(epsilon*gamma));
-string_FHN_vars = strrep(string_FHN_vars, 'alpha' , num2str(alpha)); 
-string_FHN_vars = strrep(string_FHN_vars, 'I' , num2str(I)); 
+string_FHN_vars = strrep(string_FHN, 'alpha' , num2str(alpha)); 
 % fixed point vector field
-string_FHN_epsilon = strrep(string_FHN_vars, 'epsilon', num2str(epsilon)); 
-% continuation vector field, where pho is the second scalar variable
-string_FHN_cont = strrep(string_FHN_vars, 'gamma', num2str(gamma)); 
-% setting pho as the second scalar variable
+string_FHN_fix = strrep(string_FHN_vars, 'I' , num2str(I_fix)); 
+string_FHN_fix = strrep(string_FHN_fix, 'epsilon' , num2str(epsilon_fix));
+% setting I and epsilon as scalar variables
+% stupidly, the change to Hopf vector field does not expect the period to
+% be there already. Why? no idea...
+string_FHN_vars = strrep(string_FHN_vars, 'l1' , ''); 
+string_FHN_vars = strrep(string_FHN_vars, 'I' , 'l1'); 
+string_FHN_vars = strrep(string_FHN_vars, 'epsilon' , 'l2');
+
 
 % constructing the ODEs systems
 % fixed pho
-scal_eq = default_scalar_eq(xXi);
-polynomial_fix = from_string_to_polynomial_coef(string_FHN_epsilon);
+scal_eq = default_scalar_eq(x_sol);
+polynomial_fix = from_string_to_polynomial_coef(string_FHN_fix);
 F_fix = full_problem(scal_eq, polynomial_fix);
+bool_Hopf = 0;
+if bool_Hopf
+    % adds two new scalar equations
+    F_fix = F_update_Hopf(F_fix,x_sol);
+else
+    F_fix.scalar_equations = fancy_scalar_condition(x_sol, F_fix.scalar_equations);
+end
+% F_fix = continuation_equation_simplex(F_fix,x_sol);
+
 
 % refining the approximation with Newton method
-xXi = Newton_2(xXi,F_fix,30,10^-7);
+x_sol = Newton_2(x_sol,F_fix,30,10^-7);
 
-% defining the continuation problem in pho, starting at pho_null
-sol = Xi_vector([xXi.scalar,pho_null], xXi.vector);
-scal_eq = default_scalar_eq(sol);
-polynomial = from_string_to_polynomial_coef(string_FHN_cont); 
-F_not_square = full_problem(scal_eq, polynomial);
-
-
+polynomial = from_string_to_polynomial_coef(string_FHN_vars);
 big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
+
 % TO DO: build the new solution
+% that means: change the solution we just found into a Hopf solution: 
+% scalar = [omega, I, epsilon, a, x], vector = (y-x)/a
+x = mean(yout,1);
+amplitude = norm(yout - x);
+moved_vector = x_sol.vector;
+moved_vector(:,n_nodes+1) = moved_vector(:,n_nodes+1) - x.';
+vector = moved_vector/amplitude;
+sol = Xi_vector([x_sol.scalar,I_fix, epsilon_fix, amplitude, x], vector);
+
 
 % launch the validation
 bool_Hopf = 1;
-[list_of_simplices,list_of_nodes] = continuation_simplex ( sol, big_Hopf,...
+[list_of_simplices,list_of_nodes] = continuation_simplex( sol, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf);

@@ -108,7 +108,7 @@ for j = 1 : n_vector % equation we are considering
             %c*prod(prod(construct_product_matrix(n_vector,k,p)));
             %%% THERE IS A PROBLEM HERE 
             
-            q_new = [1, small_Hopf.power_scalar{j}(m), sum(k)-1, horiz(p-k)]; % T, lambda,a, x
+            q_new = [1, small_Hopf.power_scalar{j}(:,m).', sum(k)-1, horiz(p-k)]; % T, lambda,a, x
             % if all (k==0) && i == prod(p+1)
             %    q_new = [1, small_Hopf.power_scalar{j}(m), 0, horiz(p-k)];
             % end

@@ -10,9 +10,18 @@ Z2_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 Y_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 
 %% set up the first 6 simplices
-[list_of_simplices,list_of_nodes] = simplices_set_up(x0,F, step_size);
+firt_node = node(1,x0,F);
+[list_of_simplices,list_of_nodes,list_of_frontal_nodes] = simplices_set_up(firt_node, F, step_size);
 
-list_of_frontal_nodes = 1:6;
+% add the appropriate continuation equations
+for k = 1:6
+    simplex = list_of_simplices.simplex{k};
+    node_numbers = simplex.nodes_number;
+    [simplex, list_of_nodes] = simplex_scalar_equations(node_numbers, ...
+        bool_Hopf, list_of_nodes);
+    list_of_simplices.simplex{k} = simplex;
+end
+
 
 % validate all new simplices
 for j = 1:6
@@ -45,9 +54,9 @@ while i < n_iter
         list_of_frontal_nodes, F);
     
     % grow the node
-    node = list_of_nodes{node_number};
+    node_i = list_of_nodes{node_number};
     [index_new_simplices, list_of_nodes, list_of_simplices, ...
-        list_of_new_frontal_nodes] = grow_simplex(node,...
+        list_of_new_frontal_nodes] = grow_simplex(node_i,...
         step_size, list_of_nodes, list_of_simplices, problem);
     
     if any(list_of_new_frontal_nodes<0)
