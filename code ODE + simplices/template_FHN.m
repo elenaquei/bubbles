@@ -30,8 +30,8 @@ epsilon_fix = 0.2480;
 
 % construct the numerical solution with forward integration from known
 % initial conditions
-init_coord  = [0.5667, 0.4864];
-approx_period = 14.7;
+init_coord  = [0.4491    0.4829];
+approx_period = 15.5998;
 
 % right hand side
 f=@(t,x)[x(1)*(x(1)-alpha)*(1-x(1))-x(2)+I_fix;epsilon_fix*( x(1)-x(2) )];
@@ -61,14 +61,14 @@ string_FHN_vars = strrep(string_FHN_vars, 'l1' , '');
 string_FHN_vars = strrep(string_FHN_vars, 'I' , 'l1'); 
 string_FHN_vars = strrep(string_FHN_vars, 'epsilon' , 'l2');
 
-x_sol.vector(:,1:n_nodes-4) = 0;
-x_sol.vector(:,n_nodes+5:end) = 0;
-x_sol = symmetrise(x_sol);
+% x_sol.vector(:,1:n_nodes-4) = 0;
+% x_sol.vector(:,n_nodes+5:end) = 0;
+% x_sol = symmetrise(x_sol);
 
 % constructing the ODEs systems
 % fixed pho
 % scal_eq = fancy_scalar_condition(x_sol);
-scal_eq = default_scalar_eq(x_sol);
+scal_eq = default_scalar_eq(x_sol,2);
 polynomial_fix = from_string_to_polynomial_coef(string_FHN_fix);
 F_fix = full_problem(scal_eq, polynomial_fix);
 
@@ -83,16 +83,16 @@ big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 % scalar = [omega, I, epsilon, a, x], vector = (y-x)/a
 x = mean(yout,1);
 amplitude = norm(yout - x);
-moved_vector = x_sol_N.vector;
+moved_vector = x_sol.vector;
 moved_vector(:,n_nodes+1) = moved_vector(:,n_nodes+1) - x.';
 vector = moved_vector/amplitude;
-sol = Xi_vector([x_sol_N.scalar,I_fix, epsilon_fix, amplitude, x], vector);
+sol = Xi_vector([x_sol.scalar,I_fix, epsilon_fix, amplitude, x], vector);
 
 big_Hopf = F_update_Hopf(big_Hopf,sol);
 
-% test_Hopf = big_Hopf;
-% test_Hopf = continuation_equation_simplex(test_Hopf,sol);
-% sol_N = Newton_2(sol,test_Hopf,30,10^-7);
+test_Hopf = big_Hopf;
+test_Hopf = continuation_equation_simplex(test_Hopf,sol);
+sol_N = Newton_2(sol,test_Hopf,30,10^-7);
 
 % launch the validation
 bool_Hopf = 1;
