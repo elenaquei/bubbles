@@ -8,6 +8,8 @@ talkative = 1;
 use_intlab = 0;
 RAD_MAX = 10^-2;
 
+debug_flag = 1;
+
 try
     intval(1);
 catch
@@ -16,7 +18,7 @@ end
 
 % problem dependent
 nu = 1.05;
-n_nodes = 10;
+n_nodes = 7;
 step_size = 10^-4;
 n_iter =10;
 save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
@@ -26,21 +28,30 @@ save_file = 'saved elements/FHN_simplex_validation'; % path where the validation
 alpha = 0.1;
 I_fix = 0.4;
 epsilon_fix = 0.2480;
+% testing_epsilon_fix = .180;
 % gamma = 1; % will not be coded for simplicity
 
 % construct the numerical solution with forward integration from known
 % initial conditions
-init_coord  = [0.4491    0.4829];
-approx_period = 15.5998;
+init_coord  = [0.4491    0.4829]; % testing = [0.7099    0.4075];%
+approx_period = 14.7;
+% testing_approx_period = 16.74;
 
 % right hand side
-f=@(t,x)[x(1)*(x(1)-alpha)*(1-x(1))-x(2)+I_fix;epsilon_fix*( x(1)-x(2) )];
+f=@(t,x)[x(1)^2 - alpha * x(1) - x(1)^3 + alpha * x(1)^2 - x(2) + I_fix ;
+    epsilon_fix * x(1) - epsilon_fix * x(2)];
 
 % forward integration
 [tout, yout] = ode23s(f,linspace(0,approx_period,n_nodes*20),init_coord);
 
-
+if debug_flag
+    plot(yout(:,1),yout(:,2))
+    hold on
+    plot(yout(end,1),yout(end,2),'*')
+    plot(yout(1,1),yout(1,2),'*')
+end
 % transformation to Xi_vector from time series
+% yout = 0.5*ones(length(tout),2);
 x_sol = time_series2Xi_vec(tout,yout,n_nodes);
 
 
@@ -48,7 +59,7 @@ x_sol = time_series2Xi_vec(tout,yout,n_nodes);
 
 % ?- \dot x1 + x1^2 - x1 \alpha - x1^3- \alphau x1 - x2 + I\n - \dot x2 + \epsilon x1 - \epsilon \gamma x2
 %
-string_FHN = '- dot x1 + l1 x1^2 - alpha l1 x1 - l1 x1^3 + alpha l1 x1^2 - l1 x2 + I \n - dot x2 + epsilon l1 x1 - epsilon l1 x2'; % general FHN
+string_FHN = '- dot x1 + l1 x1^2 - alpha l1 x1 - l1 x1^3 + alpha l1 x1^2 - l1 x2 + I l1 \n - dot x2 + epsilon l1 x1 - epsilon l1 x2'; % general FHN
 % plug in all the variables
 string_FHN_vars = strrep(string_FHN, 'alpha' , num2str(alpha)); 
 % fixed point vector field
@@ -67,8 +78,8 @@ string_FHN_vars = strrep(string_FHN_vars, 'epsilon' , 'l2');
 
 % constructing the ODEs systems
 % fixed pho
-% scal_eq = fancy_scalar_condition(x_sol);
-scal_eq = default_scalar_eq(x_sol,2);
+scal_eq = fancy_scalar_condition(x_sol);
+% scal_eq = default_scalar_eq(x_sol,2);
 polynomial_fix = from_string_to_polynomial_coef(string_FHN_fix);
 F_fix = full_problem(scal_eq, polynomial_fix);
 

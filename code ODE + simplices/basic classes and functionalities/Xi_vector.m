@@ -843,17 +843,17 @@ classdef Xi_vector
                 plot(t_plot,real(xt1(:,j)),varargin{:})
                 xlabel('t')
                 ylabel(sprintf('component %d',j));
-                xlim([0,2*pi * abs(X.scalar(1))])
-                ylim([1.2*min(real(xt1(:,j))),1.2*max(real(xt1(:,j)))]);
+                %xlim([0,2*pi * abs(X.scalar(1))])
+                %ylim([1.2*min(real(xt1(:,j))),1.2*max(real(xt1(:,j)))]);
                 
-                xTick_float = linspace(0,2*pi * abs(X.scalar(1)),...
-                    max(2,ceil(8/X.size_vector)));
-                yTick_float = sort([linspace(min(real(xt1(:,j))),...
-                    max(real(xt1(:,j))),4),0]);
-                set(gca,'XTick',xTick_float)
-                set(gca,'XTickLabel',sprintf('%5.3f|',xTick_float))
-                set(gca,'YTick',yTick_float)
-                set(gca,'YTickLabel',sprintf('%1.2f|',yTick_float))
+                %xTick_float = linspace(0,2*pi * abs(X.scalar(1)),...
+                %    max(2,ceil(8/X.size_vector)));
+                %yTick_float = sort([linspace(min(real(xt1(:,j))),...
+                %    max(real(xt1(:,j))),4),0]);
+                %set(gca,'XTick',xTick_float)
+                %set(gca,'XTickLabel',sprintf('%5.3f|',xTick_float))
+                %set(gca,'YTick',yTick_float)
+                %set(gca,'YTickLabel',sprintf('%1.2f|',yTick_float))
             end
         end
         %PLOT
