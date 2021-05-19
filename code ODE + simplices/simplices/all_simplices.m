@@ -18,7 +18,9 @@ classdef all_simplices
             % append as many simplices as you like, one by one to the list
             list_of_simplices.order(end+1) = simplex.number;
             list_of_simplices.simplex{end+1} = simplex;
-            list_of_simplices = append(list_of_simplices, varargin{:});
+            if ~isempty(varargin)
+                list_of_simplices = append(list_of_simplices, varargin{:});
+            end
         end
         
         function plot_list_of_simplices(list_simplex)

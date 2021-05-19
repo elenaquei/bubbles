@@ -21,49 +21,44 @@ list_of_nodes{1} = starting_node;
 
 % wrapper
 xc_h = step_size;
-starting_solution = starting_node.solution;
+starting_solution_Xi = starting_node.solution;
+starting_solution = Xi_vec2vec(starting_solution_Xi);
 
 div_tol = 1E-2; % Expansion/divergence criteria for step size reduction.
 tol = 1E-12;    % Tolerance for convergence of Gauss-Newton.
-F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, starting_node)));
-%F = @(X) X(1) - X(2)^2 - X(3)^2;
-DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, starting_solution),0));
-% DF = @(X) [1, -2*X(2), -2*X(3)];
+F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, starting_solution_Xi)));
 
-
-% Get projector
-[Q,~] = qr(DF(Xi_vec2vec(starting_solution)).');
-P = Q(:,end-1:end)*Q(:,end-1:end).'; % Projection to the tangent space
+DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, starting_solution_Xi),0));
 
 % Decide how many simplices are to be added to fill the gap.
+n_new_points = 6;
 n_new_simplex = 6;
 gap = 2*pi;
 y1_R2 = [0;1];
 % Generate predictor "fan" in R2 coordinate system.
-y_fan_R2 = zeros(2,n_new_simplex-1);
-for j=1:n_new_simplex-1
-    theta = gap*j/n_new_simplex;
+y_fan_R2 = zeros(2,n_new_points);
+for j=1:n_new_points
+    theta = gap*j/n_new_points;
     Rtheta = [cos(theta),sin(theta); -sin(theta),cos(theta)];
-    
     y_fan_R2(:,j) = Rtheta*y1_R2;
-    
 end
 
-R2_to_TM = null(DF(Xi_vec2vec(starting_solution)));
+R2_to_TM = null(DF(starting_solution));
 % Push the "fan" back into the tangent space T_{xc}M, and scale.
 y_fan = R2_to_TM*y_fan_R2;
-x_fan = zeros(dim,n_new_simplex-1);
-for j=1:n_new_simplex-1
+x_fan = zeros(size(y_fan,1),n_new_points);
+for j=1:n_new_points
     y_fan(:,j) = y_fan(:,j)/norm(y_fan(:,j),2);
     x_fan(:,j) = starting_solution + y_fan(:,j)*xc_h;
 end
 % Refine predictors with Gauss-Newton
-for j=1:n_new_simplex-1
+for j=1:n_new_points
     x_init = x_fan(:,j);
     h_local = xc_h;
     delta = inf;
     while delta>tol*(1+norm(x_init,2))
         if norm(x_init - x_fan(:,j))>div_tol   % Diverging.
+            h_local = h_local * 0.9;
             x_fan(:,j) = starting_solution + y_fan(:,j)/norm(y_fan(:,j),2)*h_local;
             x_init = x_fan(:,j);
         end
@@ -77,7 +72,7 @@ end
 list_new_nodes = zeros(1, n_new_simplex);
 for i = 1:n_new_simplex
     number = i+1;
-    solution = vec2Xi_vec(x_fan(:,i), starting_node);
+    solution = vec2Xi_vec(x_fan(:,i), starting_solution_Xi);
     new_node = node(number, solution, problem);
     list_of_nodes{number} = new_node;
     list_new_nodes(i) = new_node.number;
@@ -93,12 +88,11 @@ for i = 1:n_new_simplex
     else
         number2 = i;
     end
-    nodes_number = [node.number, number1, number2];
+    nodes_number = [starting_node.number, number1, number2];
     simplex_new = simplex(nodes_number, i, verified, frontal,list_of_nodes);
     list_of_simplices = append(list_of_simplices, simplex_new);
 end
 list_of_frontal_nodes = list_new_nodes;
-list_new_nodes = union(list_new_nodes, out_nodes);
 list_of_nodes = update_patches(list_of_nodes,list_of_simplices, list_new_nodes);
 
 
@@ -110,6 +104,9 @@ function x_new = GN(x,F,DF)
 [dim,~] = size(x);
 R = R(1:dim-2,1:dim-2);
 Q1 = Q(:,1:end-2);
+if rcond(R)>10^5 || rcond(R)<10^-5
+    warning('Ill conditioned')
+end
 z = R\F(x);
 x_new = x - Q1*z;
 end

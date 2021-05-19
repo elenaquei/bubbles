@@ -44,7 +44,7 @@ f=@(t,x)[x(1)^2 - alpha * x(1) - x(1)^3 + alpha * x(1)^2 - x(2) + I_fix ;
 % forward integration
 [tout, yout] = ode23s(f,linspace(0,approx_period,n_nodes*20),init_coord);
 
-if debug_flag
+if debug_flag>2
     plot(yout(:,1),yout(:,2))
     hold on
     plot(yout(end,1),yout(end,2),'*')
@@ -89,21 +89,22 @@ x_sol_N = Newton_2(x_sol,F_fix,30,10^-7);
 polynomial = from_string_to_polynomial_coef(string_FHN_vars);
 big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 
-% TO DO: build the new solution
+% build the new solution
 % that means: change the solution we just found into a Hopf solution: 
 % scalar = [omega, I, epsilon, a, x], vector = (y-x)/a
-x = mean(yout,1);
-amplitude = norm(yout - x);
-moved_vector = x_sol.vector;
-moved_vector(:,n_nodes+1) = moved_vector(:,n_nodes+1) - x.';
+x = x_sol_N.vector(:,n_nodes+1) ;
+moved_vector = x_sol_N.vector;
+moved_vector(:,n_nodes+1) = moved_vector(:,n_nodes+1) - x;
+amplitude = norm(yout - x.');
 vector = moved_vector/amplitude;
-sol = Xi_vector([x_sol.scalar,I_fix, epsilon_fix, amplitude, x], vector);
-
-big_Hopf = F_update_Hopf(big_Hopf,sol);
+sol = Xi_vector([x_sol_N.scalar,I_fix, epsilon_fix, amplitude, x.'], vector);
 
 test_Hopf = big_Hopf;
+test_Hopf = F_update_Hopf(test_Hopf,sol);
 test_Hopf = continuation_equation_simplex(test_Hopf,sol);
 sol_N = Newton_2(sol,test_Hopf,30,10^-7);
+
+big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 % launch the validation
 bool_Hopf = 1;

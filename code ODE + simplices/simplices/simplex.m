@@ -9,7 +9,7 @@ classdef simplex
     end
     methods
         function simplex_x = simplex(nodes_number, number, verified, frontal, list_nodes)
-            if nargin <3 || iesmpty(verified)
+            if nargin <3 || isempty(verified)
                 verified = 0;
             end
             if nargin<4 || isempty(frontal)

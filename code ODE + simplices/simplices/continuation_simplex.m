@@ -10,16 +10,15 @@ Z2_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 Y_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 
 %% set up the first 6 simplices
-firt_node = node(1,x0,F);
-[list_of_simplices,list_of_nodes,list_of_frontal_nodes] = simplices_set_up(firt_node, F, step_size);
+first_node = node(1,x0,F);
+[list_of_simplices,list_of_nodes,list_of_frontal_nodes] = simplices_set_up(first_node, F, step_size);
 
 % add the appropriate continuation equations
 for k = 1:6
     simplex = list_of_simplices.simplex{k};
     node_numbers = simplex.nodes_number;
-    [simplex, list_of_nodes] = simplex_scalar_equations(node_numbers, ...
+    [list_of_nodes] = simplex_scalar_equations(node_numbers, ...
         bool_Hopf, list_of_nodes);
-    list_of_simplices.simplex{k} = simplex;
 end
 
 

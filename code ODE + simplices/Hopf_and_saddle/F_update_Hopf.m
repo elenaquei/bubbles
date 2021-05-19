@@ -17,8 +17,8 @@ p2(1:x_new.size_scalar) = 0;
 K = x_new.nodes;
 K_vec = -K:K;
 K_mat = [0*(1:x_new.size_scalar),repmat(K_vec, 1,x_new.size_vector)];
-p2 = -1i*K_mat.*conj(p2); % NEW CONDITION
-const_p2 = -sum(Xi_vec2vec(x_new).'.*p2) ;
+p2 = K_mat.^2.*conj(p2); % NEW CONDITION
+const_p2 = -sum(Xi_vec2vec(x_new).'.*p2) ; % -1
 
 % NEW CONDITION  
 % const_p2 could also be -1, but unfit for Rossler, somehow
