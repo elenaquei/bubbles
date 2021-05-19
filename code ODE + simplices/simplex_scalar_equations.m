@@ -1,5 +1,5 @@
 function [list_of_nodes] = simplex_scalar_equations(node_number, ...
-            bool_Hopf, list_of_nodes)
+            bool_Hopf, list_of_nodes, n_near_nodes)
 % function [simplex, list_of_nodes] = simplex_scalar_equations(simplex, ...
 %           bool_Hopf, list_of_nodes)
 
@@ -9,12 +9,13 @@ for i = node_number
         % checking if the equations have already been added
         continue
     end
-    node_i = node_scalar_equation(node_i, bool_Hopf);
+    node_i = node_scalar_equation(node_i, bool_Hopf, list_of_nodes,n_near_nodes);
+    % change: use info on the patch of node_i to order the spans
     list_of_nodes{i} = node_i;
 end
 end
 
-function node = node_scalar_equation(node, bool_Hopf)
+function node = node_scalar_equation(node, bool_Hopf, list_of_nodes, n_near_nodes)
 
 F_problem = node.problem;
 x = node.solution;
@@ -26,7 +27,7 @@ else
     F_problem = fancy_scalar_condition(x, F_problem);
 end
 
-F_problem = continuation_equation_simplex(F_problem,x);
+F_problem = continuation_equation_simplex(F_problem,x,list_of_nodes, n_near_nodes);
 
 node.problem = F_problem;
 end

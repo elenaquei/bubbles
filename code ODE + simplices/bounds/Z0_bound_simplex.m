@@ -35,28 +35,28 @@ end
 
 A_d1=A1-A0;
 A_d2=A2-A0;
-DHd1= DH1-DH0;
-DHd2= DH2-DH0;
+A_dagger_d1= DH1-DH0;
+A_dagger_d2= DH2-DH0;
 
-if any(size(A_d1)~=size(DHd1))
+if any(size(A_d1)~=size(A_dagger_d1))
     disp('problem in sizes\n');
 end
 
 if use_intlab
     Z0_vector=norm_Ximat(max(sup(abs(B0)),max(sup(abs(B1)),sup(abs(B2))))...
-        +max(max(abs(A_d1*DHd1),abs(A_d2*DHd1)),...
-        max(abs(A_d1*DHd2),abs(A_d2*DHd2))),xBar0);
+        +max(max(abs(A_d1*A_dagger_d1),abs(A_d2*A_dagger_d1)),...
+        max(abs(A_d1*A_dagger_d2),abs(A_d2*A_dagger_d2))),xBar0);
     Z0=norm_Ximat(max(sup(abs(B0)),max(sup(abs(B1)),sup(abs(B2)))),xBar0);
-    Z0Delta=1/8*norm_Ximat(max(max(abs(A_d1*DHd1),abs(A_d2*DHd1)),...
-        max(abs(A_d1*DHd2),abs(A_d2*DHd2))),xBar0);
+    Z0Delta=1/8*norm_Ximat(max(max(abs(A_d1*A_dagger_d1),abs(A_d2*A_dagger_d1)),...
+        max(abs(A_d1*A_dagger_d2),abs(A_d2*A_dagger_d2))),xBar0);
     Z0_vector = Z0 + Z0Delta;
 else
     Z0_vector=norm_Ximat(max(sup(abs(B0)),sup(abs(B1)))+...
-        max(max(abs(A_d1*DHd1),abs(A_d2*DHd1)),...
-        max(abs(A_d1*DHd2),abs(A_d2*DHd2))),xBar0);
+        max(max(abs(A_d1*A_dagger_d1),abs(A_d2*A_dagger_d1)),...
+        max(abs(A_d1*A_dagger_d2),abs(A_d2*A_dagger_d2))),xBar0);
     Z0=norm_Ximat(max(abs(B0),max(abs(B1),abs(B2))),xBar0);
-    Z0Delta=1/8*norm_Ximat(max(max(abs(A_d1*DHd1),abs(A_d2*DHd1)),...
-        max(abs(A_d1*DHd2),abs(A_d2*DHd2))),xBar0);
+    Z0Delta=1/8*norm_Ximat(max(max(abs(A_d1*A_dagger_d1),abs(A_d2*A_dagger_d1)),...
+        max(abs(A_d1*A_dagger_d2),abs(A_d2*A_dagger_d2))),xBar0);
     Z0_vector = Z0 + Z0Delta;
 end
 

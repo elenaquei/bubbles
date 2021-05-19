@@ -58,10 +58,9 @@ tau = 1.2;      % This is the tau used in the paper of G/L/P.
 div_tol = 1E-2; % Expansion/divergence criteria for step size reduction.
 tol = 1E-12;    % Tolerance for convergence of Gauss-Newton.
 F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, node.solution))); 
-%F = @(X) X(1) - X(2)^2 - X(3)^2;
 DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, node.solution),0)); 
-% DF = @(X) [1, -2*X(2), -2*X(3)];
 [dim,n] = size(xc_int);
+
 % Gap complement direction.
 if n==1
     a = xc_int - xc;

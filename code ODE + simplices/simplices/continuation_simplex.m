@@ -2,6 +2,9 @@ function [list_of_simplices,list_of_nodes] = continuation_simplex(x0, F,...
     n_iter, step_size, save_file, bool_Hopf)
 % function list_of_simplices = continuation_simplex(x0, F, n_iter, h, save_file, bool_Hopf)
 
+global use_intlab
+use_intlab = 0;
+
 Interval = zeros(2,n_iter);
 norm_x = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 Z0_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
@@ -17,17 +20,22 @@ first_node = node(1,x0,F);
 for k = 1:6
     simplex_k = list_of_simplices.simplex{k};
     node_numbers = simplex_k.nodes_number;
-    [list_of_nodes] = simplex_scalar_equations(node_numbers, ...
-        bool_Hopf, list_of_nodes);
+    for j = node_numbers
+        n_near_nodes = neighboring_nodes(j, list_of_nodes, list_of_simplices);
+        [list_of_nodes] = simplex_scalar_equations(j, ...
+            bool_Hopf, list_of_nodes, n_near_nodes);
+    end
 end
 
 
 % validate all new simplices
 for j = 1:6
     simplex_j = list_of_simplices.simplex{j};
+    use_intlab = 1;
     [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
         simplex_j, list_of_nodes] = ...
         radii_polynomials_simplex(simplex_j, list_of_nodes);
+    use_intlab = 0;
     if flag < 1
         error('Validation failed')
     end
@@ -116,4 +124,17 @@ end
 [~, priority_node_index] = min(abs(gap_angle_vec));
 priority_node = list_of_frontal_nodes(priority_node_index);
 min_gap = gap_angle_vec(priority_node_index);
+end
+
+function list_near_nodes = neighboring_nodes(n_node, list_of_nodes, list_of_simplices)
+patch = list_of_nodes{n_node}.patch;
+list_near_nodes = [];
+for j = patch
+    simplex_j = list_of_simplices.simplex{j};
+    list_near_nodes = union(list_near_nodes, simplex_j.nodes_number);
+end
+list_near_nodes = setdiff( list_near_nodes, n_node);
+if length(list_near_nodes) == 0
+    list_near_nodes = [];
+end
 end
