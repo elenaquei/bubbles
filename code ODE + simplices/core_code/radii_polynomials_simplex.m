@@ -33,13 +33,17 @@ else
     indeces = simplex.nodes_number;
 end
 
-xBar0 = list_of_nodes{indeces(1)}.coordinates;
-xBar1 = list_of_nodes{indeces(2)}.coordinates;
-xBar2 = list_of_nodes{indeces(3)}.coordinates;
+xBar0 = list_of_nodes{indeces(1)}.solution;
+xBar1 = list_of_nodes{indeces(2)}.solution;
+xBar2 = list_of_nodes{indeces(3)}.solution;
 
 alpha0 = list_of_nodes{indeces(1)}.problem;
 alpha1 = list_of_nodes{indeces(2)}.problem;
 alpha2 = list_of_nodes{indeces(3)}.problem;
+
+previous_iter0 = list_of_nodes{indeces(1)}.previous_validation;
+previous_iter1 = list_of_nodes{indeces(2)}.previous_validation;
+previous_iter2 = list_of_nodes{indeces(3)}.previous_validation;
 
 
 if xBar0.size_scalar~=xBar1.size_scalar
@@ -54,18 +58,8 @@ end
 if ~square(alpha1)
     error('Problem is not square, a unique solution does not exist.')
 end
-if nargin<9
-    error('Too few input arguments')
-end
-if nargin<10
-    previous_iter0 = [];
-end
-if nargin<11
-    previous_iter1 = [];
-end
 
-
-% default retunr in case of crash
+% default return in case of crash
 flag=0;
 Imin=[];
 Imax=[];
@@ -73,39 +67,17 @@ Yvector=[];Z0vector=[];Z1vector=[];Z2vector=[];
 new_iter=struct('Y',[],'Z1',[],'Z_norm',[]);
 new_step=0.5; % in case of failure, start here
 
-% important values
-if ~exist('A0','var') || isempty(A0)
-    A0=inv(DH0);
-    if talkative>1
-        fprintf('Computed A0, time %s\n',datestr(now,13));
-    end
-end
-if any(size(A0)~=size(DH0))
-    warning('A0 dimension not matching with DH0 dimension');
-    A0=inv(DH0);
-    if talkative>1
-        fprintf('Computed A0, time %s\n',datestr(now,13));
-    end
-end
-
-
-if ~exist('A1','var') || isempty(A1)
-    A1=inv(DH1);
-    if talkative>1
-        fprintf('Computed A1, time %s\n',datestr(now,13));
-    end
-end
-if any(size(A1)~=size(DH1))
-    warning('A0 dimension not matching with DH0 dimension');
-    A1=inv(DH1);
-    if talkative>1
-        fprintf('Computed A1, time %s\n',datestr(now,13));
-    end
-end
-
+% set up of the derivatives
+DH0=derivative_to_matrix(derivative(alpha0,xBar0,0));
+DH1=derivative_to_matrix(derivative(alpha1,xBar1,0));
+DH2=derivative_to_matrix(derivative(alpha2,xBar2,0));
 
 Adagger_delta1=DH1-DH0;
 Adagger_delta2=DH2-DH0;
+
+A0 = inv(DH0);
+A1 = inv(DH1);
+A2 = inv(DH2);
 
 % symmetrise A0 and A1
 A0=symmetrise_A(A0,xBar0);
@@ -138,16 +110,16 @@ if use_intlab
         alpha1.scalar_equations.polynomial_equations.value{i}=intval(alpha1.scalar_equations.polynomial_equations.value{i});
         alpha2.scalar_equations.polynomial_equations.value{i}=intval(alpha2.scalar_equations.polynomial_equations.value{i});
     end
-    DH0=derivative_to_matrix(derivative(alpha0,xBar0,0));
-    DH1=derivative_to_matrix(derivative(alpha1,xBar1,0));
-    DH2=derivative_to_matrix(derivative(alpha2,xBar2,0));
     %for i=1:2
     %    coefs_linear{i}=intval(coefs_linear{i});
     %end
 end
 
+
+
+
 % Y BOUND
-if ~ isempty(previous_iter) && ~isempty(previous_iter.Y)
+if ~ isempty(previous_iter0) && ~isempty(previous_iter0.Y)
     [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,...
         alpha0,alpha1,alpha2,previous_iter0.Y,previous_iter1.Y);
 else
@@ -173,7 +145,7 @@ if any(Z0vector>1)
 end
 
 % Z1 BOUND
-if  ~ isempty(previous_iter) && ~isempty(previous_iter.Z1)
+if  ~ isempty(previous_iter0) && ~isempty(previous_iter0.Z1)
     [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar1,alpha0,...
         alpha1,alpha1,Adagger_delta1,Adagger_delta2,previous_iter0.Z1,previous_iter1.Z1);
 else

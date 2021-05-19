@@ -27,15 +27,15 @@ global use_intlab
 if nargin>10
     fullY0=old_Y0;
 else
-    [~,fullY0]=Y_bound_new(A0,xBar0,alpha0);
+    [~,fullY0]=Y_bound(A0,xBar0,alpha0);
 end
 if nargin>11
     fullY1=old_Y1;
 else
-    [~,fullY1]=Y_bound_new(A1,xBar1,alpha1);
+    [~,fullY1]=Y_bound(A1,xBar1,alpha1);
 end
 
-[~,fullY2]=Y_bound_new(A2,xBar2,alpha2);
+[~,fullY2]=Y_bound(A2,xBar2,alpha2);
 new_Y=fullY2;
 
 Y0=cnorm_Xi_vector(max(max(abs(fullY0),abs(fullY1)),abs(fullY2)),nu);

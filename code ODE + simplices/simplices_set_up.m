@@ -82,12 +82,12 @@ verified = 0;
 list_of_simplices = all_simplices();
 
 for i = 1:n_new_simplex
-    number1 = i+1;
     if i == n_new_simplex
         number2 = 2;
     else
-        number2 = i;
+        number2 = i+2;
     end
+    number1 = i+1;
     nodes_number = [starting_node.number, number1, number2];
     simplex_new = simplex(nodes_number, i, verified, frontal,list_of_nodes);
     list_of_simplices = append(list_of_simplices, simplex_new);

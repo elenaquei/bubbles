@@ -19,7 +19,7 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 10^-4;
+step_size = 10^-7;
 n_iter =10;
 save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
 
@@ -108,5 +108,5 @@ big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 % launch the validation
 bool_Hopf = 1;
-[list_of_simplices,list_of_nodes] = continuation_simplex( sol, big_Hopf,...
+[list_of_simplices,list_of_nodes] = continuation_simplex( sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf);

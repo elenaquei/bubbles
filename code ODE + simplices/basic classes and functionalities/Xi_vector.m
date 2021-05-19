@@ -749,11 +749,20 @@ classdef Xi_vector
                 end
             end
             if isintval(x_Xi.scalar)
+                if ~isintval(y_Xi.scalar)
+                    y_Xi = intval(y_Xi);
+                end
                 z_Xi.scalar=max(x_Xi.scalar.sup,y_Xi.scalar.sup);
                 z_Xi.vector=max(x_Xi.vector.sup,y_Xi.vector.sup);
             else
-                z_Xi.scalar=max(x_Xi.scalar,y_Xi.scalar);
-                z_Xi.vector=max(x_Xi.vector,y_Xi.vector);
+                if isintval(y_Xi.scalar)
+                    x_Xi = intval(x_Xi);
+                    z_Xi.scalar=max(x_Xi.scalar.sup,y_Xi.scalar.sup);
+                    z_Xi.vector=max(x_Xi.vector.sup,y_Xi.vector.sup);
+                else
+                    z_Xi.scalar=max(x_Xi.scalar,y_Xi.scalar);
+                    z_Xi.vector=max(x_Xi.vector,y_Xi.vector);
+                end
             end
             z_Xi.bool_ifft = 0;
         end

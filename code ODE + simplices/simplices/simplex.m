@@ -18,7 +18,7 @@ classdef simplex
             simplex_x.number = number;
             simplex_x.verified = verified;
             simplex_x.frontal = frontal;
-            simplex_x.nodes = nodes_number;
+            simplex_x.nodes_number = nodes_number;
             simplex_x.verification_coeff = 0; % for later, "how easy it was to verify"
             if nargin > 4
                 if length(list_nodes)>3

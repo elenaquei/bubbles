@@ -15,8 +15,8 @@ first_node = node(1,x0,F);
 
 % add the appropriate continuation equations
 for k = 1:6
-    simplex = list_of_simplices.simplex{k};
-    node_numbers = simplex.nodes_number;
+    simplex_k = list_of_simplices.simplex{k};
+    node_numbers = simplex_k.nodes_number;
     [list_of_nodes] = simplex_scalar_equations(node_numbers, ...
         bool_Hopf, list_of_nodes);
 end
@@ -24,23 +24,23 @@ end
 
 % validate all new simplices
 for j = 1:6
-    simplex = list_of_simplices.simplex{j};
+    simplex_j = list_of_simplices.simplex{j};
     [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
-        simplex, list_of_nodes] = ...
-        radii_polynomials_simplex(simplex, list_of_nodes);
+        simplex_j, list_of_nodes] = ...
+        radii_polynomials_simplex(simplex_j, list_of_nodes);
     if flag < 1
         error('Validation failed')
     end
-    list_of_simplices.simplex{j} = simplex;
+    list_of_simplices.simplex{j} = simplex_j;
     %storage
-    step_size(i) = h;
-    norm_x(:,i)    = vert(norm(x1));
-    norm_x(1:x0.size_scalar,i) = x1.scalar;% to avoid absolute values here
-    Interval(:,i)  = [Imin,Imax]';
-    Z0_iter(:,i)   = vert(Z0vector);
-    Z1_iter(:,i)   = vert(Z1vector);
-    Z2_iter(:,i)   = vert(Z2vector);
-    Y_iter(:,i)    = vert(Yvector);
+    step_size(j) = h;
+    norm_x(:,j)    = vert(norm(x1));
+    norm_x(1:x0.size_scalar,j) = x1.scalar;% to avoid absolute values here
+    Interval(:,j)  = [Imin,Imax]';
+    Z0_iter(:,j)   = vert(Z0vector);
+    Z1_iter(:,j)   = vert(Z1vector);
+    Z2_iter(:,j)   = vert(Z2vector);
+    Y_iter(:,j)    = vert(Yvector);
 end
 
 
