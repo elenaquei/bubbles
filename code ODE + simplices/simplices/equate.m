@@ -63,6 +63,8 @@ list_of_nodes = update_patches(list_of_nodes,list_of_simplices);
 
 if nargin>4
     list_of_frontal_nodes = setdiff(list_of_frontal_nodes,j_loc);
+else
+    list_of_frontal_nodes = - i_loc;
 end
 
 end
