@@ -14,8 +14,8 @@ if nargin > 2
         j = n_near_nodes(index);
         node_nearby = list_of_nodes{j};
         local_scal_eqs = node_nearby.problem.scalar_equations;
+        other_basis{counter} = zeros(2,dim);
         if local_scal_eqs.number_equations_lin > new_eq(1)
-            other_basis{counter} = zeros(2,dim);
             other_basis{counter}(1,:) = extract_lin_coef(local_scal_eqs, new_eq(1));
             other_basis{counter}(2,:) = extract_lin_coef(local_scal_eqs, new_eq(2));
         end

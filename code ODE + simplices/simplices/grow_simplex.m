@@ -69,12 +69,18 @@ else
     % a = xc_int(:,randi(n));   % Or pick a random interior one?
 end
 % Get projector
-[Q,~] = qr(DF(xc).');
-P = Q(:,end-1:end)*Q(:,end-1:end).';
+% [Q,~] = qr(DF(xc).');
+U = null(DF(xc));
+U(:,1) = make_it_real(U(:,1), node.solution);
+U(:,2) = make_it_real(U(:,2), node.solution);
+
+P = U*U.';
+
 % Project (xf-xc) for all fronal nodes xf, and complement avg., onto TM.
-yf = P*(xc_front-xc);
+yf = P*make_it_real_cols(xc_front-xc, node.solution);
 yf(:,1) = yf(:,1)/norm(yf(:,1),2);  yf(:,2) = yf(:,2)/norm(yf(:,2),2);
-y0 = P*a;   y0 = y0/norm(y0,2);
+y0 = P*make_it_real(a, node.solution);   y0 = y0/norm(y0,2);
+
 % Build R2 coordinate system around yf(:,1) and y0.
 R2b1 = y0;  R2b2 = yf(:,1) - dot(R2b1,yf(:,1))*R2b1;    
 R2b2 = R2b2/norm(R2b2,2);
@@ -118,8 +124,8 @@ if gap < gap_min            % Gap is too small; merge simplices.
     equate(list_of_nodes, out_nodes(1),out_nodes(2), ...
     list_of_simplices);
     list_of_new_frontal_nodes = [index_merged_node, -out_nodes(2)];
-    for i = node.patch
-        list_of_simplices{i}.frontal = 0;
+    for i = 1:length(node.patch)
+        list_of_simplices.simplex{node.patch(i)}.frontal = 0;
     end
     return
 elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
@@ -127,7 +133,7 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     R2frame = [y1_R2,y0_R2,y2_R2];
     yframe = [yf(:,1),y0,yf(:,2)];
     % create new simplex 
-    nodes_number = [node.number, out_edges];
+    nodes_number = [node.number, out_nodes];
     simplex_number = length(list_of_simplices)+1;
     verified = 0;
     frontal = 1;
@@ -136,9 +142,7 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     	list_of_nodes);
     % add it to the list
     list_of_simplices = append(list_of_simplices, simplex_x);
-    for i = node.patch
-        list_of_simplices{i}.frontal = 0;
-    end
+    
     list_of_new_frontal_nodes = [];
 else
     % Generate predictor "fan" in R2 coordinate system. 
@@ -158,7 +162,8 @@ else
     x_fan = zeros(dim,n_new_simplex-1);
     for j=1:n_new_simplex-1
         y_fan(:,j) = y_fan(:,j)/norm(y_fan(:,j),2);
-        x_fan(:,j) = xc + y_fan(:,j)*xc_h*tau;
+        y_fan(:,j) = make_it_complex(y_fan(:,j),node.solution);
+        x_fan(:,j) = xc + y_fan(:,j) *xc_h*tau;
     end
     % Refine predictors with Gauss-Newton
     for j=1:n_new_simplex-1
@@ -227,12 +232,12 @@ x_new = x - Q1*z;
 end
 
 
-function x_real_vec = make_it_real(vec, x0)
+function x_real_vec = make_it_real(x_vec, x0)
 % function x_real_vec = make_it_real(vec, x0)
 % takes a complex vector, rotates it and turn it into a sin-cos series
 
 % ritation to symmetry
-x_vec = vec2Xi_vec(vec,x0);
+%x_vec = vec2Xi_vec(vec,x0);
 [~,index] = max(abs(real(x_vec(1:x0.size_scalar))));
 angle = atan( imag(x_vec(index))/real(x_vec(index)));
 x_vec = exp( - 1i * angle) * x_vec; 
@@ -242,15 +247,24 @@ x_Xi_vec = symmetrise(vec2Xi_vec(x_vec,x0));
 x_real_vec = 0*x_vec;
 x_real_vec(1:x0.size_scalar) = x_Xi_vec.scalar;
 for j = 1: x0.size_vector
-    index_modes = x0.size_scalar + (j-1)*(2*x0.n_nodes+1);
-    index_positive_modes = index_modes(x0.n_nodes+1:end);
-    index_negative_modes = index_modes(1:x0.n_nodes);
+    index_modes = x0.size_scalar + (j-1)*(2*x0.nodes+1) + (1:2*x0.nodes+1);
+    index_positive_modes = index_modes(x0.nodes+1:end);
+    index_negative_modes = index_modes(1:x0.nodes);
     
-    real_part = real(x_Xi_vec.vector(j,x0.n_nodes+1:end));
-    imaginary_part = -imag(x_Xi_vec.vector(j,1:x0.n_nodes));
+    real_part = real(x_Xi_vec.vector(j,x0.nodes+1:end));
+    imaginary_part = -imag(x_Xi_vec.vector(j,1:x0.nodes));
     
     x_real_vec(index_negative_modes) = imaginary_part;
     x_real_vec(index_positive_modes) = real_part;
+end
+
+end
+
+
+function real_cols = make_it_real_cols(cols, x0)
+real_cols = 0*cols;
+for i = 1: size(cols,2)
+    real_cols(:,i) = make_it_real(cols(:,i),x0);
 end
 
 end
@@ -263,15 +277,15 @@ function x_complex_vec = make_it_complex(vec,x0)
 x_complex_vec = 0*vec;
 x_complex_vec(1:x0.size_scalar) = vec(1:x0.size_scalar);
 for j = 1: x0.size_vector
-    index_modes = x0.size_scalar + (j-1)*(2*x0.n_nodes+1);
-    index_positive_modes = index_modes(x0.n_nodes+2:end);
-    index_negative_modes = index_modes(1:x0.n_nodes);
-    zeroth_mode = index_modes(x0.n_nodes+1);
+    index_modes = x0.size_scalar + (j-1)*(2*x0.nodes+1);
+    index_positive_modes = index_modes(x0.nodes+2:end);
+    index_negative_modes = index_modes(1:x0.nodes);
+    zeroth_mode = index_modes(x0.nodes+1);
     
     real_part = vec(index_positive_modes);
     imaginary_part = vec(index_negative_modes);
     
-    x_complex_vec(zeroth_mode) = x_Xi_vec.vector(j,x0.n_nodes+1);
+    x_complex_vec(zeroth_mode) = x_Xi_vec.vector(j,x0.nodes+1);
     
     x_complex_vec(index_negative_modes) = real_part - 1i*imaginary_part;
     x_complex_vec(index_positive_modes) = real_part +  1i*imaginary_part;
