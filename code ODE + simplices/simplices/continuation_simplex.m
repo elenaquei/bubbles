@@ -6,7 +6,6 @@ global use_intlab
 use_intlab = 0;
 
 Interval = zeros(2,n_iter);
-norm_x = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 Z0_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 Z1_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 Z2_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
@@ -75,7 +74,6 @@ while i < n_iter
     % add extra equations to the new simplices
     for index_k = 1:length(index_new_simplices)
         k = index_new_simplices(index_k); 
-        % TO DO !!!
         simplex = list_of_simplices.simplex{k};
         node_numbers = simplex.nodes_number;
         [simplex, list_of_nodes] = simplex_scalar_equations(node_numbers, ...
@@ -96,19 +94,16 @@ while i < n_iter
         end
         list_of_simplices.simplex{j} = simplex;
         %storage
-        step_size(j) = h;
-        norm_x(:,j)    = vert(norm(x1));
-        norm_x(1:x0.size_scalar,j) = x1.scalar;% to avoid absolute values here
-        Interval(:,j)  = [Imin,Imax]';
-        Z0_iter(:,j)   = vert(Z0vector);
-        Z1_iter(:,j)   = vert(Z1vector);
-        Z2_iter(:,j)   = vert(Z2vector);
-        Y_iter(:,j)    = vert(Yvector);
+        Interval(:,i+j)  = [Imin,Imax]';
+        Z0_iter(:,i+j)   = vert(Z0vector);
+        Z1_iter(:,i+j)   = vert(Z1vector);
+        Z2_iter(:,i+j)   = vert(Z2vector);
+        Y_iter(:,i+j)    = vert(Yvector);
     end
     i = i + length(index_new_simplices);
 end
 
-save(save_file,list_of_simplices,list_of_nodes,Interval,Z0_iter,Z1_iter,Z2_iter,Y_iter,norm_x,step_size);
+save(save_file,list_of_simplices,list_of_nodes,Interval,Z0_iter,Z1_iter,Z2_iter,Y_iter);
 
 end
 
