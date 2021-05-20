@@ -16,13 +16,10 @@ catch
     startintlab
 end
 
-
-
-
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 10^-6;
+step_size = 10^-4;
 n_iter = 300;
 save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
 

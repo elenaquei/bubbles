@@ -14,7 +14,8 @@ Y_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 
 %% set up the first 6 simplices
 first_node = node(1,x0,F);
-[list_of_simplices,list_of_nodes,list_of_frontal_nodes] = simplices_set_up(first_node, F, step_size);
+[list_of_simplices,list_of_nodes,list_of_frontal_nodes] = ...
+    simplices_set_up(first_node, F, step_size);
 
 plot(list_of_simplices);
 
@@ -70,6 +71,10 @@ while i < n_iter
     fprintf('We grow from node %i\n',node_number)
     % grow the node
     node_i = list_of_nodes{node_number};
+    % for debugging purposes
+    list_of_simplices_old = list_of_simplices;
+    list_of_nodes_old = list_of_nodes;
+    
     [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, index_new_simplices]= ...
         grow_simplex(node_i, step_size, list_of_nodes, list_of_simplices, F);
     

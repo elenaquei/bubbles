@@ -62,6 +62,7 @@ classdef node
         function [gap] = gap_angle(node, DF_x, list_of_simplices, list_of_nodes)
             
             U = null(DF_x);
+            U = make_it_real_cols(U, node.solution);
             
             [out_nodes,all_nodes] = open_edges(node, list_of_simplices);
             
@@ -93,9 +94,9 @@ classdef node
                 internal_coord=internal_coord.';
             end
             
-            edge1 = U.' * edge1_in_Rn;
-            edge2 = U.' * edge2_in_Rn;
-            internal_dir = U.' * internal_coord;
+            edge1 = U.' * make_it_real_cols(edge1_in_Rn, node.solution);
+            edge2 = U.' * make_it_real_cols(edge2_in_Rn, node.solution);
+            internal_dir = U.' * make_it_real_cols(internal_coord, node.solution);
             
             rotation_angle = angle(edge2);
             rotation_matrix = [ cos(rotation_angle), sin(rotation_angle);
@@ -117,3 +118,75 @@ classdef node
         end
     end
 end
+
+
+
+function x_real_vec = make_it_real(x_vec, x0)
+% function x_real_vec = make_it_real(vec, x0)
+% takes a complex vector, rotates it and turn it into a sin-cos series
+
+% ritation to symmetry
+%x_vec = vec2Xi_vec(vec,x0);
+[~,index] = max(abs(real(x_vec(1:x0.size_scalar))));
+angle = atan( imag(x_vec(index))/real(x_vec(index)));
+x_vec = exp( - 1i * angle) * x_vec; 
+% bringing x_Xi_vec to be symmetric (by multiplication with the appropriate complex rotation)
+x_Xi_vec = symmetrise(vec2Xi_vec(x_vec,x0));
+
+x_real_vec = 0*x_vec;
+x_real_vec(1:x0.size_scalar) = x_Xi_vec.scalar;
+for j = 1: x0.size_vector
+    index_modes = x0.size_scalar + (j-1)*(2*x0.nodes+1) + (1:2*x0.nodes+1);
+    index_positive_modes = index_modes(x0.nodes+1:end);
+    index_negative_modes = index_modes(1:x0.nodes);
+    
+    real_part = real(x_Xi_vec.vector(j,x0.nodes+1:end));
+    imaginary_part = -imag(x_Xi_vec.vector(j,1:x0.nodes));
+    
+    x_real_vec(index_negative_modes) = imaginary_part;
+    x_real_vec(index_positive_modes) = real_part;
+end
+
+end
+
+
+function real_cols = make_it_real_cols(cols, x0)
+real_cols = 0*cols;
+for i = 1: size(cols,2)
+    real_cols(:,i) = make_it_real(cols(:,i),x0);
+end
+
+end
+
+function x_complex_vec = make_it_complex(vec,x0)
+% function x_real_vec = make_it_complex(vec, x0)
+% takes a real vector that stores a sin-cos series and returns a "proper"
+% Fourier series vector
+
+x_complex_vec = 0*vec;
+x_complex_vec(1:x0.size_scalar) = vec(1:x0.size_scalar);
+for j = 1: x0.size_vector
+    index_modes = x0.size_scalar + (j-1)*(2*x0.nodes+1) + (1:(2*x0.nodes+1));
+    index_positive_modes = index_modes(x0.nodes+2:end);
+    index_negative_modes = index_modes(x0.nodes:-1:1);
+    zeroth_mode = index_modes(x0.nodes+1);
+    
+    real_part = vec(index_positive_modes);
+    imaginary_part = vec(index_negative_modes);
+    
+    x_complex_vec(zeroth_mode) = vec(zeroth_mode);
+    
+    x_complex_vec(index_negative_modes) = real_part - 1i*imaginary_part;
+    x_complex_vec(index_positive_modes) = real_part +  1i*imaginary_part;
+end
+
+
+% testing
+x_Xi = vec2Xi_vec(x_complex_vec, x0);
+if any(norm(x_Xi - symmetrise(x_Xi)) > 10^-7)
+    error('this is not good')
+end
+
+
+end
+

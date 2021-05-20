@@ -58,7 +58,7 @@ new_simplices = [];
 gap_min = pi/6; % This is the minmum in the paper of G/L/P.
 tau = 1.2;      % This is the tau used in the paper of G/L/P.
 div_tol = 1E-2; % Expansion/divergence criteria for step size reduction.
-tol = 1E-10;    % Tolerance for convergence of Gauss-Newton.
+tol = 1E-7;    % Tolerance for convergence of Gauss-Newton.
 F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, node_loc.solution))); 
 DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, node_loc.solution),0)); 
 [dim,n] = size(xc_int);
@@ -122,7 +122,7 @@ if gap < gap_min            % Gap is too small; merge simplices.
     R2frame = [];
     yframe = [yf(:,1),y0,yf(:,2)];
     % merge these two nodes
-    [index_merged_node,list_of_nodes, list_of_simplices, new_simplices] = ...
+    [index_merged_node,list_of_nodes, list_of_simplices, ~,new_simplices] = ...
     equate(list_of_nodes, out_nodes(1),out_nodes(2), ...
     list_of_simplices);
     list_of_new_frontal_nodes = [index_merged_node, -out_nodes(2), -node_loc.number];
@@ -183,9 +183,12 @@ else
                x_init = x_fan(:,j);
                h_local = h_local/tau;
            end
-           x_fan(:,j) = GN(x_init,@(z)F(z),@(z)DF(z));
+           x_fan(:,j) = GN(x_init,@(z)F(z),@(z)DF(z),node_loc.solution);
            delta = norm(x_fan(:,j)-x_init,2);
            x_init = x_fan(:,j);
+           if delta>1
+               all_is_not_well=1;
+           end
        end
     end
     % Output nodes list
@@ -235,7 +238,7 @@ end
 
 end
 
-function x_new = GN(x,F,DF)
+function x_new = GN(x,F,DF, x_Xi)
 [Q,R] = qr(DF(x).');
 [dim,~] = size(x);
 R = R(1:dim-2,1:dim-2);
@@ -245,6 +248,7 @@ if rcond(R) > 10^ 7 || rcond(R)<10^-7
 end
 z = R\F(x);
 x_new = x - Q1*z;
+x_new = Xi_vec2vec(symmetrise(vec2Xi_vec(x_new,x_Xi)));
 end
 
 
