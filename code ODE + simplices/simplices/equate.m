@@ -15,9 +15,6 @@ node_j = list_of_nodes{j_loc};
 
 coords = 1/2 * (node_i.solution + node_j.solution);
 
-if node_i.frontal ~= node_j.frontal
-    warning('Merging of a frontal node with a non-frontal node')
-end
 new_node = node_i;
 new_node.solution = coords; % this way, it maintains the patch too!
 new_node.patch = [];
@@ -33,7 +30,7 @@ removal_list = [];
 changed_simplices = [];
 for index = 1:length(list_of_simplices)
     % replace the node j by the node i whenever necessary
-    nodes_in_simplex = list_of_simplices.simplices{index}.nodes;
+    nodes_in_simplex = list_of_simplices.simplex{index}.nodes_number;
     index_node = nodes_in_simplex == j_loc;
     if ~isempty(index_node)
         nodes_in_simplex(index_node) = i_loc;
@@ -47,7 +44,7 @@ for index = 1:length(list_of_simplices)
         % index_node = nodes_in_simplex >= j;
         % nodes_in_simplex(index_node) = nodes_in_simplex(index_node)-1;
         
-        list_of_simplices.simpleces{index}.nodes = nodes_in_simplex;
+        list_of_simplices.simplex{index}.nodes = nodes_in_simplex;
         changed_simplices(end+1)= index;
     end
 end

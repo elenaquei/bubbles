@@ -3,7 +3,7 @@ global use_intlab
 global talkative
 global RAD_MAX
 global Display
-Display = 1;
+Display = 0;
 talkative = 1;
 use_intlab = 0;
 RAD_MAX = 10^-2;
@@ -19,8 +19,8 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 10^-7;
-n_iter =10;
+step_size = 10^-6;
+n_iter = 300;
 save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
 
 % starting parameters

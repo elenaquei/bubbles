@@ -18,14 +18,14 @@ N=xBar0.size_vector;
 M=xBar0.size_scalar;
 
 if nargin>11 && ~isempty(old_Z1_x0)
-    Z_mat0=old_Z1.mat;
-    nodes_col0=old_Z1.nodes_col;
-    nodes_row0=old_Z1.nodes_row;
+    Z_mat0=old_Z1_x0.mat;
+    nodes_col0=old_Z1_x0.nodes_col;
+    nodes_row0=old_Z1_x0.nodes_row;
 else
     [~,Z_mat0,nodes_col0,nodes_row0]=Z1_bound(A0,xBar0,alpha0);
 end
 if nargin>12 && ~isempty(old_Z1_x1)
-    Z_mat1=old_Z1.mat;
+    Z_mat1=old_Z1_x1.mat;
 else
     [~,Z_mat1]=Z1_bound(A1,xBar1,alpha1);
 end

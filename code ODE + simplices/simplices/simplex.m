@@ -64,7 +64,13 @@ classdef simplex
         function plot_simplex(simplex, color)
             % function plot_simplex(simplex, color)
             if nargin<3
-                color = 'r';
+                if simplex.frontal
+                    color = 'y';
+                elseif simplex.verified
+                    color = 'b';
+                else
+                    color = 'r';
+                end
             end
             x_coord = zeros(1,3);
             y_coord = zeros(1,3);
@@ -76,9 +82,14 @@ classdef simplex
                 z_coord(i) = simplex.nodes{i}.solution.scalar(4);
                 label{i} = 'x'+string(simplex.nodes{i}.number);
             end
+            label_simplex = 'S' +string(simplex.number);
+            center_x = mean(x_coord);
+            center_y = mean(y_coord);
+            center_z = mean(z_coord);
             fill3(x_coord,y_coord,z_coord,color)
             alpha 0.5
             text(x_coord,y_coord,z_coord,label,'VerticalAlignment','bottom','HorizontalAlignment','right')
+            text(center_x,center_y,center_z,label_simplex,'VerticalAlignment','bottom','HorizontalAlignment','right')
         end
     end
 end
