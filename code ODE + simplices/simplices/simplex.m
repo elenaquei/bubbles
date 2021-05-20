@@ -71,9 +71,9 @@ classdef simplex
             z_coord = zeros(1,3);
             label = cell(3,1);
             for i = 1:3
-                x_coord(i) = simplex.nodes{i}.coordinates(1);
-                y_coord(i) = simplex.nodes{i}.coordinates(2);
-                z_coord(i) = simplex.nodes{i}.coordinates(3);
+                x_coord(i) = simplex.nodes{i}.solution.scalar(2);
+                y_coord(i) = simplex.nodes{i}.solution.scalar(3);
+                z_coord(i) = simplex.nodes{i}.solution.scalar(4);
                 label{i} = 'x'+string(simplex.nodes{i}.number);
             end
             fill3(x_coord,y_coord,z_coord,color)

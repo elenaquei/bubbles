@@ -41,7 +41,8 @@ classdef node
             out_nodes = [];
             all_nodes = [];
             for i = node.patch
-                for j = list_of_simplices.simplex{i}.nodes
+                for index_j = 1:length(list_of_simplices.simplex{i}.nodes_number)
+                    j = list_of_simplices.simplex{i}.nodes_number(index_j);
                     if j == node.number
                         continue
                     end
@@ -72,14 +73,15 @@ classdef node
                 internal_coord = 1/2 *(list_of_nodes{out_nodes(1)}.coordinates + ...
                     list_of_nodes{out_nodes(2)}.coordinates); % average of two open edges
             else
-                internal_coord = list_of_nodes{internal_nodes(1)}.coordinates-node.coordinates;
+                internal_coord = list_of_nodes{internal_nodes(1)}.solution-node.solution;
             end
-            internal_coord = (internal_coord) / norm(internal_coord);
+            internal_coord = Xi_vec2vec(internal_coord) / max(norm(internal_coord));
             % open edges
-            edge1_in_Rn = list_of_nodes{out_nodes(1)}.coordinates;
-            edge1_in_Rn = (edge1_in_Rn - node.coordinates) / norm(edge1_in_Rn);
-            edge2_in_Rn = list_of_nodes{out_nodes(2)}.coordinates;
-            edge2_in_Rn = (edge2_in_Rn - node.coordinates) / norm(edge2_in_Rn);
+            solution_vec = Xi_vec2vec(node.solution);
+            edge1_in_Rn = Xi_vec2vec(list_of_nodes{out_nodes(1)}.solution);
+            edge1_in_Rn = (edge1_in_Rn - solution_vec) / norm(edge1_in_Rn);
+            edge2_in_Rn = Xi_vec2vec(list_of_nodes{out_nodes(2)}.solution);
+            edge2_in_Rn = (edge2_in_Rn - solution_vec) / norm(edge2_in_Rn);
             
             if size(edge1_in_Rn,1) == 1
                 edge1_in_Rn=edge1_in_Rn.';

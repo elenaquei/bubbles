@@ -16,6 +16,8 @@ Y_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 first_node = node(1,x0,F);
 [list_of_simplices,list_of_nodes,list_of_frontal_nodes] = simplices_set_up(first_node, F, step_size);
 
+plot(list_of_simplices);
+
 % add the appropriate continuation equations
 for k = 1:6
     simplex_k = list_of_simplices.simplex{k};
@@ -41,9 +43,9 @@ for j = 1:6
     end
     list_of_simplices.simplex{j} = simplex_j;
     %storage
-    step_size(j) = h;
-    norm_x(:,j)    = vert(norm(x1));
-    norm_x(1:x0.size_scalar,j) = x1.scalar;% to avoid absolute values here
+%     Interval(:,j)  = [Imin,Imax]';
+%     Z0_iter(:,j)   = vert(Z0vector);
+%     Z1_iter(:,j)   = vert(Z1vector);
     Interval(:,j)  = [Imin,Imax]';
     Z0_iter(:,j)   = vert(Z0vector);
     Z1_iter(:,j)   = vert(Z1vector);
@@ -62,9 +64,8 @@ while i < n_iter
     
     % grow the node
     node_i = list_of_nodes{node_number};
-    [index_new_simplices, list_of_nodes, list_of_simplices, ...
-        list_of_new_frontal_nodes] = grow_simplex(node_i,...
-        step_size, list_of_nodes, list_of_simplices, problem);
+    [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes]= ...
+        grow_simplex(node_i,step_size, list_of_nodes, list_of_simplices, F);
     
     if any(list_of_new_frontal_nodes<0)
         index = list_of_new_frontal_nodes<0;
@@ -75,7 +76,8 @@ while i < n_iter
     list_of_frontal_nodes = union(list_of_frontal_nodes,list_of_new_frontal_nodes);
     
     % add extra equations to the new simplices
-    for k = index_new_simplices
+    for index_k = 1:length(index_new_simplices)
+        k = index_new_simplices(index_k); 
         % TO DO !!!
         simplex = list_of_simplices.simplex{k};
         node_numbers = simplex.nodes_number;
@@ -84,9 +86,10 @@ while i < n_iter
         list_of_simplices.simplex{k} = simplex;
         
     end
-    
+    plot(list_of_simplices);
     % validate all new simplices
-    for j = index_new_simplices
+    for index_j = 1:length(index_new_simplices)
+        j = index_new_simplices(index_j);
         simplex = list_of_simplices.simplex{j};
         [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
             simplex, list_of_nodes] = ...
@@ -129,12 +132,13 @@ end
 function list_near_nodes = neighboring_nodes(n_node, list_of_nodes, list_of_simplices)
 patch = list_of_nodes{n_node}.patch;
 list_near_nodes = [];
-for j = patch
+for index_j = 1: length(patch)
+    j = patch(index_j);
     simplex_j = list_of_simplices.simplex{j};
     list_near_nodes = union(list_near_nodes, simplex_j.nodes_number);
 end
 list_near_nodes = setdiff( list_near_nodes, n_node);
-if length(list_near_nodes) == 0
+if isempty(list_near_nodes)
     list_near_nodes = [];
 end
 end

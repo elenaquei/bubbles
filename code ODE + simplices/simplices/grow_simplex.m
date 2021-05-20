@@ -38,7 +38,7 @@ function [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes] = ...
 
 % wrapper
 xc_h = step_size;
-xc = Xivec2vec(node.solution);
+xc = Xi_vec2vec(node.solution);
 [out_nodes, all_nodes] = open_edges(node, list_of_simplices);
 in_nodes = setdiff(all_nodes, out_nodes);
 if length(out_nodes) ~= 2
@@ -46,11 +46,11 @@ if length(out_nodes) ~= 2
 end
 xc_front = zeros(length(xc), length(out_nodes));
 for i = 1:2
-    xc_front(:,i) = Xivec2vec(list_of_nodes{out_nodes(i)}.solution);
+    xc_front(:,i) = Xi_vec2vec(list_of_nodes{out_nodes(i)}.solution);
 end
 xc_int = zeros(length(xc), length(in_nodes));
 for i = 1:length(in_nodes)
-    xc_int(:,i) = Xivec2vec(list_of_nodes{in_nodes(i)}.solution);
+    xc_int(:,i) = Xi_vec2vec(list_of_nodes{in_nodes(i)}.solution);
 end
 
 gap_min = pi/6; % This is the minmum in the paper of G/L/P.
