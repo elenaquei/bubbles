@@ -1,4 +1,4 @@
-function [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes] = ...
+function [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, new_simplices] = ...
     grow_simplex(node, step_size, list_of_nodes, list_of_simplices, problem)
 % function [list_of_nodes,list_of_simplices] = grow_simplex(node, 
 %           step_size, list_of_nodes, list_of_simplices, problem)
@@ -52,6 +52,8 @@ xc_int = zeros(length(xc), length(in_nodes));
 for i = 1:length(in_nodes)
     xc_int(:,i) = Xi_vec2vec(list_of_nodes{in_nodes(i)}.solution);
 end
+
+new_simplices = [];
 
 gap_min = pi/6; % This is the minmum in the paper of G/L/P.
 tau = 1.2;      % This is the tau used in the paper of G/L/P.
@@ -120,13 +122,17 @@ if gap < gap_min            % Gap is too small; merge simplices.
     R2frame = [];
     yframe = [yf(:,1),y0,yf(:,2)];
     % merge these two nodes
-    [index_merged_node,list_of_nodes, list_of_simplices] = ...
+    [index_merged_node,list_of_nodes, list_of_simplices, new_simplices] = ...
     equate(list_of_nodes, out_nodes(1),out_nodes(2), ...
     list_of_simplices);
     list_of_new_frontal_nodes = [index_merged_node, -out_nodes(2)];
     for i = 1:length(node.patch)
         list_of_simplices.simplex{node.patch(i)}.frontal = 0;
     end
+    for i = 1:length(new_simplices)
+        list_of_simplices.simplex{new_simplices(i)}.verified = 0;
+    end
+    
     return
 elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     x_new = [xc,xc_front];
@@ -144,6 +150,7 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     list_of_simplices = append(list_of_simplices, simplex_x);
     
     list_of_new_frontal_nodes = [];
+    new_simplices = simplex_number;
 else
     % Generate predictor "fan" in R2 coordinate system. 
     y_fan_R2 = zeros(2,n_new_simplex-1);
@@ -195,8 +202,9 @@ else
     end
     frontal = 1;
     verified = 0;
+    new_simplices = zeros(1, n_new_simplex);
     for i = 1:n_new_simplex
-        number = length(list_of_simplices);
+        number = length(list_of_simplices)+1;
         if i ==1
             number1 = out_edges(yor);
         else
@@ -210,6 +218,7 @@ else
         nodes_number = [node.number, number1, number2];
         simplex_new = simplex(nodes_number, number, verified, frontal,list_of_nodes);
         list_of_simplices = append(list_of_simplices, simplex_new);
+        new_simplices(i) = number;
     end
     list_of_new_frontal_nodes = list_new_nodes;
     list_new_nodes = union(list_new_nodes, out_nodes);
