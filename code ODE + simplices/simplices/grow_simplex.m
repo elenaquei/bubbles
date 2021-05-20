@@ -225,3 +225,56 @@ Q1 = Q(:,1:end-2);
 z = R\F(x);
 x_new = x - Q1*z;
 end
+
+
+function x_real_vec = make_it_real(vec, x0)
+% function x_real_vec = make_it_real(vec, x0)
+% takes a complex vector, rotates it and turn it into a sin-cos series
+
+% ritation to symmetry
+x_vec = vec2Xi_vec(vec,x0);
+[~,index] = max(abs(real(x_vec(1:x0.size_scalar))));
+angle = atan( imag(x_vec(index))/real(x_vec(index)));
+x_vec = exp( - 1i * angle) * x_vec; 
+% bringing x_Xi_vec to be symmetric (by multiplication with the appropriate complex rotation)
+x_Xi_vec = symmetrise(vec2Xi_vec(x_vec,x0));
+
+x_real_vec = 0*x_vec;
+x_real_vec(1:x0.size_scalar) = x_Xi_vec.scalar;
+for j = 1: x0.size_vector
+    index_modes = x0.size_scalar + (j-1)*(2*x0.n_nodes+1);
+    index_positive_modes = index_modes(x0.n_nodes+1:end);
+    index_negative_modes = index_modes(1:x0.n_nodes);
+    
+    real_part = real(x_Xi_vec.vector(j,x0.n_nodes+1:end));
+    imaginary_part = -imag(x_Xi_vec.vector(j,1:x0.n_nodes));
+    
+    x_real_vec(index_negative_modes) = imaginary_part;
+    x_real_vec(index_positive_modes) = real_part;
+end
+
+end
+
+function x_complex_vec = make_it_complex(vec,x0)
+% function x_real_vec = make_it_complex(vec, x0)
+% takes a real vector that stores a sin-cos series and returns a "proper"
+% Fourier series vector
+
+x_complex_vec = 0*vec;
+x_complex_vec(1:x0.size_scalar) = vec(1:x0.size_scalar);
+for j = 1: x0.size_vector
+    index_modes = x0.size_scalar + (j-1)*(2*x0.n_nodes+1);
+    index_positive_modes = index_modes(x0.n_nodes+2:end);
+    index_negative_modes = index_modes(1:x0.n_nodes);
+    zeroth_mode = index_modes(x0.n_nodes+1);
+    
+    real_part = vec(index_positive_modes);
+    imaginary_part = vec(index_negative_modes);
+    
+    x_complex_vec(zeroth_mode) = x_Xi_vec.vector(j,x0.n_nodes+1);
+    
+    x_complex_vec(index_negative_modes) = real_part - 1i*imaginary_part;
+    x_complex_vec(index_positive_modes) = real_part +  1i*imaginary_part;
+end
+
+end
