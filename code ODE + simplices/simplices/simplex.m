@@ -64,7 +64,13 @@ classdef simplex
         function plot_simplex(simplex, color)
             % function plot_simplex(simplex, color)
             if nargin<3
-                color = 'r';
+                if simplex.frontal
+                    color = 'y';
+                elseif simplex.verified
+                    color = 'b';
+                else
+                    color = 'r';
+                end
             end
             x_coord = zeros(1,3);
             y_coord = zeros(1,3);

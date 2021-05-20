@@ -40,12 +40,17 @@ for j = 1:6
     use_intlab = 0;
     if flag < 1
         error('Validation failed')
+    elseif talkative>0
+        fprintf('The validation of the %i-th simplex succeeded\n', j)
+        if talkative>1
+            plot(list_of_simplices);
+        end
     end
     list_of_simplices.simplex{j} = simplex_j;
     %storage
-%     Interval(:,j)  = [Imin,Imax]';
-%     Z0_iter(:,j)   = vert(Z0vector);
-%     Z1_iter(:,j)   = vert(Z1vector);
+    %     Interval(:,j)  = [Imin,Imax]';
+    %     Z0_iter(:,j)   = vert(Z0vector);
+    %     Z1_iter(:,j)   = vert(Z1vector);
     Interval(:,j)  = [Imin,Imax]';
     Z0_iter(:,j)   = vert(Z0vector);
     Z1_iter(:,j)   = vert(Z1vector);
@@ -77,7 +82,7 @@ while i < n_iter
     
     % add extra equations to the new simplices
     for index_k = 1:length(index_new_simplices)
-        k = index_new_simplices(index_k); 
+        k = index_new_simplices(index_k);
         % TO DO !!!
         simplex = list_of_simplices.simplex{k};
         node_numbers = simplex.nodes_number;
@@ -96,6 +101,11 @@ while i < n_iter
             radii_polynomials_simplex(simplex, list_of_nodes);
         if flag < 1
             error('Validation failed')
+        elseif talkative>0
+            fprintf('The validation of the %i-th simplex succeeded\n', j)
+            if talkative>1
+                plot(list_of_simplices);
+            end
         end
         list_of_simplices.simplex{j} = simplex;
         %storage

@@ -4,7 +4,7 @@ global talkative
 global RAD_MAX
 global Display
 Display = 1;
-talkative = 1;
+talkative = 2;
 use_intlab = 0;
 RAD_MAX = 10^-2;
 
