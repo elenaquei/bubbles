@@ -3,6 +3,7 @@ function [list_of_simplices,list_of_nodes] = continuation_simplex(x0, F,...
 % function list_of_simplices = continuation_simplex(x0, F, n_iter, h, save_file, bool_Hopf)
 
 global use_intlab
+global talkative
 use_intlab = 0;
 
 Interval = zeros(2,n_iter);
@@ -31,7 +32,7 @@ end
 
 
 % validate all new simplices
-for j = 1:6
+for j = 1:-6
     simplex_j = list_of_simplices.simplex{j};
     use_intlab = 1;
     [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
@@ -43,6 +44,7 @@ for j = 1:6
     elseif talkative>0
         fprintf('The validation of the %i-th simplex succeeded\n', j)
         if talkative>1
+            figure
             plot(list_of_simplices);
         end
     end
@@ -66,11 +68,16 @@ while i < n_iter
     % select node to grow
     node_number = select_growing_node(list_of_simplices,list_of_nodes,...
         list_of_frontal_nodes, F);
-    
+    fprintf('We grow from node %i\n',node_number)
     % grow the node
     node_i = list_of_nodes{node_number};
     [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, index_new_simplices]= ...
-        grow_simplex(node_i,step_size, list_of_nodes, list_of_simplices, F);
+        grow_simplex(node_i, step_size, list_of_nodes, list_of_simplices, F);
+    
+    if mod(node_number,7)==0
+    plot(list_of_simplices);
+    pause
+    end
     
     if any(list_of_new_frontal_nodes<0)
         index = list_of_new_frontal_nodes<0;
@@ -83,17 +90,19 @@ while i < n_iter
     % add extra equations to the new simplices
     for index_k = 1:length(index_new_simplices)
         k = index_new_simplices(index_k);
-        % TO DO !!!
         simplex = list_of_simplices.simplex{k};
         node_numbers = simplex.nodes_number;
-        [simplex, list_of_nodes] = simplex_scalar_equations(node_numbers, ...
-            bool_Hopf, list_of_nodes);
+        for jj = 1:3
+            j = node_numbers(jj);
+            n_near_nodes = neighboring_nodes(j, list_of_nodes, list_of_simplices);
+            [list_of_nodes] = simplex_scalar_equations(node_numbers, ...
+                bool_Hopf, list_of_nodes, n_near_nodes);
+        end
         list_of_simplices.simplex{k} = simplex;
-        
     end
-    plot(list_of_simplices);
+    
     % validate all new simplices
-    for index_j = 1:length(index_new_simplices)
+    for index_j = 1:-length(index_new_simplices)
         j = index_new_simplices(index_j);
         simplex = list_of_simplices.simplex{j};
         [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
@@ -103,25 +112,25 @@ while i < n_iter
             error('Validation failed')
         elseif talkative>0
             fprintf('The validation of the %i-th simplex succeeded\n', j)
-            if talkative>1
-                plot(list_of_simplices);
-            end
+            
         end
         list_of_simplices.simplex{j} = simplex;
         %storage
-        step_size(j) = h;
-        norm_x(:,j)    = vert(norm(x1));
-        norm_x(1:x0.size_scalar,j) = x1.scalar;% to avoid absolute values here
         Interval(:,j)  = [Imin,Imax]';
         Z0_iter(:,j)   = vert(Z0vector);
         Z1_iter(:,j)   = vert(Z1vector);
         Z2_iter(:,j)   = vert(Z2vector);
         Y_iter(:,j)    = vert(Yvector);
     end
+    
+    if talkative>1
+        figure
+        plot(list_of_simplices);
+    end
     i = i + length(index_new_simplices);
 end
 
-save(save_file,list_of_simplices,list_of_nodes,Interval,Z0_iter,Z1_iter,Z2_iter,Y_iter,norm_x,step_size);
+save(save_file,list_of_simplices,list_of_nodes,Interval,Z0_iter,Z1_iter,Z2_iter,Y_iter,norm_x);
 
 end
 
@@ -135,8 +144,13 @@ for i=1:length(list_of_frontal_nodes)
 end
 
 [~, priority_node_index] = min(abs(gap_angle_vec));
-priority_node = list_of_frontal_nodes(priority_node_index);
 min_gap = gap_angle_vec(priority_node_index);
+if abs(min_gap) > pi/5
+    priority_node = min(list_of_frontal_nodes);
+else
+    priority_node = list_of_frontal_nodes(priority_node_index);
+end
+
 end
 
 function list_near_nodes = neighboring_nodes(n_node, list_of_nodes, list_of_simplices)

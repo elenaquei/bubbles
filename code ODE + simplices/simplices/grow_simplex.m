@@ -1,5 +1,5 @@
 function [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, new_simplices] = ...
-    grow_simplex(node, step_size, list_of_nodes, list_of_simplices, problem)
+    grow_simplex(node_loc, step_size, list_of_nodes, list_of_simplices, problem)
 % function [list_of_nodes,list_of_simplices] = grow_simplex(node, 
 %           step_size, list_of_nodes, list_of_simplices, problem)
 % 
@@ -38,8 +38,8 @@ function [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, new_simpli
 
 % wrapper
 xc_h = step_size;
-xc = Xi_vec2vec(node.solution);
-[out_nodes, all_nodes] = open_edges(node, list_of_simplices);
+xc = Xi_vec2vec(node_loc.solution);
+[out_nodes, all_nodes] = open_edges(node_loc, list_of_simplices);
 in_nodes = setdiff(all_nodes, out_nodes);
 if length(out_nodes) ~= 2
     error('There should be 2 and only 2 frontal edges')
@@ -58,9 +58,9 @@ new_simplices = [];
 gap_min = pi/6; % This is the minmum in the paper of G/L/P.
 tau = 1.2;      % This is the tau used in the paper of G/L/P.
 div_tol = 1E-2; % Expansion/divergence criteria for step size reduction.
-tol = 1E-12;    % Tolerance for convergence of Gauss-Newton.
-F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, node.solution))); 
-DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, node.solution),0)); 
+tol = 1E-10;    % Tolerance for convergence of Gauss-Newton.
+F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, node_loc.solution))); 
+DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, node_loc.solution),0)); 
 [dim,n] = size(xc_int);
 
 % Gap complement direction.
@@ -73,15 +73,15 @@ end
 % Get projector
 % [Q,~] = qr(DF(xc).');
 U = null(DF(xc));
-U(:,1) = make_it_real(U(:,1), node.solution);
-U(:,2) = make_it_real(U(:,2), node.solution);
+U(:,1) = make_it_real(U(:,1), node_loc.solution);
+U(:,2) = make_it_real(U(:,2), node_loc.solution);
 
 P = U*U.';
 
 % Project (xf-xc) for all fronal nodes xf, and complement avg., onto TM.
-yf = P*make_it_real_cols(xc_front-xc, node.solution);
+yf = P*make_it_real_cols(xc_front-xc, node_loc.solution);
 yf(:,1) = yf(:,1)/norm(yf(:,1),2);  yf(:,2) = yf(:,2)/norm(yf(:,2),2);
-y0 = P*make_it_real(a, node.solution);   y0 = y0/norm(y0,2);
+y0 = P*make_it_real(a, node_loc.solution);   y0 = y0/norm(y0,2);
 
 % Build R2 coordinate system around yf(:,1) and y0.
 R2b1 = y0;  R2b2 = yf(:,1) - dot(R2b1,yf(:,1))*R2b1;    
@@ -125,9 +125,9 @@ if gap < gap_min            % Gap is too small; merge simplices.
     [index_merged_node,list_of_nodes, list_of_simplices, new_simplices] = ...
     equate(list_of_nodes, out_nodes(1),out_nodes(2), ...
     list_of_simplices);
-    list_of_new_frontal_nodes = [index_merged_node, -out_nodes(2)];
-    for i = 1:length(node.patch)
-        list_of_simplices.simplex{node.patch(i)}.frontal = 0;
+    list_of_new_frontal_nodes = [index_merged_node, -out_nodes(2), -node_loc.number];
+    for i = 1:length(node_loc.patch)
+        list_of_simplices.simplex{node_loc.patch(i)}.frontal = 0;
     end
     for i = 1:length(new_simplices)
         list_of_simplices.simplex{new_simplices(i)}.verified = 0;
@@ -139,7 +139,7 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     R2frame = [y1_R2,y0_R2,y2_R2];
     yframe = [yf(:,1),y0,yf(:,2)];
     % create new simplex 
-    nodes_number = [node.number, out_nodes];
+    nodes_number = [node_loc.number, out_nodes];
     simplex_number = length(list_of_simplices)+1;
     verified = 0;
     frontal = 1;
@@ -148,8 +148,8 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     	list_of_nodes);
     % add it to the list
     list_of_simplices = append(list_of_simplices, simplex_x);
-    
-    list_of_new_frontal_nodes = [];
+    list_of_nodes = update_patches(list_of_nodes,list_of_simplices, nodes_number);
+    list_of_new_frontal_nodes = -node_loc.number;
     new_simplices = simplex_number;
 else
     % Generate predictor "fan" in R2 coordinate system. 
@@ -169,7 +169,7 @@ else
     x_fan = zeros(dim,n_new_simplex-1);
     for j=1:n_new_simplex-1
         y_fan(:,j) = y_fan(:,j)/norm(y_fan(:,j),2);
-        y_fan(:,j) = make_it_complex(y_fan(:,j),node.solution);
+        y_fan(:,j) = make_it_complex(y_fan(:,j),node_loc.solution);
         x_fan(:,j) = xc + y_fan(:,j) *xc_h*tau;
     end
     % Refine predictors with Gauss-Newton
@@ -195,7 +195,11 @@ else
     list_new_nodes = zeros(1, n_new_simplex - 1);
     for i = 1:n_new_simplex - 1
         number = length(list_of_nodes)+1;
-        solution = vec2Xi_vec(x_fan(:,i), node.solution);
+        solution = vec2Xi_vec(x_fan(:,i), node_loc.solution);
+        if norm(solution - symmetrise(solution))>10^-5
+            error('somewhere here')
+        end
+        solution = symmetrise(solution);
         new_node = node(number, solution, problem);
         list_of_nodes{end+1} = new_node;
         list_new_nodes(i) = new_node.number;
@@ -206,25 +210,25 @@ else
     for i = 1:n_new_simplex
         number = length(list_of_simplices)+1;
         if i ==1
-            number1 = out_edges(yor);
+            number1 = out_nodes(yor);
         else
             number1 = list_new_nodes(i-1);
         end
         if i == n_new_simplex
-            number2 = out_edges(mod(yor,2)+1);
+            number2 = out_nodes(mod(yor,2)+1);
         else
             number2 = list_new_nodes(i);
         end
-        nodes_number = [node.number, number1, number2];
+        nodes_number = [node_loc.number, number1, number2];
         simplex_new = simplex(nodes_number, number, verified, frontal,list_of_nodes);
         list_of_simplices = append(list_of_simplices, simplex_new);
         new_simplices(i) = number;
     end
-    list_of_new_frontal_nodes = list_new_nodes;
+    list_of_new_frontal_nodes = [list_new_nodes, -node_loc.number];
     list_new_nodes = union(list_new_nodes, out_nodes);
     list_of_nodes = update_patches(list_of_nodes,list_of_simplices, list_new_nodes);
-    for i = node.patch
-        list_of_simplices{i}.frontal = 0;
+    for i = node_loc.patch
+        list_of_simplices.simplex{i}.frontal = 0;
     end
 end
 
@@ -236,6 +240,9 @@ function x_new = GN(x,F,DF)
 [dim,~] = size(x);
 R = R(1:dim-2,1:dim-2);
 Q1 = Q(:,1:end-2);
+if rcond(R) > 10^ 7 || rcond(R)<10^-7
+    disp('R has poor conditioning')
+end
 z = R\F(x);
 x_new = x - Q1*z;
 end
@@ -286,18 +293,26 @@ function x_complex_vec = make_it_complex(vec,x0)
 x_complex_vec = 0*vec;
 x_complex_vec(1:x0.size_scalar) = vec(1:x0.size_scalar);
 for j = 1: x0.size_vector
-    index_modes = x0.size_scalar + (j-1)*(2*x0.nodes+1);
+    index_modes = x0.size_scalar + (j-1)*(2*x0.nodes+1) + (1:(2*x0.nodes+1));
     index_positive_modes = index_modes(x0.nodes+2:end);
-    index_negative_modes = index_modes(1:x0.nodes);
+    index_negative_modes = index_modes(x0.nodes:-1:1);
     zeroth_mode = index_modes(x0.nodes+1);
     
     real_part = vec(index_positive_modes);
     imaginary_part = vec(index_negative_modes);
     
-    x_complex_vec(zeroth_mode) = x_Xi_vec.vector(j,x0.nodes+1);
+    x_complex_vec(zeroth_mode) = vec(zeroth_mode);
     
     x_complex_vec(index_negative_modes) = real_part - 1i*imaginary_part;
     x_complex_vec(index_positive_modes) = real_part +  1i*imaginary_part;
 end
+
+
+% testing
+x_Xi = vec2Xi_vec(x_complex_vec, x0);
+if any(norm(x_Xi - symmetrise(x_Xi)) > 10^-7)
+    error('this is not good')
+end
+
 
 end

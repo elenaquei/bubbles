@@ -73,6 +73,7 @@ list_new_nodes = zeros(1, n_new_simplex);
 for i = 1:n_new_simplex
     number = i+1;
     solution = vec2Xi_vec(x_fan(:,i), starting_solution_Xi);
+    solution = symmetrise(solution);
     new_node = node(number, solution, problem);
     list_of_nodes{number} = new_node;
     list_new_nodes(i) = new_node.number;

@@ -34,7 +34,9 @@ Yvector = cnorm_Xi_vector(fullY,nu);
 % stop everything if the result is too big
 if any(Yvector>1)
     fprintf('Y computed, %d\n',max(Yvector));
-%    error('Y is bigger than 1, no interval found')
+elseif any(isnan(Yvector))
+    fprintf('Y is NaN, this is a big problem\n');
+    error('Y is NaN')
 elseif talkative>2
     fprintf('Y computed, %d\n',max(Yvector));
     fprintf('\n');
