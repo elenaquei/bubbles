@@ -34,23 +34,20 @@ end
 for j = 1:6
     simplex_j = list_of_simplices.simplex{j};
     use_intlab = 1;
-    [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
-        simplex_j, list_of_nodes] = ...
-        radii_polynomials_simplex(simplex_j, list_of_nodes);
+    %[flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
+    %    simplex_j, list_of_nodes] = ...
+    %    radii_polynomials_simplex(simplex_j, list_of_nodes);
     use_intlab = 0;
-    if flag < 1
-        error('Validation failed')
-    end
+    % if flag < 1
+    %    error('Validation failed')
+    % end
     list_of_simplices.simplex{j} = simplex_j;
     %storage
 %     Interval(:,j)  = [Imin,Imax]';
 %     Z0_iter(:,j)   = vert(Z0vector);
 %     Z1_iter(:,j)   = vert(Z1vector);
-    Interval(:,j)  = [Imin,Imax]';
-    Z0_iter(:,j)   = vert(Z0vector);
-    Z1_iter(:,j)   = vert(Z1vector);
-    Z2_iter(:,j)   = vert(Z2vector);
-    Y_iter(:,j)    = vert(Yvector);
+%     Z2_iter(:,j)   = vert(Z2vector);
+%     Y_iter(:,j)    = vert(Yvector);
 end
 
 
