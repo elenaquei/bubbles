@@ -2,7 +2,8 @@ function F_new = continuation_equation_simplex(F_new, x, ...
     list_of_nodes, n_near_nodes)
 
 DF_x = derivative_to_matrix(derivative(F_new,x,0));
-U = null(DF_x);
+[Q,~] = qr(DF_x.');
+U = Q(:,end-1:end);     % Orthonormalize???
 dim = length(x);
 
 new_eq = F_new.scalar_equations.number_equations_lin+[1:2];
