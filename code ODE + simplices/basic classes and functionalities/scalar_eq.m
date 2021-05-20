@@ -207,20 +207,24 @@ classdef scalar_eq
             old_nodes=alpha.number_of_nodes;%(length(alpha.linear_coef{2})-1)/2;
             
             if old_nodes<new_nodes
-                
                 if isintval(beta.linear_coef{2})
                     pad=zeros(size(sup(alpha.linear_coef{2}),1),size(sup(alpha.linear_coef{2}),2),new_nodes-old_nodes);
                     beta.linear_coef{2}=intvalCAT(3,intval(pad),intvalCAT(3,beta.linear_coef{2},intval(pad)));
+                    if size(sup(beta.linear_coef{2}),3)~= beta.number_of_nodes*2+1
+                        problem = 1;
+                        error('')
+                    end
+                
                 else
                     pad=zeros(size(alpha.linear_coef{2},1),size(alpha.linear_coef{2},2),new_nodes-old_nodes);
                     beta.linear_coef{2}=cat(3,pad,cat(3,beta.linear_coef{2},pad));
+                    if size(beta.linear_coef{2},3)~= beta.number_of_nodes*2+1
+                        problem = 1;
+                        error('')
+                    end
                 end
                 beta.number_of_nodes= new_nodes;
                 
-                if size(sup(beta.linear_coef{2}),3)~= beta.number_of_nodes*2+1
-                    problem = 1;
-                    error('')
-                end
             elseif old_nodes==new_nodes
                 return
             else
