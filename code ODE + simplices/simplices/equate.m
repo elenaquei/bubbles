@@ -33,11 +33,6 @@ for i = 1:length(complete_patch)
     index = complete_patch(i);
     simplex_i = list_of_simplices.simplex{index};
     simplex_i.nodes_number(simplex_i.nodes_number==j_loc) = i_loc;
-    for k = 1:3
-        if simplex_i.nodes{k}.number == j_loc || simplex_i.nodes{k}.number == i_loc
-            simplex_i.nodes{k}=new_node;
-        end
-    end
     simplex_i.verified = 0;
     list_of_simplices.simplex{index} = simplex_i;
     changed_patches = union(changed_patches, simplex_i.nodes_number);
@@ -52,11 +47,6 @@ for index = 1:length(list_of_simplices)
     simplex_i = list_of_simplices.simplex{index};
     nodes_number = simplex_i.nodes_number;
     nodes_number(nodes_number>j_loc) = nodes_number(nodes_number>j_loc) -1;
-    for k = 1:3
-        if simplex_i.nodes{k}.number > j_loc
-            simplex_i.nodes{k}.number = simplex_i.nodes{k}.number-1;
-        end
-    end
     simplex_i.nodes_number = nodes_number;
     list_of_simplices.simplex{index}=simplex_i;
 end

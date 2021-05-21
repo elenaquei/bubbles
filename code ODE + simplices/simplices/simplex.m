@@ -2,13 +2,13 @@ classdef simplex
     properties %(SetAccess=private)
         number
         nodes_number % list of 3 nodes
-        nodes
+        % nodes
         verified
         frontal
         verification_coeff
     end
     methods
-        function simplex_x = simplex(nodes_number, number, verified, frontal, list_nodes)
+        function simplex_x = simplex(nodes_number, number, verified, frontal)
             if nargin <3 || isempty(verified)
                 verified = 0;
             end
@@ -20,21 +20,14 @@ classdef simplex
             simplex_x.frontal = frontal;
             simplex_x.nodes_number = nodes_number;
             simplex_x.verification_coeff = 0; % for later, "how easy it was to verify"
-            if nargin > 4
-                if length(list_nodes)>3
-                    list_of_nodes = list_nodes;
-                    nodes = cell(3,1);
-                    for i = 1:3
-                        nodes{i} = list_of_nodes{nodes_number(i)};
-                    end
-                else 
-                    nodes = list_nodes;
-                end
-                simplex_x.nodes = nodes;
-            end
-            
             
         end
+        
+        function loc_node = node(simplex, list_of_nodes, i)
+            node_number = simplex.nodes_number(i);
+            loc_node = list_of_nodes{node_number};
+        end
+        
         
         function [simplex_x,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,Ys]...
                 = verify(simplex_x, varargin)
@@ -61,7 +54,7 @@ classdef simplex
         end
         
         
-        function plot_simplex(simplex, color)
+        function plot_simplex(simplex, list_of_nodes, color)
             % function plot_simplex(simplex, color)
             if nargin<3
                 if simplex.frontal
@@ -77,10 +70,10 @@ classdef simplex
             z_coord = zeros(1,3);
             label = cell(3,1);
             for i = 1:3
-                x_coord(i) = simplex.nodes{i}.solution.scalar(2);
-                y_coord(i) = simplex.nodes{i}.solution.scalar(3);
-                z_coord(i) = simplex.nodes{i}.solution.scalar(4);
-                label{i} = 'x'+string(simplex.nodes{i}.number);
+                x_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(2);
+                y_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(3);
+                z_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(4);
+                label{i} = 'x'+string(simplex.nodes_number(i));
             end
             label_simplex = 'S' +string(simplex.number);
             center_x = mean(x_coord);

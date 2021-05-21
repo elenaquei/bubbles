@@ -132,7 +132,7 @@ if gap < gap_min            % Gap is too small; merge simplices.
     for i = 1:length(new_simplices)
         list_of_simplices.simplex{new_simplices(i)}.verified = 0;
     end
-    
+    list_of_nodes = update_patches(list_of_nodes,list_of_simplices, index_merged_node);
     return
 elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     x_new = [xc,xc_front];
@@ -144,13 +144,14 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     verified = 0;
     frontal = 1;
     
-    simplex_x = simplex(nodes_number, simplex_number, verified, frontal,...
-    	list_of_nodes);
+    simplex_x = simplex(nodes_number, simplex_number, verified, frontal);
     % add it to the list
     list_of_simplices = append(list_of_simplices, simplex_x);
     list_of_nodes = update_patches(list_of_nodes,list_of_simplices, nodes_number);
     list_of_new_frontal_nodes = -node_loc.number;
     new_simplices = simplex_number;
+    list_of_nodes = update_patches(list_of_nodes,list_of_simplices, nodes_number);
+    
 else
     % Generate predictor "fan" in R2 coordinate system. 
     y_fan_R2 = zeros(2,n_new_simplex-1);
@@ -223,7 +224,7 @@ else
             number2 = list_new_nodes(i);
         end
         nodes_number = [node_loc.number, number1, number2];
-        simplex_new = simplex(nodes_number, number, verified, frontal,list_of_nodes);
+        simplex_new = simplex(nodes_number, number, verified, frontal);
         list_of_simplices = append(list_of_simplices, simplex_new);
         new_simplices(i) = number;
     end
@@ -233,7 +234,9 @@ else
     for i = node_loc.patch
         list_of_simplices.simplex{i}.frontal = 0;
     end
+    list_of_nodes = update_patches(list_of_nodes,list_of_simplices, list_new_nodes);
 end
+
 
 
 end

@@ -17,7 +17,7 @@ first_node = node(1,x0,F);
 [list_of_simplices,list_of_nodes,list_of_frontal_nodes] = ...
     simplices_set_up(first_node, F, step_size);
 
-plot(list_of_simplices);
+plot(list_of_simplices, list_of_nodes);
 
 % add the appropriate continuation equations
 for k = 1:6
@@ -79,7 +79,7 @@ while i < n_iter
         grow_simplex(node_i, step_size, list_of_nodes, list_of_simplices, F);
     
     if mod(node_number,6)==0
-    plot(list_of_simplices);
+    plot(list_of_simplices, list_of_nodes);
     pause
     end
     

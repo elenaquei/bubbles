@@ -23,9 +23,9 @@ classdef all_simplices
             end
         end
         
-        function plot(list_simplex)
+        function plot(list_simplex, list_of_nodes)
             for i = 1: length(list_simplex)
-                plot_simplex(list_simplex.simplex{i});
+                plot_simplex(list_simplex.simplex{i}, list_of_nodes);
                 hold on
             end
             hold off

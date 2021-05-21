@@ -1,7 +1,7 @@
 function s_new = F_update_Hopf(s_old,x_new)
 % function F_new = F_update_Hopf(F_old,x_new) 
 
-if ~isa(s_old, 'scalar_eq')
+if ~isa(s_old, 'scalar_eq') && ~isempty(s_old)
     all_eqs = s_old;
     s_old = s_old.scalar_equations;
     bool_scal = 0;
