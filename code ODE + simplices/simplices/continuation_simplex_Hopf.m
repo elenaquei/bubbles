@@ -1,10 +1,17 @@
-function [list_of_simplices,list_of_nodes] = continuation_simplex(x0, F,...
-    n_iter, step_size, save_file, bool_Hopf)
+function [list_of_simplices,list_of_nodes] = continuation_simplex_Hopf(x0, F,...
+    n_iter, step_size, save_file, rhs, phi, first_Hopf_data)
 % function list_of_simplices = continuation_simplex(x0, F, n_iter, h, save_file, bool_Hopf)
-
+%
+% firs_Hopf_data    info on the two Hopf bifurcations:
+%
+% firs_Hopf_data = cell(2)
+% each cell a structure of the form x, par_alpha, par_beta, eigenvec,
+% eigenval (where the eigenpair is complex)
 global use_intlab
 global talkative
 use_intlab = 0;
+
+bool_Hopf = 1;
 
 Interval = zeros(2,n_iter);
 Z0_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
@@ -16,6 +23,16 @@ Y_iter = zeros(x0.size_scalar+x0.size_vector,n_iter+6);
 first_node = node(1,x0,F);
 [list_of_simplices,list_of_nodes,list_of_frontal_nodes] = ...
     simplices_set_up(first_node, F, step_size);
+
+list_of_nodes = update_patches(list_of_nodes,list_of_simplices, 1);
+
+new_nodes = 2:7;
+new_simplices = 1:6;
+list_of_Hopf_data = cell(1);
+list_of_Hopf_data{1} = first_Hopf_data;
+[list_of_nodes, list_of_simplices, list_of_Hopf_data] = ...
+    Hopf_update_scal_eqs(list_of_nodes,...
+    list_of_simplices, new_nodes, list_of_Hopf_data, rhs, phi);
 
 plot(list_of_simplices, list_of_nodes);
 
@@ -35,9 +52,9 @@ end
 for j = 1:-6
     simplex_j = list_of_simplices.simplex{j};
     use_intlab = 1;
-    %[flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
-    %    simplex_j, list_of_nodes] = ...
-    %    radii_polynomials_simplex(simplex_j, list_of_nodes);
+    [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,...
+        simplex_j, list_of_nodes] = ...
+        radii_polynomials_simplex(simplex_j, list_of_nodes);
     use_intlab = 0;
     if flag < 1
         error('Validation failed')
@@ -49,10 +66,7 @@ for j = 1:-6
         end
     end
     list_of_simplices.simplex{j} = simplex_j;
-    %storage
-    %     Interval(:,j)  = [Imin,Imax]';
-    %     Z0_iter(:,j)   = vert(Z0vector);
-    %     Z1_iter(:,j)   = vert(Z1vector);
+    % storage
     Interval(:,j)  = [Imin,Imax]';
     Z0_iter(:,j)   = vert(Z0vector);
     Z1_iter(:,j)   = vert(Z1vector);
@@ -78,10 +92,17 @@ while i < n_iter
     [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, index_new_simplices]= ...
         grow_simplex(node_i, step_size, list_of_nodes, list_of_simplices, F);
     
+    
+    new_nodes = list_of_new_frontal_nodes(list_of_new_frontal_nodes>0);
+    [list_of_nodes, list_of_simplices, list_of_Hopf_data] = ...
+        Hopf_update_scal_eqs(list_of_nodes, list_of_simplices,...
+        new_nodes, list_of_Hopf_data, rhs, phi);
+    
     if mod(node_number,6)==0
-    plot(list_of_simplices, list_of_nodes);
-    pause
+        plot(list_of_simplices);
+        pause
     end
+    
     
     if any(list_of_new_frontal_nodes<0)
         index = list_of_new_frontal_nodes<0;
@@ -136,7 +157,7 @@ while i < n_iter
     i = i + length(index_new_simplices);
 end
 
-save(save_file,list_of_simplices,list_of_nodes,Interval,Z0_iter,Z1_iter,Z2_iter,Y_iter,norm_x);
+save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter','Z1_iter','Z2_iter','Y_iter');
 
 end
 
@@ -171,4 +192,90 @@ list_near_nodes = setdiff( list_near_nodes, n_node);
 if isempty(list_near_nodes)
     list_near_nodes = [];
 end
+end
+
+
+function [list_of_nodes, list_of_simplices,list_of_Hopf_data] = ...
+    Hopf_update_scal_eqs...
+    (list_of_nodes,list_of_simplices, new_nodes, ...
+    list_of_Hopf_data, rhs, phi)
+
+for i = 1:length(new_nodes)
+    node_i = list_of_nodes{i};
+    near_nodes = neighbor_nodes(node_i, list_of_nodes);
+    [node_i, list_of_Hopf_data] = Hopf_update_scal_eqs_nodes...
+        (node_i, list_of_Hopf_data, rhs, phi, near_nodes);
+    list_of_nodes{i} = node_i;
+end
+
+end
+
+
+function near_nodes = neighbor_nodes(node_i, list_of_nodes)
+near_nodes = [];
+for ii =1:length(list_of_nodes)
+    if ~isempty(intersect(node_i.patch, list_of_nodes{ii}.patch))
+        near_nodes = union(near_nodes,ii);
+    end
+end
+
+end
+
+function [node_i, list_of_Hopf_data] = Hopf_update_scal_eqs_nodes...
+    (node_i, list_of_Hopf_data, rhs, phi, near_nodes)
+Hopf_data = [];
+i = 1;
+while isempty(Hopf_data) && i <= length(near_nodes)
+    Hopf_data = list_of_Hopf_data{near_nodes(i)};
+    i = i+1;
+end
+if isempty(Hopf_data)
+    error('No prior node to learn from')
+end
+
+list_of_Hopf_data{end+1} = cell(2,1);
+
+
+node_number = node_i.number;
+parameter = node_i.solution.scalar(3);
+
+% compute the two Hopf bifurcations and store the data
+% Hopf_data stores twice x, par_alpha, par_beta, eigenvec, eigenval
+x1 = Hopf_data{1}.x;
+par_alpha1 = Hopf_data{1}.par_alpha;
+eigenvec1 = Hopf_data{1}.eigenvec;
+eigenval1 = Hopf_data{1}.eigenval;
+[x1, par_alpha1,  eigenvec1, eigenval1] = Hopf_numerical(x1, par_alpha1, parameter, eigenvec1, eigenval1, rhs, phi);
+
+x1_Hopf_data.x = x1;
+x1_Hopf_data.par_alpha = par_alpha1;
+x1_Hopf_data.eigenvec = eigenvec1;
+x1_Hopf_data.eigenval = eigenval1;
+x1_Hopf_data.par_beta = parameter;
+list_of_Hopf_data{end}{1} = x1_Hopf_data;
+
+x2 = Hopf_data{2}.x;
+par_alpha2 = Hopf_data{2}.par_alpha;
+eigenvec2 = Hopf_data{2}.eigenvec;
+eigenval2 = Hopf_data{2}.eigenval;
+[x2, par_alpha2,  eigenvec2, eigenval2] = Hopf_numerical(x2, par_alpha2, parameter, eigenvec2, eigenval2,rhs, phi);
+
+x2_Hopf_data.x = x2;
+x2_Hopf_data.par_alpha = par_alpha2;
+x2_Hopf_data.eigenvec = eigenvec2;
+x2_Hopf_data.eigenval = eigenval2;
+x2_Hopf_data.par_beta = parameter;
+list_of_Hopf_data{end}{2} = x2_Hopf_data;
+
+% here we need to use the new info to update the node
+% first the problem
+node_scalar_eqs = big_Hopf_scalar_eqs(node_i.solution, list_of_Hopf_data{end});
+node_i.problem.scalar_equations = node_scalar_eqs;
+problem = node_i.problem;
+problem = continuation_equation_simplex(problem, node_i.solution);
+% then the solution
+better_sol = Newton_2(node_i.solution, problem);
+node_i.solution = better_sol;
+
+
 end
