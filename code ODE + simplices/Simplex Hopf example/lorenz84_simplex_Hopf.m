@@ -42,7 +42,7 @@ DIM= N;
 
 phi = [0.347693611712440   0.362607042331847   0.999178390839916   0.649549106979193]'; %lorenx84
 
-X = [0.044235923390488
+X1 = [0.044235923390488
   0.481528303993606
   0.018000000000000
   0.664382383273932
@@ -57,13 +57,29 @@ X = [0.044235923390488
   0.435591195800222
   0.972046133308465]; % gives mu = 0.010900890394664
 
+X2 =[0.991380908070511
+   0.536571300769029
+   0.018000000000000
+   0.297367818824924
+   0.075579005137251
+   0.731181693699346
+   0.574541608287545
+   0.591657184180207
+   0.568456879079416
+   0.372376120925458
+   0.703809586107104
+   0.862916874311999
+   0.436074392210215
+   0.265907261089055]; % gives mu = -0.010901127516006
+
+
 F = 2;
 alpha = 0.25;
 beta =1 ;
 G = 0.25;
 delta = 1.04;
 gamma = 0.987;
-
+% T_null = 0.0568;
 
 string_lorenz84 = '- dot x1 -x2^2 -x3^2 -alpha x1 + alpha*F x1^0- gamma x4^2 \n - dot x2 + x1 x2 - beta x1 x3 - x2 + G x1^0 \n - dot x3 + beta x1 x2 + x1 x3 - x3 \n - dot x4 - delta x4 + gamma x1 x4 + T x1^0'; % lorenz84
 string_lorenz84_vars = strrep(string_lorenz84, 'alpha*F' , num2str(alpha*F));
@@ -92,27 +108,38 @@ vectorfield = strrep(vectorfield, 'l2' , 'l1');
 f_lor = from_string_to_polynomial_coef(vectorfield); 
 % transformation into a vectorfield that can be used
 
-use_intlab = 1;
-
 [x0,lambda0,eigenvec,eigenval, stability] = ...
-    algebraic_hopf(f,df,ddf,dddf,N,X,phi);
+    algebraic_hopf(f,df,ddf,dddf,N,X1,phi);
+numerical_Hopfs = cell(2,1);
+numerical_Hopfs{1}.x = x0;
+numerical_Hopfs{1}.par_alpha = lambda0;
+numerical_Hopfs{1}.par_beta = beta;
+numerical_Hopfs{1}.eigenvec = eigenvec;
+numerical_Hopfs{1}.eigenval = eigenval;
 
+
+[x1,lambda1,eigenvec1,eigenval1] = ...
+    algebraic_hopf(f,df,ddf,dddf,N,X2,phi);
+numerical_Hopfs{2}.x = x1;
+numerical_Hopfs{2}.par_alpha = lambda1;
+numerical_Hopfs{2}.par_beta = beta;
+numerical_Hopfs{2}.eigenvec = eigenvec1;
+numerical_Hopfs{2}.eigenval = eigenval1;
+
+% numerically find the other Hopf solution!
+
+
+use_intlab = 0;
 [sol_Xi, big_Hopf] = Hopf_system_setup(lambda0, x0, f_lor, n_nodes,...
-    eigenvec, eigenval, stability);
+    eigenvec, eigenval, stability, step_size);
 
 
 % remove the two polynomial scalar equations from big_Hopf and replace them
 % by trivial ones
-
-
-
-
 bool_Hopf = 2;
-
+use_intlab = 1;
 [save_file] = continuation_simplex_Hopf(sol_Xi, big_Hopf,...
-    n_iter, step_size, save_file, bool_Hopf, Hopf_numerical);
-
-
+    n_iter, step_size, save_file, bool_Hopf, Hopf_numerical, numerical_Hopfs);
 
 
 function [x, par_alpha] = Hopf_numerical(x, par_alpha, parameter)

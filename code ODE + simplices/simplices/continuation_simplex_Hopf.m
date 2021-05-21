@@ -1,7 +1,12 @@
 function [list_of_simplices,list_of_nodes] = continuation_simplex_Hopf(x0, F,...
-    n_iter, step_size, save_file, Hopf_numerical)
+    n_iter, step_size, save_file, Hopf_numerical, list_Hopf_data)
 % function list_of_simplices = continuation_simplex(x0, F, n_iter, h, save_file, bool_Hopf)
-
+%
+% firs_Hopf_data    info on the two Hopf bifurcations:
+% 
+% firs_Hopf_data = cell(2)
+% each cell a structure of the form x. par_alpha, par_beta, eigenvec,
+% eigenval (where the eigenpair is complex)
 global use_intlab
 global talkative
 use_intlab = 0;

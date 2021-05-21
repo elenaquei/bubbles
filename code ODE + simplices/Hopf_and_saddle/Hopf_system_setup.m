@@ -1,7 +1,7 @@
 function [sol_2, big_Hopf, x_dot_0] = Hopf_system_setup (lambda0, x0, f, n_nodes,...
-    eigenvec, eigenval, sign_FLC)
-% function [s, x_n, x_0] = continuation_Hopf ( lambda0, x0, f, n_nodes, n_iter, h, s, eigenvec, eigenval, sign_FLC, index_saddle,bool_saddle)
-%
+    eigenvec, eigenval, sign_FLC, step_size)
+% function [sol_2, big_Hopf, x_dot_0] = Hopf_system_setup (lambda0, x0, f, n_nodes,...
+%     eigenvec, eigenval, sign_FLC, step_size)
 % INPUTS
 % lambda0       paramenter of the Hopf bifurcation
 % x0            scalar values of the Hopf bifurcation
@@ -10,7 +10,6 @@ function [sol_2, big_Hopf, x_dot_0] = Hopf_system_setup (lambda0, x0, f, n_nodes
 % n_iter        number of validated continuation iterations to do (DEFAULT:
 %               100)
 % h             step size in the continuation code
-% s             string, path where to save results
 % eigenvec      approximation of the eigenvector at the Hopf bifurcation
 % eigenval      approximation of the eigenvalue at the Hopf bifurcation
 
@@ -29,7 +28,7 @@ big_Hopf = Taylor_series_Hopf(f,n_nodes);
 
 % analytic contruction of the solution at the Hopf bifurcation
 T_star = imag(eigenval);
-a_star = (abs(h));
+a_star = (abs(step_size));
 if nargin>9 && ~isempty(sign_FLC)
     lambda0 = lambda0+ sign_FLC*a_star^2;
 end
@@ -68,7 +67,7 @@ big_H_square = big_Hopf;
 big_H_square.scalar_equations = big_H_square.scalar_equations.change_lin_coef_vector([x_dot_0.',0]);
 sol_2 = Newton_2(sol,big_H_square);
 
-if max(norm(sol-sol_2))>h
+if max(norm(sol-sol_2))>step_size
     % update scalar equations
     big_Hopf.scalar_equations =fancy_scalar_condition(sol_2,big_Hopf.scalar_equations,1);
     
