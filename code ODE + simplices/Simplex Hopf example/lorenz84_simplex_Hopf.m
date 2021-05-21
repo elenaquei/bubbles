@@ -1,4 +1,4 @@
-function lorenz84_simplex_Hopf()
+function save_file = lorenz84_simplex_Hopf()
 
 % lorenz 84
 % alpha = 0.25
@@ -85,15 +85,14 @@ string_lorenz84 = '- dot x1 -x2^2 -x3^2 -alpha x1 + alpha*F x1^0- gamma x4^2 \n 
 string_lorenz84_vars = strrep(string_lorenz84, 'alpha*F' , num2str(alpha*F));
 string_lorenz84_vars = strrep(string_lorenz84_vars, 'alpha' , num2str(alpha)); % plugging in alpha
 string_lorenz84_vars = strrep(string_lorenz84_vars, 'F' , num2str(F)); % plugging in F
-string_lorenz84_vars = strrep(string_lorenz84_vars, 'beta' , num2str(beta)); % plugging in beta
 string_lorenz84_vars = strrep(string_lorenz84_vars, 'G' , num2str(G)); % plugging in G
 string_lorenz84_vars = strrep(string_lorenz84_vars, 'delta' , num2str(delta)); % plugging in delta
 string_lorenz84_vars = strrep(string_lorenz84_vars, 'gamma' , num2str(gamma)); % plugging in gamma
 
-% string_lorenz84_pho = strrep(string_lorenz84_vars, 'T', num2str(T_null)); % for point wise first system, plugging in T
-string_lorenz84_cont = strrep(string_lorenz84_vars, 'T', 'l2'); % setting pho as the second scalar variable
+string_lorenz84_cont1 = strrep(string_lorenz84_vars, 'T', 'l2'); % setting pho as the second scalar variable
+string_lorenz84_cont2 = strrep(string_lorenz84_cont1, 'beta' , 'l3');
 
-lor_rhs = @(x1,x2,x3,x4,T)[(-x2^2-x3^2-alpha*x1 + alpha*F- gamma *x4^2) ; (+ x1 *x2 - beta *x1* x3 - x2 + G);(+ beta *x1 *x2 + x1* x3 - x3) ;(- delta *x4 + gamma *x1 *x4 + T)];
+lor_rhs = @(x,T,beta)[(-x(2)^2-x(3)^2-alpha*x(1) + alpha*F- gamma *x(4)^2) ; (+ x(1) *x(2) - beta *x(1)* x(3) - x(2) + G);(+ beta *x(1) *x(2) + x(1)* x(3) - x(3)) ;(- delta *x(4) + gamma *x(1) *x(4) + T)];
 
 % some elements useful for the computation and the validation
 n_nodes = 5; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
@@ -101,8 +100,12 @@ n_iter = 5;
 step_size = 10^-3; % initial step size (then adapted along the validation
 save_file = 'Hopf_lorenz84_simplex'; % where the solutions are stored
 
-vectorfield = strrep(string_lorenz84_cont, 'l1' , '');%'-dot x1 - x2 + l1 x1 - x1 ^ 3 - x1  x2 ^ 2\n- dot x2 + x1 + l1 x2 - x1 ^ 2 x2 - x2 ^ 3';
+vectorfield = strrep(string_lorenz84_cont1, 'l1' , '');%'-dot x1 - x2 + l1 x1 - x1 ^ 3 - x1  x2 ^ 2\n- dot x2 + x1 + l1 x2 - x1 ^ 2 x2 - x2 ^ 3';
 vectorfield = strrep(vectorfield, 'l2' , 'l1');
+vectorfield = strrep(vectorfield, 'beta' , num2str(beta));
+vectorfield2 = strrep(string_lorenz84_cont2, 'l1' , '');%'-dot x1 - x2 + l1 x1 - x1 ^ 3 - x1  x2 ^ 2\n- dot x2 + x1 + l1 x2 - x1 ^ 2 x2 - x2 ^ 3';
+vectorfield2 = strrep(vectorfield2, 'l2' , 'l1');
+vectorfield2 = strrep(vectorfield2, 'l3' , 'l2');
 % string defining the vector field of the Hopf normal form
 
 f_lor = from_string_to_polynomial_coef(vectorfield);
@@ -128,58 +131,23 @@ numerical_Hopfs{2}.eigenvec = eigenvec1;
 numerical_Hopfs{2}.eigenval = eigenval1;
 
 use_intlab = 0;
-[sol_Xi, big_Hopf] = Hopf_system_setup(lambda0, x0, f_lor, n_nodes,...
+sol_Xi = Hopf_system_setup(lambda0, x0, f_lor, n_nodes,...
     eigenvec, eigenval, stability, step_size);
+% this gives us the wrong shape of things
+sol = Xi_vector([sol_Xi.scalar(1),lambda0, beta, sol_Xi.scalar(3:end)], sol_Xi.vector);
 
-big_Hopf.scalar_eqs = big_Hopf_scalar_eqs(sol_Xi, numerical_Hopfs);
+polynomial = from_string_to_polynomial_coef(vectorfield2);
+big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
+
+big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
 
 % remove the two polynomial scalar equations from big_Hopf and replace them
 % by trivial ones
-bool_Hopf = 2;
 use_intlab = 1;
-[save_file] = continuation_simplex_Hopf(sol_Xi, big_Hopf,...
-    n_iter, step_size, save_file, bool_Hopf, Hopf_numerical, numerical_Hopfs);
+[save_file] = continuation_simplex_Hopf(sol, big_Hopf,...
+    n_iter, step_size, save_file, lor_rhs, phi, numerical_Hopfs);
 
 
-    function [x, par_alpha, eigenvec, eigenval] = Hopf_numerical(x, par_alpha, parameter, eigenvec, eigenval)
-        % function [x, par_alpha, eigenvec, eigenval] = Hopf_numerical(x, par_alpha, parameter)
-        %
-        % INPUT
-        % x     vector of 3 elements with an approximation of the position of a
-        % Hopf bifurcation
-        % par_alpha     double storing an approximation of hte parameter of the
-        % Hopf bifurcation
-        % parameter     double, fixed parameter in the search of a Hopf bifurcation
-        %
-        % OUTPUT
-        % x         vector of 3 elements, numerical coordinates of the Hopf bifurcation
-        % alpha     double, numerical parameter of the Hopf bifurcation
-        
-        fn = @(x,alpha) lor_rhs(x, alpha, parameter);
-        
-        % (1i*beta, phi1+1i*phi2) approximate eigenpair
-        Df=finite_diff_fn(fn,x,par_alpha);
-        [V,D] = eigs(Df);
-        if nargin<5
-            eigenvalues = diag(D);
-            [~,beta_index] = min(abs(real(eigenvalues)));
-            beta_eig = imag(eigenvalues(beta_index));
-            phi1 = real(V(:,beta_index));
-            phi2 = imag(V(:,beta_index));
-        else
-            beta_eig = imag(eigenval);
-            phi1 = real(eigenvec);
-            phi2 = imag(eigenvec);
-        end
-        X_loc = [par_alpha, beta_eig, x, phi1, phi2];
-        
-        X_loc =newton_Hopf(fn,X_loc, phi);
-        
-        par_alpha = X_loc(1);
-        eigenval = 1i*X_loc(2);
-        x = X_loc(2+(1:length(x)));
-        eigenvec = X_loc(2+length(x)+(1:length(x))) + 1i*X_loc(2+2*length(x)+(1:length(x)));
-    end
 
 
 end

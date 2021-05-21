@@ -22,9 +22,9 @@ x = node.solution;
 
 if bool_Hopf
     % adds two new scalar equations
-    F_problem.scalar_eqs = F_update_Hopf(F_problem.scalar_eqs,x);
+    F_problem.scalar_equations = F_update_Hopf(F_problem.scalar_equations,x);
 else
-    F_problem.scalar_eqs = fancy_scalar_condition(x, F_problem.scalar_eqs);
+    F_problem.scalar_equations = fancy_scalar_condition(x, F_problem.scalar_equations);
 end
 
 F_problem = continuation_equation_simplex(F_problem,x);

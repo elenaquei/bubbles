@@ -1,11 +1,22 @@
 function s_new = F_update_Hopf(s_old,x_new)
 % function F_new = F_update_Hopf(F_old,x_new) 
 
+if ~isa(s_old, 'scalar_eq')
+    all_eqs = s_old;
+    s_old = s_old.scalar_equations;
+    bool_scal = 0;
+else
+    bool_scal = 1;
+end
+
+
 if isempty(s_old)
     s_new =fancy_scalar_condition(x_new);
 else
     s_new =fancy_scalar_condition(x_new,s_old,1);
 end
+
+
 
 p1 = Xi_vec2vec(x_new).';
 p1(1:x_new.size_scalar) = 0;
@@ -26,4 +37,8 @@ const_p2 = -sum(Xi_vec2vec(x_new).'.*p2) ; % -1
 
 s_new = change_lin_coef_vector(s_new,[p2.';const_p2],2);
 
+if bool_scal==0
+    temp = s_new;
+    s_new = all_eqs;
+    s_new.scalar_equations = temp;
 end

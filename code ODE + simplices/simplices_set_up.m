@@ -26,7 +26,7 @@ starting_solution_Xi = starting_node.solution;
 starting_solution = Xi_vec2vec(starting_solution_Xi);
 
 div_tol = 1E-2; % Expansion/divergence criteria for step size reduction.
-tol = 1E-7;    % Tolerance for convergence of Gauss-Newton.
+tol = 1E-5;    % Tolerance for convergence of Gauss-Newton.
 F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, starting_solution_Xi)));
 
 DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, starting_solution_Xi),0));
@@ -48,21 +48,22 @@ R2_to_TM = null(DF(starting_solution));
 
 % Push the "fan" back into the tangent space T_{xc}M, and scale.
 y_fan = R2_to_TM*y_fan_R2;
-x_fan = zeros(size(y_fan,1),n_new_points);
+x_fan_start = zeros(size(y_fan,1),n_new_points);
 for j=1:n_new_points
     y_fan(:,j) = y_fan(:,j)/norm(y_fan(:,j),2);
-    x_fan(:,j) = starting_solution + y_fan(:,j)*xc_h*tau;
+    x_fan_start(:,j) = starting_solution + y_fan(:,j)*xc_h*tau;
 end
 % Refine predictors with Gauss-Newton
+x_fan = 0*x_fan_start;
 for j=1:n_new_points
-    x_init = x_fan(:,j);
+    x_init = x_fan_start(:,j);
     h_local = xc_h;
     delta = inf;
     while delta>tol*(1+norm(x_init,2))
         if norm(x_init - x_fan(:,j))>div_tol   % Diverging.
             h_local = h_local * 0.9;
-            x_fan(:,j) = starting_solution + y_fan(:,j)/norm(y_fan(:,j),2)*h_local;
-            x_init = x_fan(:,j);
+            x_fan_start(:,j) = starting_solution + y_fan(:,j)/norm(y_fan(:,j),2)*h_local;
+            x_init = x_fan_start(:,j);
         end
         x_fan(:,j) = GN(x_init,@(z)F(z),@(z)DF(z));
         delta = norm(x_fan(:,j)-x_init,2);

@@ -1,5 +1,5 @@
 function [list_of_simplices,list_of_nodes] = continuation_simplex_Hopf(x0, F,...
-    n_iter, step_size, save_file, Hopf_numerical, first_Hopf_data)
+    n_iter, step_size, save_file, rhs, phi, first_Hopf_data)
 % function list_of_simplices = continuation_simplex(x0, F, n_iter, h, save_file, bool_Hopf)
 %
 % firs_Hopf_data    info on the two Hopf bifurcations:
@@ -30,7 +30,7 @@ list_of_Hopf_data = cell(1);
 list_of_Hopf_data{1} = first_Hopf_data;
 [list_of_nodes, list_of_simplices, list_of_Hopf_data] = ...
     Hopf_update_scal_eqs(list_of_nodes,...
-    list_of_simplices, new_nodes, new_simplices, list_of_Hopf_data, Hopf_numerical);
+    list_of_simplices, new_nodes, new_simplices, list_of_Hopf_data, rhs, phi);
 
 plot(list_of_simplices);
 
@@ -94,7 +94,7 @@ while i < n_iter
     new_nodes = list_of_new_frontal_nodes(list_of_new_frontal_nodes>0);
     [list_of_nodes, list_of_simplices, list_of_Hopf_data] = ...
         Hopf_update_scal_eqs(list_of_nodes, list_of_simplices,...
-        new_nodes, index_new_simplices, list_of_Hopf_data, Hopf_numerical);
+        new_nodes, index_new_simplices, list_of_Hopf_data, rhs, phi);
     
     if mod(node_number,6)==0
         plot(list_of_simplices);
@@ -196,17 +196,17 @@ end
 function [list_of_nodes, list_of_simplices,list_of_Hopf_data] = ...
     Hopf_update_scal_eqs...
     (list_of_nodes,list_of_simplices, new_nodes, ...
-    index_new_simplices,list_of_Hopf_data, Hopf_numerical)
+    index_new_simplices,list_of_Hopf_data, rhs, phi)
 
 for i = 1:length(index_new_simplices)
     simplex_i = list_of_simplices.simplex{index_new_simplices(i)};
     new_nodes_simplex = intersect(new_nodes, simplex_i.nodes_number);
     [simplex_i,list_of_Hopf_data] = Hopf_update_scal_eqs_simplex...
-        (simplex_i,list_of_Hopf_data,new_nodes_simplex,Hopf_numerical);
+        (simplex_i,list_of_Hopf_data,new_nodes_simplex, rhs, phi);
     list_of_simplices.simplex{index_new_simplices(i)} = simplex_i;
     for j = 1:length(new_nodes_simplex)
         list_of_nodes{new_nodes_simplex(j)} = ...
-            simplex_i.nodes{nodes_number==new_nodes_simplex(j)};
+            simplex_i.nodes{simplex_i.nodes_number==new_nodes_simplex(j)};
     end
     new_nodes = setdiff(new_nodes, new_nodes_simplex); 
     % remove already considered nodes
@@ -216,7 +216,7 @@ end
 
 
 function [simplex_i,list_of_Hopf_data] = Hopf_update_scal_eqs_simplex...
-    (simplex_i, list_of_Hopf_data, new_nodes_simplex, Hopf_numerical)
+    (simplex_i, list_of_Hopf_data, new_nodes_simplex, rhs, phi)
 if length(new_nodes_simplex)==3
     error('No initial node to learn from!')
 elseif length(new_nodes_simplex)==2 && simplex_i.number>1
@@ -232,7 +232,7 @@ Hopf_data = list_of_Hopf_data{old_node};
 list_of_Hopf_data{end+1} = cell(2,1);
 
 for i = 1: length(new_nodes_simplex)
-    node_i = simplex_i.node{i};
+    node_i = simplex_i.nodes{i};
     parameter = node_i.solution.scalar(3);
     
     % compute the two Hopf bifurcations and store the data
@@ -241,7 +241,7 @@ for i = 1: length(new_nodes_simplex)
     par_alpha1 = Hopf_data{1}.par_alpha;
     eigenvec1 = Hopf_data{1}.eigenvec;
     eigenval1 = Hopf_data{1}.eigenval;
-    [x1, par_alpha1,  eigenvec1, eigenval1] = Hopf_numerical(x1, par_alpha1, parameter, eigenvec1, eigenval1);
+    [x1, par_alpha1,  eigenvec1, eigenval1] = Hopf_numerical(x1, par_alpha1, parameter, eigenvec1, eigenval1, rhs, phi);
     
     x1_Hopf_data.x = x1;
     x1_Hopf_data.par_alpha = par_alpha1;
@@ -254,7 +254,7 @@ for i = 1: length(new_nodes_simplex)
     par_alpha2 = Hopf_data{2}.par_alpha;
     eigenvec2 = Hopf_data{2}.eigenvec;
     eigenval2 = Hopf_data{2}.eigenval;
-    [x2, par_alpha2,  eigenvec2, eigenval2] = Hopf_numerical(x2, par_alpha2, parameter, eigenvec2, eigenval2);
+    [x2, par_alpha2,  eigenvec2, eigenval2] = Hopf_numerical(x2, par_alpha2, parameter, eigenvec2, eigenval2,rhs, phi);
     
     x2_Hopf_data.x = x2;
     x2_Hopf_data.par_alpha = par_alpha2;
@@ -266,13 +266,14 @@ for i = 1: length(new_nodes_simplex)
     % here we need to use the new info to update the node
     % first the problem
     node_scalar_eqs = big_Hopf_scalar_eqs(node_i.solution, list_of_Hopf_data{end});
-    node_i.problem.scalar_eqs = node_scalar_eqs;
-    
+    node_i.problem.scalar_equations = node_scalar_eqs;
+    problem = node_i.problem;
+    problem = continuation_equation_simplex(problem, node_i.solution);
     % then the solution
-    better_sol = Newton_2(node_i.solution, node_i.problem);
+    better_sol = Newton_2(node_i.solution, problem);
     node_i.solution = better_sol;
     
-    simplex_i.node{i} = node_i;
+    simplex_i.nodes{i} = node_i;
 end
 
 end

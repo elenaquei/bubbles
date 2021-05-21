@@ -15,14 +15,14 @@ end
 % <T,z> = c (2 equations), i.e. simplex continuation equation
 % the simplex continuation equations ARE NOT INCLUDED in this code
 
-Hopf_scalar_eqs = F_update_Hopf([],x_new);
+Hopf_scalar_eqs = F_update_Hopf([],sol_Xi);
 
-vec_coefs = [0*Xi_vec2vec(sol_Xi), 0];
+vec_coefs = [0*Xi_vec2vec(sol_Xi).', 0];
 alpha = sol_Xi.scalar(2);
 x1 = numerical_Hopfs{1}.x;
 x2 = numerical_Hopfs{2}.x;
-alpha1 = numerical_Hopfs{1}.alpha;
-alpha2 = numerical_Hopfs{2}.alpha;
+alpha1 = numerical_Hopfs{1}.par_alpha;
+alpha2 = numerical_Hopfs{2}.par_alpha;
 s = (alpha - alpha1) / (alpha2 - alpha1);
 xs = x1 + s * ( x2 -x1);
 for i = 1:sol_Xi.size_vector
