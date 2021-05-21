@@ -10,7 +10,8 @@ if nargin <3 || isempty(indices)
     indices = 1:length(list_of_nodes);
 end
 
-for j = indices
+for span = 1:length(indices)
+    j = indices(span);
     list_of_nodes{j}.patch = [];
     for k = 1: length(list_of_simplices)
         list_of_nodes{j} = add_simplex_to_patch(list_of_nodes{j},...

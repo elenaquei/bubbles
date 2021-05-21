@@ -78,7 +78,7 @@ while i < n_iter
     [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, index_new_simplices]= ...
         grow_simplex(node_i, step_size, list_of_nodes, list_of_simplices, F);
     
-    if mod(node_number,7)==0
+    if mod(node_number,6)==0
     plot(list_of_simplices);
     pause
     end
@@ -86,7 +86,9 @@ while i < n_iter
     if any(list_of_new_frontal_nodes<0)
         index = list_of_new_frontal_nodes<0;
         remove_node = abs(list_of_new_frontal_nodes(index));
-        list_of_frontal_nodes(list_of_frontal_nodes==remove_node) = [];
+        for i = 1:length(remove_node)
+            list_of_frontal_nodes(list_of_frontal_nodes==remove_node(i)) = [];
+        end
         list_of_new_frontal_nodes(index)=[];
     end
     list_of_frontal_nodes = union(list_of_frontal_nodes,list_of_new_frontal_nodes);
