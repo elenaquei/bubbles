@@ -94,11 +94,11 @@ f_lor = from_string_to_polynomial_coef(vectorfield);
 
 use_intlab = 1;
 
-[x0,lambda0,eigenvec,eigenval, ~] = ...
+[x0,lambda0,eigenvec,eigenval, stability] = ...
     algebraic_hopf(f,df,ddf,dddf,N,X,phi);
 
-[sol_Xi, big_Hopf] = Hopf_system_setup (lambda0, x0, f_lor, n_nodes,...
-    eigenvec, eigenval, sign_FLC);
+[sol_Xi, big_Hopf] = Hopf_system_setup(lambda0, x0, f_lor, n_nodes,...
+    eigenvec, eigenval, stability);
 
 
 % remove the two polynomial scalar equations from big_Hopf and replace them
