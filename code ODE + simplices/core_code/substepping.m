@@ -27,7 +27,7 @@ use_intlab = temp_use_intval;
 if bool_refine_anyway
     flag = 0;
 else
-    [flag,Imin,Imax] = radii_polynomials_cont_new(x_0,x_1,[],[],...
+    [flag,Imin,Imax] = radii_polynomials_cont(x_0,x_1,[],[],...
         F0,F1);
 end
 

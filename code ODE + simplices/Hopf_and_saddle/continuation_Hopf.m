@@ -31,7 +31,7 @@ if nargin<12
 end
 
 [sol_2, big_Hopf, x_dot_0] = Hopf_system_setup (lambda0, x0, f, n_nodes,...
-    eigenvec, eigenval, sign_FLC);
+    eigenvec, eigenval, sign_FLC, h);
 
 % calling continuation with the Hopf boolean (guarantees that we keep using
 % the same scalar conditions over the continuation)

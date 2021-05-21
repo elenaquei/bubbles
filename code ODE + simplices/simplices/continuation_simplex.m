@@ -24,9 +24,9 @@ for k = 1:6
     simplex_k = list_of_simplices.simplex{k};
     node_numbers = simplex_k.nodes_number;
     for j = node_numbers
-        n_near_nodes = neighboring_nodes(j, list_of_nodes, list_of_simplices);
+        % n_near_nodes = neighboring_nodes(j, list_of_nodes, list_of_simplices);
         [list_of_nodes] = simplex_scalar_equations(j, ...
-            bool_Hopf, list_of_nodes, n_near_nodes);
+            bool_Hopf, list_of_nodes);
     end
 end
 
@@ -100,9 +100,9 @@ while i < n_iter
         node_numbers = simplex.nodes_number;
         for jj = 1:3
             j = node_numbers(jj);
-            n_near_nodes = neighboring_nodes(j, list_of_nodes, list_of_simplices);
+            % n_near_nodes = neighboring_nodes(j, list_of_nodes, list_of_simplices);
             [list_of_nodes] = simplex_scalar_equations(node_numbers, ...
-                bool_Hopf, list_of_nodes, n_near_nodes);
+                bool_Hopf, list_of_nodes);
         end
         list_of_simplices.simplex{k} = simplex;
     end

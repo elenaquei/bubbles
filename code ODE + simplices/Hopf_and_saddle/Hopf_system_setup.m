@@ -51,7 +51,7 @@ sol = Xi_vector([1/T_star, lambda0, a_star, horiz(x0)],y);
 % adding 2 scalar condition
 % first scalar condition: integral condition
 big_Hopf.scalar_equations =fancy_scalar_condition(sol,big_Hopf.scalar_equations,1);
-big_Hopf = F_update_Hopf(big_Hopf,sol);
+big_Hopf.scalar_equations = F_update_Hopf(big_Hopf.scalar_equations,sol);
 
 % what I care for is for the amplitude to increase, since at the moment
 % it's negative

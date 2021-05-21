@@ -51,7 +51,7 @@ x1 = x1.symmetrise; % let it be real
 % update the scalar equation that needs updating
 F_new = F_not_square;
 if bool_Hopf
-    F_new = F_update_Hopf(F_new,x1);
+    F_new.scalar_equations = F_update_Hopf(F_new.scalar_equations,x1);
 end
 if bool_fancy_scalar
     F_new.scalar_equations = fancy_scalar_condition(x1, F_new.scalar_equations);
@@ -108,7 +108,7 @@ function F_new = F_update(F_old, x_new, x_dot, bool_Hopf, bool_fancy)
 F_new = F_old;
 % update the scalar equation that needs updating
 if bool_Hopf
-    F_new = F_update_Hopf(F_old,x_new);
+    F_new.scalar_equations = F_update_Hopf(F_old.scalar_equations,x_new);
 end
 if bool_fancy
     F_new.scalar_equations = fancy_scalar_condition(x_new, F_new.scalar_equations);
