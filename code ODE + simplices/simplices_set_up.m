@@ -44,7 +44,11 @@ for j=1:n_new_points
     y_fan_R2(:,j) = Rtheta*y1_R2;
 end
 
-R2_to_TM = null(DF(starting_solution));
+U = null(DF(starting_solution));
+U1 = make_it_symmetric(U(:,1),starting_solution_Xi);
+U2 = make_it_symmetric(U(:,2),starting_solution_Xi);
+R2_to_TM = [U1/norm(U1,2),U2/norm(U2,2)];
+
 
 % Push the "fan" back into the tangent space T_{xc}M, and scale.
 y_fan = R2_to_TM*y_fan_R2;
@@ -112,4 +116,20 @@ if rcond(R)>10^5 || rcond(R)<10^-5
 end
 z = R\F(x);
 x_new = x - Q1*z;
+end
+
+
+
+function x_real_vec = make_it_symmetric(x_vec, x0)
+% function x_real_vec = make_it_real(vec, x0)
+% takes a complex vector, rotates it and turn it into a sin-cos series
+
+% ritation to symmetry
+%x_vec = vec2Xi_vec(vec,x0);
+[~,index] = max(abs(real(x_vec(1:x0.size_scalar))));
+angle = atan( imag(x_vec(index))/real(x_vec(index)));
+x_vec = exp( - 1i * angle) * x_vec; 
+% bringing x_Xi_vec to be symmetric (by multiplication with the appropriate complex rotation)
+x_real_vec = Xi_vec2vec(symmetrise(vec2Xi_vec(x_vec,x0)));
+
 end
