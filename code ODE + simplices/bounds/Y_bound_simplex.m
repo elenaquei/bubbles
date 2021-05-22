@@ -231,7 +231,7 @@ Ys_d1d1 = Y2_d1d1 + Y3_d1d1 + 2*Y4_d1d1 + 2*Y5_d1d1;
 Ys_d1d2 = Y2_d1d2 + Y3_d1d2 + 2*Y4_d1d2 + 2*Y5_d1d2;
 Ys_d2d1 = Y2_d2d1 + Y3_d2d1 + 2*Y4_d2d1 + 2*Y5_d2d1;
 Ys_d2d2 = Y2_d2d2 + Y3_d2d2 + 2*Y4_d2d2 + 2*Y5_d2d2;
-YDelta = 1/8 * cnorm_Xi_vector(max(max(Ys_d1d1,Ys_d1d2),max(Ys_d2d1,Ys_d2d2)),nu);
+YDelta = 1/8 * cnorm_Xi_vector(max(max(abs(Ys_d1d1),abs(Ys_d1d2)),max(abs(Ys_d2d1),abs(Ys_d2d2))),nu);
 
 
 %%

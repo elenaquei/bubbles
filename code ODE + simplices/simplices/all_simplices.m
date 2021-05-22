@@ -23,11 +23,18 @@ classdef all_simplices
             end
         end
         
-        function plot(list_simplex, list_of_nodes)
-            for i = 1: length(list_simplex)
-                plot_simplex(list_simplex.simplex{i}, list_of_nodes);
+        function plot(list_simplex, list_of_nodes, index_simplices, varargin)
+            if nargin <3 || isempty(index_simplices)
+                index_simplices = 1:length(list_simplex);
+            end
+                
+          
+            for index = 1: length(index_simplices)
+                i = index_simplices(index);
+                plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{:});
                 hold on
             end
+            alpha 0.5
             set(gca,'FontSize',18)
             xlabel('$I$','Interpreter','Latex', 'FontSize', 20);
             ylabel('$\epsilon$','Interpreter','Latex', 'FontSize', 20);

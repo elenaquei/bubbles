@@ -19,7 +19,7 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 10^-4;
+step_size = 10^-3;
 n_iter = 300;
 save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
 
@@ -102,11 +102,12 @@ sol = Xi_vector([x_sol_N.scalar,I_fix, epsilon_fix, amplitude, x.'], vector);
 test_Hopf = big_Hopf;
 test_Hopf = F_update_Hopf(test_Hopf,sol);
 test_Hopf = continuation_equation_simplex(test_Hopf,sol);
-sol_N = Newton_2(sol,test_Hopf,30,10^-7);
+sol_N = Newton_2(sol,test_Hopf,30,10^-12);
 
 big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 % launch the validation
 bool_Hopf = 1;
+use_intlab = 0;
 [list_of_simplices,list_of_nodes] = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf);

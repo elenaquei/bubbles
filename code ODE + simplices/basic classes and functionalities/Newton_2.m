@@ -35,7 +35,7 @@ if ~exist('maxiter','var') || isempty(maxiter)
     maxiter=10;
 end
 if ~exist('min_res','var') || isempty(min_res)
-    min_res=10^-10;
+    min_res=10^-12;
 end
 
 if use_intlab
@@ -80,6 +80,7 @@ end
 
 if iter==maxiter && res>min_res
     disp(res)
+    figure
     semilogy(RES)
     error('Newton did not converge')
     return%

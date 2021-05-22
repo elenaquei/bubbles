@@ -94,7 +94,7 @@ lor_rhs = @(x,T,beta)[(-x(2)^2-x(3)^2-alpha*x(1) + alpha*F- gamma *x(4)^2) ; (+ 
 
 % some elements useful for the computation and the validation
 n_nodes = 5; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 5;
+n_iter = 500;
 step_size = 10^-3; % initial step size (then adapted along the validation
 save_file = 'Hopf_lorenz84_simplex'; % where the solutions are stored
 
@@ -137,11 +137,23 @@ sol = Xi_vector([sol_Xi.scalar(1),lambda0, beta, sol_Xi.scalar(3:end)], sol_Xi.v
 polynomial = from_string_to_polynomial_coef(vectorfield2);
 big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 
-big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
+% big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
+
+test_Hopf = big_Hopf;
+test_Hopf = F_update_Hopf(test_Hopf,sol);
+test_Hopf = continuation_equation_simplex(test_Hopf,sol);
+sol_N = Newton_2(sol,test_Hopf,30,10^-7);
+
+big_Hopf = F_update_Hopf(big_Hopf,sol_N);
+
 
 % remove the two polynomial scalar equations from big_Hopf and replace them
 % by trivial ones
 use_intlab = 1;
-[save_file] = continuation_simplex_Hopf(sol, big_Hopf,...
-    n_iter, step_size, save_file, lor_rhs, phi, numerical_Hopfs);
+%[save_file] = continuation_simplex_Hopf(sol, big_Hopf,...
+%    n_iter, step_size, save_file, lor_rhs, phi, numerical_Hopfs);
+[list_of_simplices,list_of_nodes] = continuation_simplex(sol, big_Hopf,...
+    n_iter, step_size, save_file, 1);
 
+
+plot(list_of_simplices,list_of_nodes)

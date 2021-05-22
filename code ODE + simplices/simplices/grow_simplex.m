@@ -1,8 +1,8 @@
 function [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, new_simplices] = ...
     grow_simplex(node_loc, step_size, list_of_nodes, list_of_simplices, problem)
-% function [list_of_nodes,list_of_simplices] = grow_simplex(node, 
+% function [list_of_nodes,list_of_simplices] = grow_simplex(node,
 %           step_size, list_of_nodes, list_of_simplices, problem)
-% 
+%
 % INPUT
 % node          instance of the node class - the node that needs "growing"
 % step_size     expected length of the new edges
@@ -20,14 +20,14 @@ function [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, new_simpli
 
 % old version: [x_new,R2frame,yframe] = grow_simplex(xc,xc_front,xc_int,xc_h)
 %
-% INPUT 
+% INPUT
 % xc : node to grow from.
 % xc_front : frontal nodes incident to xc; there should be 2.
 % xc_int : interior nodes incident to xc; should be at least 1.
 % xc_h : length of shortest edge incident to xc in the database.
 % OUTPUT
 % x_new : matrix with columns xc followed by an ordered set of vertices such
-% that x_new(:,2) and x_new(:,end) are from xc_front and all 'interior' 
+% that x_new(:,2) and x_new(:,end) are from xc_front and all 'interior'
 % columns are computed by projecting these onto the tangent plane,
 % computing a "fan" of new points between their gap angle, and projecting
 % back onto the manifold.
@@ -59,8 +59,8 @@ gap_min = pi/6; % This is the minmum in the paper of G/L/P.
 tau = 1.2;      % This is the tau used in the paper of G/L/P.
 div_tol = 1E-2; % Expansion/divergence criteria for step size reduction.
 tol = 1E-7;    % Tolerance for convergence of Gauss-Newton.
-F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, node_loc.solution))); 
-DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, node_loc.solution),0)); 
+F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, node_loc.solution)));
+DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, node_loc.solution),0));
 [dim,n] = size(xc_int);
 
 % Gap complement direction.
@@ -87,7 +87,7 @@ yf(:,1) = yf(:,1)/norm(yf(:,1),2);  yf(:,2) = yf(:,2)/norm(yf(:,2),2);
 y0 = P*a;   y0 = y0/norm(y0,2);
 
 % Build R2 coordinate system around yf(:,1) and y0.
-R2b1 = y0;  R2b2 = yf(:,1) - dot(R2b1,yf(:,1))*R2b1;    
+R2b1 = y0;  R2b2 = yf(:,1) - dot(R2b1,yf(:,1))*R2b1;
 R2b2 = R2b2/norm(R2b2,2);
 TM_to_R2 = [R2b1'; R2b2'];      % Tangent space to R2 transformation
 R2_to_TM = [R2b1, R2b2];        % Inverse transformation
@@ -101,7 +101,7 @@ angle_y2 = get_angle_R2(y2_R2);
 % Compute angle beta1 clockwise from y1 to y2.
 if angle_y1>angle_y2
     beta1 = 2*pi - (angle_y1 - angle_y2);
-else 
+else
     beta1 = angle_y2 - angle_y1;
 end
 % Compute angle beta2 clockwise from y0 to y2.
@@ -110,7 +110,7 @@ if angle_y0>angle_y2
 else
     beta2 = angle_y2 - angle_y0;
 end
-% Get gap angle in local coordinate system and infer orientation. 
+% Get gap angle in local coordinate system and infer orientation.
 if beta1<beta2
     gap = beta1;
     yor = 1;
@@ -126,8 +126,8 @@ if gap < gap_min            % Gap is too small; merge simplices.
     yframe = [yf(:,1),y0,yf(:,2)];
     % merge these two nodes
     [index_merged_node,list_of_nodes, list_of_simplices, ~,new_simplices] = ...
-    equate(list_of_nodes, out_nodes(1),out_nodes(2), ...
-    list_of_simplices);
+        equate(list_of_nodes, out_nodes(1),out_nodes(2), ...
+        list_of_simplices);
     list_of_new_frontal_nodes = [index_merged_node, -out_nodes(2), -node_loc.number];
     for i = 1:length(node_loc.patch)
         list_of_simplices.simplex{node_loc.patch(i)}.frontal = 0;
@@ -141,7 +141,7 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     x_new = [xc,xc_front];
     R2frame = [y1_R2,y0_R2,y2_R2];
     yframe = [yf(:,1),y0,yf(:,2)];
-    % create new simplex 
+    % create new simplex
     nodes_number = [node_loc.number, out_nodes];
     simplex_number = length(list_of_simplices)+1;
     verified = 0;
@@ -156,7 +156,7 @@ elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
     list_of_nodes = update_patches(list_of_nodes,list_of_simplices, nodes_number);
     
 else
-    % Generate predictor "fan" in R2 coordinate system. 
+    % Generate predictor "fan" in R2 coordinate system.
     y_fan_R2 = zeros(2,n_new_simplex-1);
     for j=1:n_new_simplex-1
         theta = gap*j/n_new_simplex;
@@ -177,22 +177,26 @@ else
     end
     % Refine predictors with Gauss-Newton
     for j=1:n_new_simplex-1
-       x_init = x_fan(:,j);
-       h_local = xc_h;
-       delta = inf;
-       while delta>tol*(1+norm(x_init,2))
-           if norm(x_init - x_fan(:,j))>div_tol   % Diverging.
-               x_fan(:,j) = xc + y_fan(:,j)/norm(y_fan(:,j),2)*h_local;
-               x_init = x_fan(:,j);
-               h_local = h_local/tau;
-           end
-           x_fan(:,j) = GN(x_init,@(z)F(z),@(z)DF(z),node_loc.solution);
-           delta = norm(x_fan(:,j)-x_init,2);
-           x_init = x_fan(:,j);
-           if delta>1
-               all_is_not_well=1;
-           end
-       end
+        %        x_init = x_fan(:,j);
+        %        h_local = xc_h;
+        %        delta = inf;
+        %        while delta>tol*(1+norm(x_init,2))
+        %            if norm(x_init - x_fan(:,j))>div_tol   % Diverging.
+        %                x_fan(:,j) = xc + y_fan(:,j)/norm(y_fan(:,j),2)*h_local;
+        %                x_init = x_fan(:,j);
+        %                h_local = h_local/tau;
+        %            end
+        %            x_fan(:,j) = GN(x_init,@(z)F(z),@(z)DF(z),node_loc.solution);
+        %            delta = norm(x_fan(:,j)-x_init,2);
+        %            x_init = x_fan(:,j);
+        %            if delta>1
+        %                all_is_not_well=1;
+        %            end
+        %        end
+        x_Xi =vec2Xi_vec(x_fan(:,j),node_loc.solution);
+        F_new = continuation_equation_simplex(problem, x_Xi);
+        x_converged = Newton_2(x_Xi,F_new);
+        x_fan(:,j) = Xi_vec2vec(x_converged);
     end
     % Output nodes list
     x_new = [xc,xc_front(:,yor),x_fan,xc_front(:,mod(yor,2)+1)];
@@ -265,7 +269,7 @@ function x_real_vec = make_it_real(x_vec, x0)
 %x_vec = vec2Xi_vec(vec,x0);
 [~,index] = max(abs(real(x_vec(1:x0.size_scalar))));
 angle = atan( imag(x_vec(index))/real(x_vec(index)));
-x_vec = exp( - 1i * angle) * x_vec; 
+x_vec = exp( - 1i * angle) * x_vec;
 % bringing x_Xi_vec to be symmetric (by multiplication with the appropriate complex rotation)
 x_Xi_vec = symmetrise(vec2Xi_vec(x_vec,x0));
 

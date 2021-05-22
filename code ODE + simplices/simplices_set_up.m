@@ -60,19 +60,23 @@ end
 % Refine predictors with Gauss-Newton
 x_fan = 0*x_fan_start;
 for j=1:n_new_points
-    x_init = x_fan_start(:,j);
-    h_local = xc_h;
-    delta = inf;
-    while delta>tol*(1+norm(x_init,2))
-        if norm(x_init - x_fan(:,j))>div_tol   % Diverging.
-            h_local = h_local * 0.9;
-            x_fan_start(:,j) = starting_solution + y_fan(:,j)/norm(y_fan(:,j),2)*h_local;
-            x_init = x_fan_start(:,j);
-        end
-        x_fan(:,j) = GN(x_init,@(z)F(z),@(z)DF(z));
-        delta = norm(x_fan(:,j)-x_init,2);
-        x_init = x_fan(:,j);
-    end
+    % x_init = x_fan_start(:,j);
+    % h_local = xc_h;
+    % delta = inf;
+    % while delta>tol*(1+norm(x_init,2))
+    %     if norm(x_init - x_fan(:,j))>div_tol   % Diverging.
+    %         h_local = h_local * 0.9;
+    %         x_fan_start(:,j) = starting_solution + y_fan(:,j)/norm(y_fan(:,j),2)*h_local;
+    %         x_init = x_fan_start(:,j);
+    %     end
+    %     x_fan(:,j) = GN(x_init,@(z)F(z),@(z)DF(z));
+    %     delta = norm(x_fan(:,j)-x_init,2);
+    %     x_init = x_fan(:,j);
+    % end
+            x_Xi =vec2Xi_vec(x_fan_start(:,j),starting_solution_Xi);
+        F_new = continuation_equation_simplex(problem, x_Xi);
+        x_converged = Newton_2(x_Xi,F_new);
+        x_fan(:,j) = Xi_vec2vec(x_converged);
 end
 
 % transform x_new into a list of new simplices

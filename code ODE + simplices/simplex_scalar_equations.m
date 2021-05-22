@@ -3,9 +3,10 @@ function [list_of_nodes] = simplex_scalar_equations(node_number, ...
 % function [simplex, list_of_nodes] = simplex_scalar_equations(simplex, ...
 %           bool_Hopf, list_of_nodes)
 
-for i = node_number
+for index = 1:length(node_number)
+    i = node_number(index);
     node_i = list_of_nodes{i};
-    if node_i.problem.scalar_equations.number_equations_lin + node_i.problem.scalar_equations.number_equations_pol == 6
+    if square(node_i.problem)
         % checking if the equations have already been added
         continue
     end

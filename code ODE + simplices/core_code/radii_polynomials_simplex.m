@@ -1,5 +1,5 @@
 function [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,simplex, list_of_nodes] = ...
-    radii_polynomials_simplex(simplex, list_of_nodes)%xBar0,xBar1,xBar2,...
+    radii_polynomials_simplex(simplex, list_of_nodes,bool_Hopf)%xBar0,xBar1,xBar2,...
     %alpha0,alpha1,alpha2,previous_iter0,previous_iter1)
 % INPUT:
 % simplex   instance of the class simplex - validation material
@@ -37,9 +37,30 @@ xBar0 = list_of_nodes{indeces(1)}.solution;
 xBar1 = list_of_nodes{indeces(2)}.solution;
 xBar2 = list_of_nodes{indeces(3)}.solution;
 
+    function alpha = square_it(alpha,x)
+        if ~square(alpha)
+            if bool_Hopf
+                % adds two new scalar equations
+                alpha.scalar_equations = F_update_Hopf(alpha.scalar_equations,x);
+            else
+                alpha.scalar_equations = fancy_scalar_condition(x, alpha.scalar_equations);
+            end
+            
+            alpha = continuation_equation_simplex(alpha,x);
+        end
+    end
+
+
+
 alpha0 = list_of_nodes{indeces(1)}.problem;
 alpha1 = list_of_nodes{indeces(2)}.problem;
 alpha2 = list_of_nodes{indeces(3)}.problem;
+temp_intlab = use_intlab;
+use_intlab = 0;
+alpha0 = square_it(alpha0,xBar0);
+alpha1 = square_it(alpha1,xBar1);
+alpha2 = square_it(alpha2,xBar2);
+use_intlab = temp_intlab;
 
 previous_iter0 = list_of_nodes{indeces(1)}.previous_validation;
 previous_iter1 = list_of_nodes{indeces(2)}.previous_validation;
