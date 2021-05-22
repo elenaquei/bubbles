@@ -73,24 +73,27 @@ end
 % Get projector
 % [Q,~] = qr(DF(xc).');
 U = null(DF(xc));
-U(:,1) = make_it_real(U(:,1), node_loc.solution);
-U(:,2) = make_it_real(U(:,2), node_loc.solution);
+U(:,1) = make_it_complex(make_it_real(U(:,1), node_loc.solution), node_loc.solution);
+U(:,2) = make_it_complex(make_it_real(U(:,2), node_loc.solution), node_loc.solution);
+U(:,1) = U(:,1)/norm(U(:,1),2);
+U(:,2) = U(:,2) - dot(U(:,1),U(:,2))/norm(U(:,1),2)*U(:,1);
+U(:,2) = U(:,2)/norm(U(:,2));
 
-P = U*U.';
+P = U*U';
 
 % Project (xf-xc) for all fronal nodes xf, and complement avg., onto TM.
-yf = P*make_it_real_cols(xc_front-xc, node_loc.solution);
+yf = P*(xc_front-xc);
 yf(:,1) = yf(:,1)/norm(yf(:,1),2);  yf(:,2) = yf(:,2)/norm(yf(:,2),2);
-y0 = P*make_it_real(a, node_loc.solution);   y0 = y0/norm(y0,2);
+y0 = P*a;   y0 = y0/norm(y0,2);
 
 % Build R2 coordinate system around yf(:,1) and y0.
 R2b1 = y0;  R2b2 = yf(:,1) - dot(R2b1,yf(:,1))*R2b1;    
 R2b2 = R2b2/norm(R2b2,2);
-TM_to_R2 = [R2b1.'; R2b2.'];    % Tangent space to R2 transformation
+TM_to_R2 = [R2b1'; R2b2'];      % Tangent space to R2 transformation
 R2_to_TM = [R2b1, R2b2];        % Inverse transformation
-y0_R2 = TM_to_R2*y0;            % Representatives of y0, yf in R2
-y1_R2 = TM_to_R2*yf(:,1);
-y2_R2 = TM_to_R2*yf(:,2);
+y0_R2 = real(TM_to_R2*y0);      % Representatives of y0, yf in R2
+y1_R2 = real(TM_to_R2*yf(:,1));
+y2_R2 = real(TM_to_R2*yf(:,2));
 % Compute angles relative to e1
 angle_y0 = get_angle_R2(y0_R2);
 angle_y1 = get_angle_R2(y1_R2);
@@ -170,7 +173,6 @@ else
     x_fan = zeros(dim,n_new_simplex-1);
     for j=1:n_new_simplex-1
         y_fan(:,j) = y_fan(:,j)/norm(y_fan(:,j),2);
-        y_fan(:,j) = make_it_complex(y_fan(:,j),node_loc.solution);
         x_fan(:,j) = xc + y_fan(:,j) *xc_h*tau;
     end
     % Refine predictors with Gauss-Newton
