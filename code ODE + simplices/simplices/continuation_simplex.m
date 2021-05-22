@@ -78,7 +78,7 @@ while i < n_iter
     [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, index_new_simplices]= ...
         grow_simplex(node_i, step_size, list_of_nodes, list_of_simplices, F);
     
-    if mod(node_number,6)==0
+    if mod(node_number,1)==0
     plot(list_of_simplices, list_of_nodes);
     pause
     end
