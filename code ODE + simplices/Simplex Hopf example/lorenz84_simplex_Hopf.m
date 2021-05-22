@@ -1,5 +1,3 @@
-function save_file = lorenz84_simplex_Hopf()
-
 % lorenz 84
 % alpha = 0.25
 % beta = 1
@@ -146,9 +144,4 @@ big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
 use_intlab = 1;
 [save_file] = continuation_simplex_Hopf(sol, big_Hopf,...
     n_iter, step_size, save_file, lor_rhs, phi, numerical_Hopfs);
-
-
-
-
-end
 

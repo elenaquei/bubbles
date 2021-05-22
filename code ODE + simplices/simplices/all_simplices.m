@@ -28,6 +28,10 @@ classdef all_simplices
                 plot_simplex(list_simplex.simplex{i}, list_of_nodes);
                 hold on
             end
+            set(gca,'FontSize',18)
+            xlabel('$I$','Interpreter','Latex', 'FontSize', 20);
+            ylabel('$\epsilon$','Interpreter','Latex', 'FontSize', 20);
+            zlabel('amplitude','Interpreter','Latex', 'FontSize', 20);
             hold off
         end
         
