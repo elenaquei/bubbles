@@ -57,10 +57,10 @@ classdef simplex
         function plot_simplex(simplex, list_of_nodes, color)
             % function plot_simplex(simplex, color)
             if nargin<3
-                if simplex.frontal
-                    color = 'y';
-                elseif simplex.verified
+                if simplex.verified
                     color = 'b';
+                elseif simplex.frontal
+                    color = 'y';
                 else
                     color = 'r';
                 end

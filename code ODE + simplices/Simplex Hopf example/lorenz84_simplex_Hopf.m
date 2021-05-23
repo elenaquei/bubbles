@@ -163,4 +163,12 @@ save_file = continuation_simplex(sol_N, big_Hopf,...
 load(save_file)
 plot(list_of_simplices,list_of_nodes)
 
-new_name_file = start_were_we_left_off(save_file, n_iter);
+new_name_file = 'new_Hopf_lorenz84_not_validated';
+new_name_file = start_were_we_left_off(save_file, n_iter,new_name_file);
+
+load(new_name_file)
+plot(list_of_simplices,list_of_nodes)
+
+new_name_file2 = 'new2_Hopf_lorenz84_not_validated';
+new_name_file = start_were_we_left_off(new_name_file, n_iter, new_name_file2);
+
