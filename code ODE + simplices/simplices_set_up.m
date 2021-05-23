@@ -25,10 +25,6 @@ tau = 1.;
 starting_solution_Xi = starting_node.solution;
 starting_solution = Xi_vec2vec(starting_solution_Xi);
 
-div_tol = 1E-2; % Expansion/divergence criteria for step size reduction.
-tol = 1E-5;    % Tolerance for convergence of Gauss-Newton.
-F = @(X) Xi_vec2vec(apply(problem, vec2Xi_vec(X, starting_solution_Xi)));
-
 DF = @(X) derivative_to_matrix(derivative(problem,vec2Xi_vec(X, starting_solution_Xi),0));
 
 % Decide how many simplices are to be added to fill the gap.

@@ -31,6 +31,13 @@ end
 %n_nodes= 60;
 %DIM = 1;
 
+% some elements useful for the computation and the validation
+n_nodes = 7; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
+n_iter = 500;
+step_size = 5*10^-3; % initial step size (then adapted along the validation
+save_file = 'Hopf_lorenz84_not_validated'; % where the solutions are stored
+bool_validated = 0;
+
 f = @fn_Lorenz84; % We choose a map.
 df = @derivatives_Lorenz84;
 ddf = @second_der_Lorenz84;
@@ -92,11 +99,7 @@ string_lorenz84_cont2 = strrep(string_lorenz84_cont1, 'beta' , 'l3');
 
 lor_rhs = @(x,T,beta)[(-x(2)^2-x(3)^2-alpha*x(1) + alpha*F- gamma *x(4)^2) ; (+ x(1) *x(2) - beta *x(1)* x(3) - x(2) + G);(+ beta *x(1) *x(2) + x(1)* x(3) - x(3)) ;(- delta *x(4) + gamma *x(1) *x(4) + T)];
 
-% some elements useful for the computation and the validation
-n_nodes = 5; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 500;
-step_size = 10^-3; % initial step size (then adapted along the validation
-save_file = 'Hopf_lorenz84_simplex'; % where the solutions are stored
+
 
 vectorfield = strrep(string_lorenz84_cont1, 'l1' , '');%'-dot x1 - x2 + l1 x1 - x1 ^ 3 - x1  x2 ^ 2\n- dot x2 + x1 + l1 x2 - x1 ^ 2 x2 - x2 ^ 3';
 vectorfield = strrep(vectorfield, 'l2' , 'l1');
@@ -138,22 +141,26 @@ polynomial = from_string_to_polynomial_coef(vectorfield2);
 big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 
 % big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
+load('Hopf_lorenz84_numerical.mat')
+sol_N = list_of_nodes{5}.solution;
+big_Hopf = list_of_nodes{5}.problem;
+% big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,6);
+% big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,5);
 
-test_Hopf = big_Hopf;
-test_Hopf = F_update_Hopf(test_Hopf,sol);
-test_Hopf = continuation_equation_simplex(test_Hopf,sol);
-sol_N = Newton_2(sol,test_Hopf,30,10^-7);
 
+% test_Hopf = big_Hopf;
+% test_Hopf = F_update_Hopf(test_Hopf,sol);
+% test_Hopf = continuation_equation_simplex(test_Hopf,sol);
+% sol_N = Newton_2(sol,test_Hopf,30,10^-9);
+% 
 big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
+bool_Hopf = 1;
+use_intlab = 0;
+save_file = continuation_simplex(sol_N, big_Hopf,...
+    n_iter, step_size, save_file, bool_Hopf, bool_validated);
 
-% remove the two polynomial scalar equations from big_Hopf and replace them
-% by trivial ones
-use_intlab = 1;
-%[save_file] = continuation_simplex_Hopf(sol, big_Hopf,...
-%    n_iter, step_size, save_file, lor_rhs, phi, numerical_Hopfs);
-[list_of_simplices,list_of_nodes] = continuation_simplex(sol, big_Hopf,...
-    n_iter, step_size, save_file, 1);
-
-
+load(save_file)
 plot(list_of_simplices,list_of_nodes)
+
+new_name_file = start_were_we_left_off(save_file, n_iter);
