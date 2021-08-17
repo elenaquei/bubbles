@@ -1,4 +1,4 @@
-function F_new = continuation_equation_simplex(F_new, x)
+function F_new = continuation_equation_simplex(F_new, x, new_eq)
 
 old_coefs = extract_all_lin_coef(F_new.scalar_equations);
 
@@ -7,8 +7,9 @@ DF_x = derivative_to_matrix(derivative(F_new,x,0));
 U_old = Q(:,end-1:end);     % Orthonormalize???
 U = good_rotation(U_old,x,old_coefs);
 
-n_scal_eqs =  x.size_scalar - F_new.scalar_equations.number_equations_pol;
-new_eq = [n_scal_eqs-1:n_scal_eqs];
+if nargin<3 || isempty(new_eq)
+    new_eq = F_new.scalar_equations.number_equations_lin + [1:2];
+end
 
 lin_coef_vec1 = [ U(:,1).', - U(:,1).' * Xi_vec2vec(x)];
 

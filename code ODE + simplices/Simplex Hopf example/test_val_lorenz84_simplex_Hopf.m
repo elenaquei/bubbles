@@ -145,8 +145,8 @@ big_Hopf_start = list_of_nodes{5}.problem;
 % test_Hopf = continuation_equation_simplex(test_Hopf,sol);
 % sol_N = Newton_2(sol,test_Hopf,30,10^-9);
 % 
-big_Hopf = F_update_Hopf(big_Hopf_start,sol_N);
-big_Hopf_test = continuation_equation_simplex(big_Hopf_start, sol_N);
+% big_Hopf = F_update_Hopf(big_Hopf_start,sol_N);
+big_Hopf = continuation_equation_simplex(big_Hopf_start, sol_N, [1,2]);
 
 
 bool_Hopf = 1;
