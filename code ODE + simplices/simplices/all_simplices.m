@@ -27,8 +27,8 @@ classdef all_simplices
             if nargin <3 || isempty(index_simplices)
                 index_simplices = 1:length(list_simplex);
             end
-                
-          
+            
+            
             for index = 1: length(index_simplices)
                 i = index_simplices(index);
                 plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{:});

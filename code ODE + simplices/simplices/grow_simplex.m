@@ -137,7 +137,7 @@ if gap < gap_min            % Gap is too small; merge simplices.
     end
     list_of_nodes = update_patches(list_of_nodes,list_of_simplices, index_merged_node);
     return
-elseif n_new_simplex == 1   % New simplex is formed by extant nodes.
+elseif n_new_simplex == 1   % New simplex is formed by existant nodes.
     x_new = [xc,xc_front];
     R2frame = [y1_R2,y0_R2,y2_R2];
     yframe = [yf(:,1),y0,yf(:,2)];

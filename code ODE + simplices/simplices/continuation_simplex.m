@@ -24,7 +24,7 @@ plot(list_of_simplices, list_of_nodes);
 
 % validate all new simplices
 if bool_validated
-    for j = 1:-6
+    for j = 1:6
         simplex_jj = list_of_simplices.simplex{j};
         use_intlab = 1;
         
@@ -37,8 +37,8 @@ if bool_validated
         elseif talkative>0
             fprintf('The validation of the %i-th simplex succeeded\n', j)
             if talkative>1
-                figure
-                plot(list_of_simplices);
+                %figure
+                plot(list_of_simplices, list_of_nodes, simplex_jj.number,'b');
                 hold on
             end
         end

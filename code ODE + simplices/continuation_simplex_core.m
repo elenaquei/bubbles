@@ -5,18 +5,19 @@ global use_intlab
 global talkative
 
 if bool_validated
-Interval = zeros(2,n_iter);
-Z0_iter = zeros(x0.size_scalar+x0.size_vector,n_iter);
-Z1_iter = zeros(x0.size_scalar+x0.size_vector,n_iter);
-Z2_iter = zeros(x0.size_scalar+x0.size_vector,n_iter);
-Y_iter = zeros(x0.size_scalar+x0.size_vector,n_iter);
-if nargin > 7
-    Interval = [ Interval_old, Interval];
-    Z0_iter = [Z0_iter_old, Z0_iter];
-Z1_iter = [Z1_iter_old, Z1_iter];
-Z2_iter = [Z2_iter_old, Z2_iter];
-Y_iter = [Y_iter_old, Y_iter];
-end
+    Interval = zeros(2,n_iter);
+    x0 = list_of_nodes{1}.solution;
+    Z0_iter = zeros(x0.size_scalar+x0.size_vector,n_iter);
+    Z1_iter = zeros(x0.size_scalar+x0.size_vector,n_iter);
+    Z2_iter = zeros(x0.size_scalar+x0.size_vector,n_iter);
+    Y_iter = zeros(x0.size_scalar+x0.size_vector,n_iter);
+    if nargin > 7
+        Interval = [ Interval_old, Interval];
+        Z0_iter = [Z0_iter_old, Z0_iter];
+        Z1_iter = [Z1_iter_old, Z1_iter];
+        Z2_iter = [Z2_iter_old, Z2_iter];
+        Y_iter = [Y_iter_old, Y_iter];
+    end
 end
 
 F = list_of_nodes{end}.problem;
