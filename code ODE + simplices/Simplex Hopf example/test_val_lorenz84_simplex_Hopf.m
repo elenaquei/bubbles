@@ -17,7 +17,7 @@ global use_intlab
 global talkative
 global RAD_MAX
 nu = 1.1;
-talkative = 4;
+talkative = 1;
 nu = 1.1;
 RAD_MAX = 10^-4;
 
@@ -29,8 +29,8 @@ end
 
 % some elements useful for the computation and the validation
 n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 5;
-step_size = 10^-3; % initial step size 
+n_iter = 35;
+step_size = 0.5*10^-3; % initial step size 
 save_file = 'Hopf_lorenz84_validated'; % where the solutions are stored
 bool_validated = 1;
 
@@ -145,14 +145,17 @@ big_Hopf_start = list_of_nodes{5}.problem;
 % test_Hopf = continuation_equation_simplex(test_Hopf,sol);
 % sol_N = Newton_2(sol,test_Hopf,30,10^-9);
 % 
-% big_Hopf = F_update_Hopf(big_Hopf_start,sol_N);
-big_Hopf = continuation_equation_simplex(big_Hopf_start, sol_N, [1,2]);
+big_Hopf = F_update_Hopf(big_Hopf_start,sol_N);
+% big_Hopf = continuation_equation_simplex(big_Hopf_start, sol_N, [1,2]);
 
 
 bool_Hopf = 1;
 use_intlab = 0;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated);
+
+
+return
 
 load(save_file)
 plot(list_of_simplices,list_of_nodes)

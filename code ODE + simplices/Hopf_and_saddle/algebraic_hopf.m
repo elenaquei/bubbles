@@ -86,8 +86,8 @@ if rmax>R
     warning('computation has to be rerun with higher R')
 end
 
-r=linspace(0,1.3*rmax,100);
-plot(r,pol(r),'b',rmin,0,'ok',rmax,0,'or');
+%r=linspace(0,1.3*rmax,100);
+%plot(r,pol(r),'b',rmin,0,'ok',rmax,0,'or');
 
 
 % compute the first Lyapunov coefficient as in Kuznetsov
