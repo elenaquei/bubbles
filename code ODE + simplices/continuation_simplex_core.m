@@ -96,10 +96,10 @@ while i < n_iter
         end
     end
     
-    if talkative>1
-        figure
-        plot(list_of_simplices);
-    end
+    %if talkative>1
+    %    figure
+    %    plot(list_of_simplices,list_of_nodes);
+    %end
     i = i + length(index_new_simplices);
 end
 

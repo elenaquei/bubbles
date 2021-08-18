@@ -37,7 +37,7 @@ xBar0 = list_of_nodes{indeces(1)}.solution;
 xBar1 = list_of_nodes{indeces(2)}.solution;
 xBar2 = list_of_nodes{indeces(3)}.solution;
 
-    function alpha = square_it(alpha,x)
+    function alpha = square_it(alpha,x, old_alpha)
         if ~square(alpha)
             if bool_Hopf
                 % adds two new scalar equations
@@ -45,8 +45,11 @@ xBar2 = list_of_nodes{indeces(3)}.solution;
             else
                 alpha.scalar_equations = fancy_scalar_condition(x, alpha.scalar_equations);
             end
-            
-            alpha = continuation_equation_simplex(alpha,x);
+            if nargin<3
+                alpha = continuation_equation_simplex(alpha,x);
+            else
+                alpha = continuation_equation_simplex(alpha,x, old_alpha);
+            end
         end
     end
 
@@ -58,8 +61,8 @@ alpha2 = list_of_nodes{indeces(3)}.problem;
 temp_intlab = use_intlab;
 use_intlab = 0;
 alpha0 = square_it(alpha0,xBar0);
-alpha1 = square_it(alpha1,xBar1);
-alpha2 = square_it(alpha2,xBar2);
+alpha1 = square_it(alpha1,xBar1, alpha0);
+alpha2 = square_it(alpha2,xBar2, alpha0);
 use_intlab = temp_intlab;
 
 previous_iter0 = list_of_nodes{indeces(1)}.previous_validation;
