@@ -400,9 +400,7 @@ classdef polynomial_coefs
                     end
                     term = a.value{i}(j)*prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
                     for k = 1:a.monomial_per_term{i}(j)
-                        if any(a.delay{i}{j}(:,k)>0)
-                            warning('DELAYS not implemented here')
-                        end
+                        
                         if any(a.dot{i}{j}(:,k)>0)
                             if a.monomial_per_term{i}(j)==1 && sum(a.dot{i}{j}(:,k))==1
                                 index = find(a.dot{i}{j}(:,k));
@@ -412,7 +410,12 @@ classdef polynomial_coefs
                                 warning('General DERIVATIVES not implemented here')
                             end
                         end
-                        term = term .* (xi_vec.^a.power_vector{i}{j}(:,k));
+                        if any(a.delay{i}{j}(:,k)~=0)
+                            term = term .* (xi_vec.delay(a.delay{i}{j}(:,k)).^a.power_vector{i}{j}(:,k));
+                        else
+                            term = term .* (xi_vec.^a.power_vector{i}{j}(:,k));
+                        end
+                        
                     end
                     y(i,:) = y(i,:) +term;
                     % DEBUGGING TOOLS

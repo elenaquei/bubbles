@@ -15,6 +15,7 @@ function vector_field = from_string_to_polynomial_coef(string_s, number_scalars,
 %  + 3 dot x2 + x2 x3 l1 l2
 %  + dot x1 + l1 l2 x2 x3
 %  + 45 x1 - 2 dot x1
+%  - 4 dotx3 + Delay(x2,4) 
 % 
 % the scalar unknowns are l1, l2, ---- and the time-dependent solutions are
 % x1, x2, --- and must be used consequently if the two optional parameters
@@ -26,18 +27,19 @@ function vector_field = from_string_to_polynomial_coef(string_s, number_scalars,
 % + 3 dot x2 + x2^4 x3 l1 l2
 % and
 % 3 dot x_2 + x2 ^ 4 x3 * l_1 * l_2  (mixed notation possible)
-% NO PARENTHESIS ALLOWED
+% NO PARENTHESIS ALLOWED, Delay must always be positive and without sign
 
-% struncture: 
+% structure: 
 % 0) delete * _ 
 % 1) check how many lines there are
 % 2) if number_scalars and/or number_function_unknowns are not inserted,
 % search for them (M and N)
 % 0b) check that no other element is inserted than
-% 1,2,---0,x,l,d,o,t,+,-,space,\,n,^
+% 1,2,---0,x,l,d,o,t,D,e,l,a,y,(,,,),+,-,space,\,n,^
 % 3) look at every term and decript it
 %      3a) get value{i}(j)
 %      3b) get any dot, store it and delete it
+%       3b') get any delay, store it and delete it
 %      3c) get l1....lm, store it and delete it
 %      3d) get x1....xn, store it and delete it
 % 4) put all together
@@ -45,13 +47,11 @@ function vector_field = from_string_to_polynomial_coef(string_s, number_scalars,
 global talkative
 
 % delete unwanted signs 
-index_star = find(string_s =='*'); 
-string_s(index_star) = [];
-index_star = find(string_s =='_');
-string_s(index_star) = [];
+string_s(string_s =='*') = [];
+string_s(string_s =='_') = [];
 
-index_space = find(string_s ==' '); % delete all spacing 
-string_s(index_space) = [];
+% delete all spacing 
+string_s(string_s ==' ') = [];
 
 % if there is any symbol that is not 1,2,---0,x,l,d,o,t,+,-,space,\,n, then crash
 % here
@@ -59,23 +59,32 @@ if any(((string_s == '1') + (string_s=='2') + (string_s=='3') + (string_s=='4') 
         + (string_s=='5') + (string_s=='6') + (string_s=='7') + (string_s=='8')...
          + (string_s=='9') + (string_s=='0') + (string_s=='x') + (string_s=='l')...
           + (string_s=='d') + (string_s=='o') + (string_s=='t') + (string_s=='+')...
-           + (string_s=='-') + (string_s=='\') + (string_s=='n')+ (string_s=='^')+ (string_s=='.'))~=1)
+           + (string_s=='-') + (string_s=='\') + (string_s=='n')+ (string_s=='^')...
+            + (string_s=='.') + (string_s=='D') + (string_s=='e')...
+             + (string_s=='a') + (string_s=='y') +  (string_s=='(') + (string_s==',')...
+              + (string_s==')') )~=1)
     error('Unrecognised character')
 end
 
 if length(find(string_s=='d'))~=length(strfind(string_s,'dotx'))
-    error('Unrecognised sequence of characters')
+    error('Unrecognised sequence of characters starting with "d"')
 end
+if length(find(string_s=='D'))~=length(strfind(string_s,'Delay(x'))
+    error('Unrecognised sequence of characters starting with "D"')
+end
+
 
 %  number_scalars, number_function_unknowns setted 
 if nargin<2 || isempty(number_scalars)
     index_l = find(string_s=='l');
     number_scalars = 1;
     for i =1:length(index_l)
-        if isempty(str2num(string_s(index_l(i)+1)))
+        if isempty(str2num(string_s(index_l(i)+1))) && string_s(index_l(i)-1)~='e'
             error('No scalar numbering')
         end
-        number_scalars = max(number_scalars,str2num(string_s(index_l(i)+1)));
+        if string_s(index_l(i)-1)~='e'
+            number_scalars = max(number_scalars,str2num(string_s(index_l(i)+1)));
+        end
     end
 end
 if nargin<3 || isempty(number_function_unknowns)
@@ -178,7 +187,7 @@ for i = 1:num_equations
                
                % length_dot = 4;
                %     each time with following powers
-               if string_s(end_number_x+1)=='^'
+               if length(string_term)>end_number_x && string_term(end_number_x+1)=='^'
                    power_starts = end_number_x+2;
                    if isempty(str2num(string_term(power_starts)))
                        error('Signal of ^ but no digit afterwards');
@@ -190,13 +199,45 @@ for i = 1:num_equations
                    %end
                    [end_dot,dot{i}{j}(number_x)] = length_double(string_term,power_starts);%str2num(string_term(index_dot+6:power_starts));% % MISSING : change power storage
                else
-                   dot{i}{j}(number_x) =1;% % MISSING : change power storage
+                   dot{i}{j}(number_x) =1;
                    end_dot = end_number_x;
                end
                % each time deleating the used parts
                string_term (index_dot:end_dot) =[];
                continue % we want to  get rid of all the dots before going on with xs (otherwise trouble)
            end
+           
+           
+           
+           % Delay
+           %     each time with following powers
+           index_delay = strfind(string_term,'Delay(x');
+           if ~isempty(index_delay)
+               index_delay = index_delay(1);
+               comma = find(string_term==',');
+               [end_number_x,number_x] = length_double(string_term(1:comma-1), index_delay+7);%str2num(string_term(index_dot+4));
+               if isempty(number_x)
+                   error('Delay of unknown element at %s',string_term(index_delay+(0:3)));
+               end
+               
+               % length_delay = 7;
+               %     each time with following powers
+               if string_term(end_number_x+1)==','
+                   delay_starts = end_number_x+2;
+                   if isempty(str2num(string_term(delay_starts)))
+                       error('Signal of "," but no digit afterwards');
+                   end
+                   
+                   [end_delay,delay{i}{j}(number_x)] = length_double(string_term,delay_starts);
+               else
+                   error('Could not determine the delay')
+               end
+               % each time deleating the used parts
+               string_term (index_delay:end_delay+1) =[];
+               continue % we want to  get rid of all the dots before going on with xs (otherwise trouble)
+           end
+           
+           
            
            % xs
            %     each time with following powers
@@ -217,53 +258,14 @@ for i = 1:num_equations
                    if isempty(str2num(string_term(power_starts)))
                        error('Signal of ^ but no digit afterwards');
                    end
-                   %length_x = 3;
-                   %while  power_starts+1<=length(string_term) && ~isempty(str2num(string_term(index_x+3:power_starts+1)))
-                   %    power_starts = power_starts+1;
-                   %    length_x = length_x+1;
-                   %end
                    [end_x,power_vector{i}{j}(number_x)] = length_double(string_term,power_starts);
-                   %str2num(string_term(index_x+3:power_starts));% % MISSING : change power storage
                else
-                   power_vector{i}{j}(number_x) =1;% % MISSING : change power storage
-                   %end_x = index_x+1;
+                   power_vector{i}{j}(number_x) =1;
                end
                % each time deleating the used parts
                string_term (index_x:end_x) =[];
            end
            
-           % ls
-           %     each time with following powers
-%            index_l = strfind(string_term,'l');
-%            if ~isempty(index_l)
-%                if length(index_l)>1
-%                    index_l = index_l(1);
-%                end
-%                number_l = str2num(string_term(index_l+1));
-%                if isempty(number_l)
-%                    error('Dot of unknown element at %s',string_term(index_l+(0:1)));
-%                end
-%                length_l = 1;
-%                %     each time with following powers
-%                if length(string_term)>=index_l+2 &&string_term(index_l+2)=='^'
-%                    power_starts = index_l+3;
-%                    if isempty(str2num(string_term(index_l+3)))
-%                        error('Signal of ^ but no digit afterwards');
-%                    end
-%                    %length_l = 3;
-%                    %while  power_starts+1<=length(string_term) && ~isempty(str2num(string_term(index_l+3:power_starts+1)))
-%                    %    power_starts = power_starts+1;
-%                    %    length_l = length_l+1;
-%                    %end
-%                    [end_l,power_scalar{i}(number_l,j)] = length_double(string_term,power_starts);
-%                    %str2num(string_term(index_l+3:power_starts));
-%                else
-%                    power_scalar{i}(number_l,j) = 1;
-%                    end_l = index_l + 1;
-%                end
-%                % each time deleating the used parts
-%                string_term (index_l:end_l) =[];
-%            end
            index_l = strfind(string_term,'l');
            if ~isempty(index_l)
                if length(index_l)>1
@@ -274,23 +276,15 @@ for i = 1:num_equations
                    error('Dot of unknown element at %s',string_term(index_l+(0:1)));
                end
                
-               % length_x = 1;
                %     each time with following powers
                if length(string_term)>=end_l+1 && string_term(end_l+1)=='^'
                    power_starts = end_l+2;
                    if isempty(str2num(string_term(power_starts)))
                        error('Signal of ^ but no digit afterwards');
                    end
-                   %length_x = 3;
-                   %while  power_starts+1<=length(string_term) && ~isempty(str2num(string_term(index_x+3:power_starts+1)))
-                   %    power_starts = power_starts+1;
-                   %    length_x = length_x+1;
-                   %end
                    [end_l,power_scalar{i}(number_l,j)] = length_double(string_term,power_starts);
-                   %str2num(string_term(index_x+3:power_starts));% % MISSING : change power storage
                else
                    power_scalar{i}(number_l,j) = 1;
-                   %end_x = index_x+1;
                end
                % each time deleating the used parts
                string_term (index_l:end_l) =[];
@@ -307,8 +301,8 @@ if talkative>0
 end
 end
 
-function [index_end,double] = length_double(string, index)
-% function [index_end,double] = length_double(string, index)
+function [index_end,double_read] = length_double(string, index)
+% function [index_end,double_read] = length_double(string, index)
 %
 % this function checks how long is the numeral starting at index in string
 % and returns the index of the last element of the numeral
@@ -339,6 +333,6 @@ else
     index_end = length_string;
 end
 
-double = str2double (string(index:index_end));
+double_read = str2double (string(index:index_end));
 
 end

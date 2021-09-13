@@ -626,6 +626,35 @@ classdef Xi_vector
         end
         % TILDE_XI
         
+        
+        % SPECIAL FUNCTIONS FOR DELAYS
+        
+        % KNORM
+        function nor = Knorm(xi)
+            nor = norm(tilde_Xi(xi));
+        end
+        % KNORM
+        
+        % DELAY
+        function Xi = delay(x, tau)
+            global use_intlab
+            if length(tau)~=x.size_vector
+                error('Dimensions not matching')
+            end
+            omega = x.scalar(1);
+            K=-x.nodes:x.nodes;
+            if use_intlab
+                K=intval(K);
+            end
+            Xi = x;
+            for i=1:x.size_vector
+                Xi.vector(i,:)=x.vector(i,:).*exp(1i*K*tau(i)*omega);
+            end
+            Xi.bool_ifft = 0;
+        end
+        % DELAY
+        % end special functions for delay
+        
         %SPROD_XI
         function Xi=sprod_Xi(x,alpha)
             %function Xi=sprod_Xi(x,alpha)
