@@ -19,9 +19,9 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 5*10^-2;
+step_size = 5*10^-4;
 n_iter = 3000;
-save_file = 'saved elements/close_FHN2_numerical2'; % path where the validation will be saved
+save_file = 'saved elements/close_FHN2_validated'; % path where the validation will be saved
 
 % starting parameters
 %  (alpha,I,epsilon,gamma) = (0.1, 0.4, 0.2480, 1) 
@@ -90,7 +90,7 @@ big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 % launch the validation
 bool_Hopf = 1;
-use_intlab = 0;
-bool_validated = 0;
+use_intlab = 1;
+bool_validated = 1;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated);

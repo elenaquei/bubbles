@@ -39,7 +39,7 @@ while i < n_iter
     [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, index_new_simplices]= ...
         grow_simplex(node_i, step_size, list_of_nodes, list_of_simplices, F);
     
-    if mod(node_number,30)==0
+    if mod(node_number,10)==0
         hold on
         plot_index = union(plot_index,index_new_simplices);
         plot(list_of_simplices, list_of_nodes,plot_index);
