@@ -376,6 +376,11 @@ classdef polynomial_coefs
                 bool = 1;
             end
             
+            if has_delay(a)
+                y = apply_with_delay(a,xi_vec,bool);
+                return
+            end
+            
             xi_vec= set_ifft(xi_vec,a.deg_vector);
             %if nargin<3
             %    bool = 0;
@@ -417,20 +422,7 @@ classdef polynomial_coefs
                         end
                         
                     end
-                    y(i,:) = y(i,:) +term;
-                    % DEBUGGING TOOLS
-                    % if all(term==0)
-                    %     disp(i*100+j)
-                    % end
-                    % if j ==11
-                    %     disp(44)
-                    % end
-                    % if j ==1 
-                    %     disp(73)
-                    % end
-                    % if any(isnan(term))
-                    %     disp('C***')
-                    % end
+                    y(i,:) = y(i,:) +term; % remember: it returns the ifft!
                 end
             end
             
@@ -440,6 +432,78 @@ classdef polynomial_coefs
             end
         end
         % end APPLY
+        
+        
+        % APPLY_WITH_DELAY
+        function y = apply_with_delay(a,xi_vec,bool)
+            % function y = apply(a,xi_vec,bool)
+            %
+            % INPUTS
+            % a         polynomial_coefs
+            % xi_vec    Xi_vector
+            % bool      boolean DEFAULT 0 
+            %           if bool =0, output of the same size as input,
+            %           otherwise output of size dim(x_xi)*deg(a)
+            %
+            % OUTPUT
+            % y         complex vector size = a.n_equations, dim(x_xi)*deg(a),
+            %           ifft of a applied to xi_vec
+            global use_intlab
+            if ~compatible_vec(a,xi_vec)
+                error('Inputs not compatible')
+            end
+            
+            if nargin<3
+                bool = 1;
+            end
+            
+            xi_vec= set_ifft(xi_vec,a.deg_vector);
+            
+            size_1 = a.n_equations;
+            size_2 = size(xi_vec.ifft_vector,2);%xi_vec.nodes*2*a.deg_vector+1;
+            K_nodes = size_2/2;
+            K = -K_nodes:(K_nodes-1); %-(xi_vec.nodes*a.deg_vector):(xi_vec.nodes*a.deg_vector);
+            help_xi_vec = reshape_Xi(xi_vec, K_nodes);%%xi_vec.nodes*a.deg_vector);
+            
+            y = zeros(size_1,size_2);
+            if use_intlab
+                y = intval(y);
+            end
+            for i =1 :size_1
+                if any(any(a.power_scalar{i}<0))
+                    error('No negative power is allowed')
+                end
+                for j = 1:a.n_terms(i)
+                    if a.value{i}(j)==0
+                        continue
+                    end
+                    term = a.value{i}(j)*prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
+                    for k = 1:a.monomial_per_term{i}(j)
+                        if any(a.delay{i}{j}(:,k)>0)
+                            warning('DELAYS not implemented here')
+                        end
+                        if any(a.dot{i}{j}(:,k)>0)
+                            if a.monomial_per_term{i}(j)==1 && sum(a.dot{i}{j}(:,k))==1
+                                index = find(a.dot{i}{j}(:,k));
+                                term = term * (verifyfft_in((1i*K).^a.dot{i}{j}(index,k).*help_xi_vec.vector(index,1:(end-1)),-1).');
+                                continue
+                            else
+                                warning('General DERIVATIVES not implemented here')
+                            end
+                        end
+                        term = term .* (xi_vec.^a.power_vector{i}{j}(:,k));
+                    end
+                    y(i,:) = y(i,:) +term; % remember: it returns the ifft!
+                end
+            end
+            
+            if bool==0
+                index = size(y,2)/2 + 1 + (-xi_vec.nodes:xi_vec.nodes);
+                y = y(:,index);
+            end
+        end
+        % end APPLY_WITH_DELAY
+        
         
         % APPLY_SUM
         function y = apply_sum(a,xi_vec)
@@ -685,6 +749,21 @@ classdef polynomial_coefs
             end
         end
         % end NE
+        
+        % HAS_DELAY
+        function bool = has_delay(alpha)
+            % delay - cell{n_equations}{n_terms}(variables,:)
+            bool = 0;
+            for i=1:alpha.n_equations
+                for j = 1:alpha.n_terms(i)
+                    if any(alpha.delay{i}{j})
+                        bool = 1;
+                        return
+                    end
+                end
+            end
+        end
+        % end HAS_DELAY
         
         
         

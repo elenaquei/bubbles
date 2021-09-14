@@ -8,10 +8,13 @@ classdef scalar_eq
         size_vector
         linear_coef  % cell(3,1), {1}(number_equations_lin,size_scalar), {2}(number_equations_lin,size_vector,1+2*number_of_nodes), {3}(number_equations_lin)
         polynomial_equations % polynomial_coef with number_equations = number_equations_pol
+        number_equations_non_computable
+        non_computable_function
     end
     methods
         %CONSTRUCTOR
-        function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar, n_vector, lin_coefficients, polynomials)
+        function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar,...
+                n_vector, lin_coefficients, polynomials,n_noncomputable, filename)
             % function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar, n_vector, lin_coefficients, polynomials)
             % 
             % INPUT
@@ -22,6 +25,11 @@ classdef scalar_eq
             % lin_coefficients      cell(3,1) with linear coefficients
             % polynomials           polynomial_coef with size compatible to
             %                       the previous inputs
+            % n_noncomputable       number of equations that shouldn't be
+            %                       delt with directly (user input)
+            % filename              name of the file where the
+            %                       noncomputable equations are computed and 
+            %                       derivatives given
             % OUTPUT
             % alpha                 scalar_eq
             %
@@ -36,6 +44,9 @@ classdef scalar_eq
             alpha.size_vector=0;
             alpha.linear_coef=[];
             alpha.polynomial_equations=[];
+            alpha.number_equations_non_computable = 0;
+            alpha.location_non_computable = [];
+            
             if nargin >0
             if ~isint(n_equations_lin)
                 error('number of linear eqautions must be integer')
@@ -93,7 +104,11 @@ classdef scalar_eq
                 end
                 alpha.polynomial_equations = polynomials;
             end
-            
+            if nargin>6
+                alpha.number_equations_non_computable = n_noncomputable;
+                alpha.non_computable_function = str2func(filename);
+                alpha.num_equations = alpha.num_equations + n_noncomputable;
+            end
         end
         % end CONSTRUCTOR
         
@@ -128,7 +143,13 @@ classdef scalar_eq
             end
             
             % polynomial equations
-            y_scal(alpha.number_equations_lin+1:end)=apply_sum(alpha.polynomial_equations,xi_vec);
+            y_scal(alpha.number_equations_lin+(1:alpha.number_equations_pol))=apply_sum(alpha.polynomial_equations,xi_vec);
+            
+            % non-computable equations
+            if alpha.number_equations_non_computable>0
+                y_temp = alpha.non_computable_function(xi_vec);
+            end
+            y_scal(alpha.number_equations_lin+alpha.number_equations_pol:end) = y_temp;
         end
         % end APPLY
         
