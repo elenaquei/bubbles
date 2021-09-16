@@ -45,7 +45,7 @@ classdef scalar_eq
             alpha.linear_coef=[];
             alpha.polynomial_equations=[];
             alpha.number_equations_non_computable = 0;
-            alpha.location_non_computable = [];
+            alpha.non_computable_function = [];
             
             if nargin >0
             if ~isint(n_equations_lin)
@@ -148,8 +148,9 @@ classdef scalar_eq
             % non-computable equations
             if alpha.number_equations_non_computable>0
                 y_temp = alpha.non_computable_function(xi_vec);
+               
+                y_scal(alpha.number_equations_lin+alpha.number_equations_pol:end) = y_temp;
             end
-            y_scal(alpha.number_equations_lin+alpha.number_equations_pol:end) = y_temp;
         end
         % end APPLY
         

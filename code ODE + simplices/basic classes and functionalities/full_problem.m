@@ -64,6 +64,7 @@ classdef full_problem
             alpha = reshape(alpha, new_nodes);
             %end
             y_xi_vector.scalar = apply(alpha.scalar_equations,x_xi_vector);
+            % y_xi_vector.vector = apply(alpha.vector_field,x_xi_vector);
             y_xi_vector.ifft_vector = apply(alpha.vector_field,x_xi_vector);
             y_xi_vector.bool_ifft = 1;
             y_xi_vector = set_vector_from_ifft(y_xi_vector);

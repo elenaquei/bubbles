@@ -157,7 +157,7 @@ classdef polynomial_coefs
                     for i = 1: alpha.n_equations
                         for j = 1:alpha.n_terms(i)
                             if any(size(delays{i}{j})~=size(alpha.power_vector{i}{j}))
-                                error('Dimensions of derivatives and powers of vectors must be equal');
+                                error('Dimensions of delays and powers of vectors must be equal');
                             end
                         end
                     end
@@ -417,13 +417,16 @@ classdef polynomial_coefs
                         end
                         if any(a.delay{i}{j}(:,k)~=0)
                             term = term .* (xi_vec.delay(a.delay{i}{j}(:,k)).^a.power_vector{i}{j}(:,k));
+                            error('Wrong computation')
                         else
-                            term = term .* (xi_vec.^a.power_vector{i}{j}(:,k));
+                            [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
+                            term = term .* ifft_prod;
                         end
                         
                     end
                     y(i,:) = y(i,:) +term; % remember: it returns the ifft!
                 end
+                % y(i,:) = verifyfft_in(y(i,:),1);
             end
             
             if bool==0
@@ -456,6 +459,8 @@ classdef polynomial_coefs
             if nargin<3
                 bool = 1;
             end
+            
+            error('This function is not necessary')
             
             xi_vec= set_ifft(xi_vec,a.deg_vector);
             
@@ -584,9 +589,6 @@ classdef polynomial_coefs
             
             for i =1 :xi_vec.size_vector
                 Dx_vec(i,:,:) = apply(coef_derivative_vec(a,i),xi_vec,1);
-                % for j=1:a.n_equations
-                %     Dx_vec(i,j,:) = verifyfft_in(Dx_vec(i,j,:),1);
-                % end
             end
             
             for k = 1:a.n_equations
@@ -602,12 +604,6 @@ classdef polynomial_coefs
                     end
                 end
             end
-            
-            % % if bool, troncate
-            % if bool ==0
-            %     center_node = xi_vec.nodes*a.deg_vector+1;
-            %     Dx_vec = Dx_vec(:,:, center_node+(-xi_vec.nodes:xi_vec.nodes));
-            % end
         end
         % end COMPUTE_DERIVATIVE
         

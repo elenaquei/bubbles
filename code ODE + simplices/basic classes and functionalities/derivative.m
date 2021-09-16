@@ -59,7 +59,7 @@ classdef derivative
             
             DF.derivative_Fx_diagonal = diagonal_der_F;
             
-            DF.derivative_Fx_toeplix = 0* toeplix_der_F; % SIZE xi_vec.size_vector,a.n_equations,xi_vec.nodes*2*a.deg_vector+1
+            DF.derivative_Fx_toeplix = toeplix_der_F; % SIZE xi_vec.size_vector,a.n_equations,xi_vec.nodes*2*a.deg_vector+1
             for i =1:DF.size_vector
                 for j = 1:alpha.vector_field.n_equations
                     DF.derivative_Fx_toeplix(i,j,:) =  verifyfft_in(squeeze(toeplix_der_F(i,j,:)),1);

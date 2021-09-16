@@ -144,7 +144,7 @@ classdef Xi_vector
         
         
         % POWER
-        function y = power(x,p)
+        function [y,ifft_y] = power(x,p)
             % function y = power(x,p)
             % returns a vector such that fft(y) is equal to the
             % convolutions of x taken p times
@@ -155,18 +155,27 @@ classdef Xi_vector
             if x.bool_ifft==0
                 x=x.set_ifft();
             end
+            z = 5;
             if length(p)~=x.size_vector
                 error('Powers are not compatible')
             end
+            
             y = 1+0*x.ifft_vector(1,:);
             if sum(p)==0
-                y = y;%/length(x.ifft_vector(1,:));
+                ifft_y = y;
+                y = verifyfft_in(y,1);
                 return
             end
             for i = 1:length(p)
                 y = y.*(x.ifft_vector(i,:).^p(i));
             end
-            %y = y * (length(y).^(sum(p)-1));
+            
+            ifft_y = y;
+            if nargout == 1
+                y = verifyfft_in(ifft_y,1);
+            else
+                y = NaN;
+            end
         end
         % end POWER
         
