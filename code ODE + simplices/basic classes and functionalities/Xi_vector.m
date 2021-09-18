@@ -171,7 +171,7 @@ classdef Xi_vector
             end
             
             ifft_y = y;
-            if nargout == 1
+            if nargout <= 1
                 y = verifyfft_in(ifft_y,1);
             else
                 y = NaN;
@@ -656,10 +656,18 @@ classdef Xi_vector
                 K=intval(K);
             end
             Xi = x;
+            Xi.scalar = 0*x.scalar;
+            const_func = 0*K;
+            const_func(x.nodes+1) = 1;
             for i=1:x.size_vector
-                Xi.vector(i,:)=x.vector(i,:).*exp(1i*K*tau(i)*omega);
+                if tau(i) == 0 
+                    Xi.vector(i,:) = const_func;
+                else
+                    Xi.vector(i,:)=(exp(1i*K*tau(i)*omega) .* x.vector(i,:));
+                end
             end
             Xi.bool_ifft = 0;
+            Xi.ifft_vector = [];
         end
         % DELAY
         % end special functions for delay

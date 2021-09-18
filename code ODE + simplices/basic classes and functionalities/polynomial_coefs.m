@@ -376,10 +376,10 @@ classdef polynomial_coefs
                 bool = 1;
             end
             
-            if has_delay(a)
-                y = apply_with_delay(a,xi_vec,bool);
-                return
-            end
+            % if has_delay(a)
+            %     y = apply_with_delay(a,xi_vec,bool);
+            %     return
+            % end
             
             xi_vec= set_ifft(xi_vec,a.deg_vector);
             %if nargin<3
@@ -416,8 +416,11 @@ classdef polynomial_coefs
                             end
                         end
                         if any(a.delay{i}{j}(:,k)~=0)
-                            term = term .* (xi_vec.delay(a.delay{i}{j}(:,k)).^a.power_vector{i}{j}(:,k));
-                            error('Wrong computation')
+                            [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
+                            delay_x = xi_vec.delay(a.delay{i}{j}(:,k));
+                            delay_x= set_ifft(delay_x,a.deg_vector);
+                            [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
+                            term = term .* ifft_prod .* ifft_prod_delay;
                         else
                             [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
                             term = term .* ifft_prod;
@@ -435,79 +438,6 @@ classdef polynomial_coefs
             end
         end
         % end APPLY
-        
-        
-        % APPLY_WITH_DELAY
-        function y = apply_with_delay(a,xi_vec,bool)
-            % function y = apply(a,xi_vec,bool)
-            %
-            % INPUTS
-            % a         polynomial_coefs
-            % xi_vec    Xi_vector
-            % bool      boolean DEFAULT 0 
-            %           if bool =0, output of the same size as input,
-            %           otherwise output of size dim(x_xi)*deg(a)
-            %
-            % OUTPUT
-            % y         complex vector size = a.n_equations, dim(x_xi)*deg(a),
-            %           ifft of a applied to xi_vec
-            global use_intlab
-            if ~compatible_vec(a,xi_vec)
-                error('Inputs not compatible')
-            end
-            
-            if nargin<3
-                bool = 1;
-            end
-            
-            error('This function is not necessary')
-            
-            xi_vec= set_ifft(xi_vec,a.deg_vector);
-            
-            size_1 = a.n_equations;
-            size_2 = size(xi_vec.ifft_vector,2);%xi_vec.nodes*2*a.deg_vector+1;
-            K_nodes = size_2/2;
-            K = -K_nodes:(K_nodes-1); %-(xi_vec.nodes*a.deg_vector):(xi_vec.nodes*a.deg_vector);
-            help_xi_vec = reshape_Xi(xi_vec, K_nodes);%%xi_vec.nodes*a.deg_vector);
-            
-            y = zeros(size_1,size_2);
-            if use_intlab
-                y = intval(y);
-            end
-            for i =1 :size_1
-                if any(any(a.power_scalar{i}<0))
-                    error('No negative power is allowed')
-                end
-                for j = 1:a.n_terms(i)
-                    if a.value{i}(j)==0
-                        continue
-                    end
-                    term = a.value{i}(j)*prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
-                    for k = 1:a.monomial_per_term{i}(j)
-                        if any(a.delay{i}{j}(:,k)>0)
-                            warning('DELAYS not implemented here')
-                        end
-                        if any(a.dot{i}{j}(:,k)>0)
-                            if a.monomial_per_term{i}(j)==1 && sum(a.dot{i}{j}(:,k))==1
-                                index = find(a.dot{i}{j}(:,k));
-                                term = term * (verifyfft_in((1i*K).^a.dot{i}{j}(index,k).*help_xi_vec.vector(index,1:(end-1)),-1).');
-                                continue
-                            else
-                                warning('General DERIVATIVES not implemented here')
-                            end
-                        end
-                        term = term .* (xi_vec.^a.power_vector{i}{j}(:,k));
-                    end
-                    y(i,:) = y(i,:) +term; % remember: it returns the ifft!
-                end
-            end
-            
-            if bool==0
-                index = size(y,2)/2 + 1 + (-xi_vec.nodes:xi_vec.nodes);
-                y = y(:,index);
-            end
-        end
-        % end APPLY_WITH_DELAY
         
         
         % APPLY_SUM
@@ -555,7 +485,8 @@ classdef polynomial_coefs
         
         
         % COMPUTE_DERIVATIVE
-        function [Dlambda, Dx_diag, Dx_vec] = compute_derivative(a,xi_vec)
+        function [Dlambda, Dx_diag, Dx_vec, Dx_delay] = ...
+                compute_derivative(a,xi_vec)
             % function [Dlambda, Dx] = compute_derivative(a,xi_vec,bool)
             % 
             % compute the derivative of a in xi_vec, of the same length of
@@ -577,6 +508,8 @@ classdef polynomial_coefs
             Dlambda = zeros(xi_vec.size_scalar,a.n_equations,size_nodes_time_deg);
             Dx_vec = zeros(xi_vec.size_vector,a.n_equations,size_nodes_time_deg);
             Dx_diag = zeros(xi_vec.size_vector,a.n_equations);
+            Dx_delay = cell(xi_vec.size_vector,a.n_equations);
+            
             xi_vec= set_ifft(xi_vec,a.deg_vector);
             if use_intlab 
                 Dlambda = intval(Dlambda);
@@ -588,12 +521,15 @@ classdef polynomial_coefs
             end
             
             for i =1 :xi_vec.size_vector
-                Dx_vec(i,:,:) = apply(coef_derivative_vec(a,i),xi_vec,1);
+                Dx_vec(i,:,:) = apply(conv_coef_derivative_vec(a,i),xi_vec,1);
             end
             
             for k = 1:a.n_equations
                 for j = 1:a.n_terms(k)
                     if any(a.dot{k}{j}(:,1)>0)
+                        if any(abs(a.delay{k}{j})>0)
+                            error('Cannot handle derivatives and delays together')
+                        end
                         if a.monomial_per_term{k}(j)==1 && sum(a.dot{k}{j}(:,1))==1
                             index = find(a.dot{k}{j}(:,1));
                             Dx_diag(index,k) = Dx_diag(index,k)+ a.value{k}(j)*prod(xi_vec.scalar.^(a.power_scalar{k}(:,j).'));
@@ -602,6 +538,30 @@ classdef polynomial_coefs
                             warning('General DERIVATIVES not implemented here')
                         end
                     end
+                end
+            end
+            psi = xi_vec.scalar(1); % the frequency
+            for i = 1:xi_vec.size_vector % which unknown I'm taking derivatives of
+                for j = 1:a.n_equations
+                    Dx_delay_loc= cell(a.n_terms(j),1);
+                    for k = 1:a.n_terms(j)
+                        if a.delay{i}{k}(i) == 0 
+                            % only consider the delay derivative if there
+                            % is a delay in the right variable
+                            Dx_delay_loc{k} = [];
+                            break
+                        end
+                        % convolution term
+                        term = a.value{j}(k) * prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
+                        [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
+                        [~,ifft_prod_delay] = power(xi_vec.delay(a.delay{i}{j}(:,k),ones(1:xi_vec.size_vec)));
+                        Dx_delay_loc{k}.convolution = term .* ifft_prod .* ifft_prod_delay;
+                        
+                        % exponential term
+                        tau = a.delay{i}{j}(:,k);
+                        Dx_delay_loc{k}.exp_coef = 1i * psi * tau;
+                    end
+                    Dx_delay{j,i} = Dx_delay_loc;
                 end
             end
         end
@@ -633,13 +593,14 @@ classdef polynomial_coefs
         end
         % end COEF_DERIVATIVE_SCAL
         
-        % COEF_DERIVATIVE_VEC
-        function beta = coef_derivative_vec(alpha, j)
+        % CONV_COEF_DERIVATIVE_VEC
+        function beta = conv_coef_derivative_vec(alpha, j)
             if j > alpha.size_vector
                 error('Inputs are incompatible')
             end
             
             beta = alpha;
+            % delays get just copy-pasted
             
             for i = 1:alpha.n_equations
                 for ii = 1:alpha.n_terms(i)
@@ -786,15 +747,7 @@ classdef polynomial_coefs
                     
                     if abs(alpha.value{i}(j))==1
                     else
-                        if mod(alpha.value{i}(j),1)==0
-                            s =  sprintf('%s %d ',s, abs(alpha.value{i}(j)));
-                        else
-                            if abs(alpha.value{i}(j))>0.0001 && abs(alpha.value{i}(j))< 10^3 
-                                s =  sprintf('%s %f ',s, abs(alpha.value{i}(j)));
-                            else
-                                s =  sprintf('%s %e ',s, abs(alpha.value{i}(j)));
-                            end
-                        end
+                        s = strcat(s, best_double_print(abs(alpha.value{i}(j))));
                     end
                     term = '';
                     for k = 1:alpha.size_scalar
@@ -808,10 +761,18 @@ classdef polynomial_coefs
                     end
                     s = strcat(s,term);
                     term = '';
-                    for k = 1:alpha.monomial_per_term{i}(j)
-                        if any(alpha.delay{i}{j}(:,k)>0)
-                            warning('DELAYS not implemented here')
+                    
+                    if any(alpha.delay{i}{j}(:)>0)
+                        index_delay = find(alpha.delay{i}{j}(:)>0);
+                        for i_delay= 1:length(index_delay)
+                            index = index_delay(i_delay);
+                            delay_loc = alpha.delay{i_delay}{j}(index);
+                            print_delay_loc = best_double_print(delay_loc);
+                            term = sprintf('%s Delay( x%d, %s) ', term, index, print_delay_loc);
                         end
+                    end
+                    
+                    for k = 1:alpha.monomial_per_term{i}(j)
                         if any(alpha.dot{i}{j}(:,k)>0)
                             if alpha.monomial_per_term{i}(j)==1 && sum(alpha.dot{i}{j}(:,k))==1
                                 index = find(alpha.dot{i}{j}(:,k));
@@ -842,7 +803,20 @@ classdef polynomial_coefs
     end
 end
 
-    
+
+
+function s = best_double_print(x_double)
+if mod(x_double,1)==0
+    s =  sprintf(' %d ', abs(x_double));
+else
+    if abs(x_double)>0.0001 && abs(x_double)< 10^3
+        s =  sprintf(' %f ', x_double);
+    else
+        s =  sprintf(' %e ', x_double);
+    end
+end
+end
+
     
     
     
