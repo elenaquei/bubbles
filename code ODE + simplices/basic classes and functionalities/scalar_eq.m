@@ -14,7 +14,7 @@ classdef scalar_eq
     methods
         %CONSTRUCTOR
         function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar,...
-                n_vector, lin_coefficients, polynomials,n_noncomputable, filename)
+                n_vector, lin_coefficients, polynomials, n_noncomputable, filename)
             % function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar, n_vector, lin_coefficients, polynomials)
             % 
             % INPUT
@@ -181,15 +181,22 @@ classdef scalar_eq
             DlambdaG(1:alpha.number_equations_lin,:) = alpha.linear_coef{1};
             DxG_v = alpha.linear_coef{2};%, alpha.number_equations_lin,[]);
             
-            for i = 1: xi_vec.size_scalar
-                DlambdaG(alpha.number_equations_lin+1:end,i)=apply_sum(coef_derivative_scal(alpha.polynomial_equations,i),xi_vec);
-            end
-            
             if alpha.number_equations_pol>0
+            for i = 1: xi_vec.size_scalar
+                DlambdaG(alpha.number_equations_lin+(1:alpha.number_equations_pol),i)=...
+                    apply_sum(coef_derivative_scal(alpha.polynomial_equations,i),xi_vec);
+            end
             for i =1 :xi_vec.size_vector
                 DxG_hat(:,i) = apply_sum(coef_derivative_vec(alpha.polynomial_equations,i),xi_vec);
             end
             end
+            if alpha.number_equations_non_computable>0
+                [~, DF_lambda, DF_x] = alpha.non_computable_function(xi_vec);
+                DlambdaG(alpha.number_equations_lin+alpha.number_equations_pol+1:end,i)=...
+                    DF_lambda;
+                DxG_non_comp = DF_x; error('PROBABLY WRONG HERE')
+            end
+            
         end
         % end DERIVATIVE
         

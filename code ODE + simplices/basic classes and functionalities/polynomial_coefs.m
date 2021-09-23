@@ -253,8 +253,10 @@ classdef polynomial_coefs
                     if sum(alpha.power_scalar{i}(:,j))>deg_scal
                         deg_scal = sum(alpha.power_scalar{i}(:,j));
                     end
-                    if sum(alpha.power_vector{i}{j}) >deg_vec
-                        deg_vec = sum(alpha.power_vector{i}{j});
+                    deg_delay = sum(alpha.delay{i}{j}~=0);
+                    deg_term_ij = sum(alpha.power_vector{i}{j}) + deg_delay;
+                    if deg_term_ij>deg_vec
+                        deg_vec = deg_term_ij;
                     end
                 end
             end
@@ -545,20 +547,25 @@ classdef polynomial_coefs
                 for j = 1:a.n_equations
                     Dx_delay_loc= cell(a.n_terms(j),1);
                     for k = 1:a.n_terms(j)
-                        if a.delay{i}{k}(i) == 0 
+                        if a.delay{j}{k}(i) == 0 
                             % only consider the delay derivative if there
                             % is a delay in the right variable
                             Dx_delay_loc{k} = [];
-                            break
+                            continue
                         end
                         % convolution term
-                        term = a.value{j}(k) * prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
-                        [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
-                        [~,ifft_prod_delay] = power(xi_vec.delay(a.delay{i}{j}(:,k),ones(1:xi_vec.size_vec)));
-                        Dx_delay_loc{k}.convolution = term .* ifft_prod .* ifft_prod_delay;
+                        term = a.value{j}(k) * prod(xi_vec.scalar.^(a.power_scalar{j}(:,k).'));
+                        [~,ifft_prod] = power(xi_vec,a.power_vector{j}{k}(:));
+                        delete_i_delay = a.delay{j}{k}(:); % taking the derivative w.r.t. i
+                        delete_i_delay(i) =0;
+                        delay_x = xi_vec.delay(delete_i_delay);
+                        delay_x= set_ifft(delay_x,a.deg_vector);
+                        [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
+                        % [~,ifft_prod_delay] = power(xi_vec.delay(a.delay{j}{k}(:)),ones(1:xi_vec.size_vector));
+                        Dx_delay_loc{k}.convolution =  verifyfft_in(term .* ifft_prod .* ifft_prod_delay, 1);
                         
                         % exponential term
-                        tau = a.delay{i}{j}(:,k);
+                        tau = a.delay{j}{k}(i);
                         Dx_delay_loc{k}.exp_coef = 1i * psi * tau;
                     end
                     Dx_delay{j,i} = Dx_delay_loc;
@@ -612,9 +619,12 @@ classdef polynomial_coefs
                         power_vec = 0;
                     elseif sum(alpha.dot{i}{ii}(j,:))>0
                         warning('code does not support derivatives in this format')
-                    elseif sum(alpha.delay{i}{ii}(:,:))>0
-                        warning('Code does not support delays')
-                    else
+                    else%if sum(alpha.delay{i}{ii}(:,:))>0
+                        % if there are delays, this term still can be
+                        % computed without caring for them (other than they
+                        % get copied)
+                        %warning('Code does not support delays')
+                    %else
                         power_vec = sum(alpha.power_vector{i}{ii}(:,:),2);
                         
                         this_value = this_value * power_vec(j);

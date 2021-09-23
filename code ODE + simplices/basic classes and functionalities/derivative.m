@@ -132,7 +132,8 @@ classdef derivative
                         [conv(A.nodes+1:end);zeros(A.nodes,1)],...
                         [conv(A.nodes+1:-1:1);zeros(A.nodes,1)]...
                         );
-                        delay_part = delay_part + conv_mat*exp_coef;
+                        exp_mat_delay = diag(exp(exp_coef*(-A.nodes:A.nodes)));
+                        delay_part = delay_part + conv_mat*exp_mat_delay;
                         end
                     end
                     DxF((i-1)*length(index)+index,(j-1)*length(index) +index) =...
@@ -191,10 +192,6 @@ classdef derivative
             % end
             used_nodes =-n_node:n_node;
             B = A;
-%             if size(B.derivative_Gx_v,2)> 2*n_node +1
-%                 center_node =floor(size(B.derivative_Gx_v,2)/2)+1;
-%                 B.derivative_Gx_v=B.derivative_Gx_v(:,center_node+used_nodes); % derivative_Gx_v  M1 x N*(2*nodes+1)
-%             end
             
             if size(B.derivative_Gx_v,3) > 2*n_node+1
                 center_node =floor(size(B.derivative_Gx_v,3)/2)+1;
@@ -214,6 +211,21 @@ classdef derivative
                 center_node =floor(size(B.derivative_Fx_toeplix,3)/2)+1;
                 B.derivative_Fx_toeplix = B.derivative_Fx_toeplix(:,:,center_node+used_nodes); %derivative_Fx_toeplix   N x N x (2*nodes+1)*deg
             end
+            
+            % all delay derivatives also need truncation!
+            for i = 1:size(A.derivative_Fx_delay,1)
+                for j = 1:size(A.derivative_Fx_delay, 2)
+                    for k = 1:size(A.derivative_Fx_delay{i,j})
+                        if ~isempty(A.derivative_Fx_delay{i,j}{k})
+                            if length(A.derivative_Fx_delay{i,j}{k}.convolution)>2*n_node +1
+                                center_node =floor(length(A.derivative_Fx_delay{i,j}{k}.convolution)/2)+1;
+                                B.derivative_Fx_delay{i,j}{k}.convolution = B.derivative_Fx_delay{i,j}{k}.convolution(center_node+used_nodes); 
+                            end
+                        end
+                    end
+                end
+            end
+            
             B.nodes = n_node;
         end
         % end TRUNCATE
@@ -274,6 +286,29 @@ classdef derivative
                     B.derivative_Fx_toeplix = infsup(inf_pad,sup_pad);
                 end
             end
+            
+            % all delay derivatives also need padding!
+            for i = 1:size(A.derivative_Fx_delay,1)
+                for j = 1:size(A.derivative_Fx_delay, 2)
+                    for k = 1:size(A.derivative_Fx_delay{i,j})
+                        if ~isempty(A.derivative_Fx_delay{i,j}{k})
+                            if length(A.derivative_Fx_delay{i,j}{k})>2*n_node +1
+                                center_node =floor(length(A.derivative_Fx_delay{i,j}{k})/2)+1;
+                                padding = -center_node + 1 + n_node;
+                                if ~isintval(B.derivative_Fx_toeplix)
+                                    B.derivative_Fx_delay{i,j}{k} = padarray(B.derivative_Fx_delay{i,j}{k},[0,0,padding]); 
+                                else
+                                    inf_pad = padarray(inf(B.derivative_Fx_delay{i,j}{k}),[0,0,padding]);
+                                    sup_pad = padarray(sup(B.derivative_Fx_delay{i,j}{k}),[0,0,padding]);
+                                    B.derivative_Fx_delay{i,j}{k} = infsup(inf_pad,sup_pad);
+                                end
+                                B.derivative_Fx_delay{i,j}{k} = B.derivative_Fx_delay{i,j}{k}(center_node+used_nodes);
+                            end
+                        end
+                    end
+                end
+            end
+            
             B.nodes = n_node;
         end
         % end PAD
