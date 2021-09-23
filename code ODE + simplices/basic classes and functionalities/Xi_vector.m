@@ -520,6 +520,10 @@ classdef Xi_vector
         end
         % MRDIVIDE
         
+        function Xi=reshape(x,new_nodes)
+            Xi=reshape_Xi(x,new_nodes);
+        end
+            
         % RESHAPE_XI
         function Xi=reshape_Xi(x,new_nodes)
             % x          Xi_vector

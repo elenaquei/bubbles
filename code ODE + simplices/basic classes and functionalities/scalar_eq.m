@@ -16,7 +16,7 @@ classdef scalar_eq
         function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar,...
                 n_vector, lin_coefficients, polynomials, n_noncomputable, filename)
             % function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar, n_vector, lin_coefficients, polynomials)
-            % 
+            %
             % INPUT
             % n_equations_lin       number of linear equations
             % n_equations_vec       number of polynomial equations
@@ -28,7 +28,7 @@ classdef scalar_eq
             % n_noncomputable       number of equations that shouldn't be
             %                       delt with directly (user input)
             % filename              name of the file where the
-            %                       noncomputable equations are computed and 
+            %                       noncomputable equations are computed and
             %                       derivatives given
             % OUTPUT
             % alpha                 scalar_eq
@@ -48,10 +48,10 @@ classdef scalar_eq
             alpha.non_computable_function = [];
             
             if nargin >0
-            if ~isint(n_equations_lin)
-                error('number of linear eqautions must be integer')
-            end
-            alpha.number_equations_lin = n_equations_lin;
+                if ~isint(n_equations_lin)
+                    error('number of linear eqautions must be integer')
+                end
+                alpha.number_equations_lin = n_equations_lin;
             end
             if nargin>1
                 if ~isint(n_equations_vec)
@@ -73,11 +73,11 @@ classdef scalar_eq
                 alpha.size_vector =n_vector;
             end
             if nargin>4
-                try 
+                try
                     if alpha.number_equations_lin>0
-                    lin_coefficients{1}(alpha.number_equations_lin,alpha.size_scalar);
-                    lin_coefficients{2}(alpha.number_equations_lin,alpha.size_vector,1);
-                    lin_coefficients{3}(alpha.number_equations_lin);
+                        lin_coefficients{1}(alpha.number_equations_lin,alpha.size_scalar);
+                        lin_coefficients{2}(alpha.number_equations_lin,alpha.size_vector,1);
+                        lin_coefficients{3}(alpha.number_equations_lin);
                     else
                         if prod(size(lin_coefficients{1}))~=0 || prod(size(lin_coefficients{2}))~=0 ...
                                 || prod(size(lin_coefficients{3}))~=0
@@ -106,7 +106,7 @@ classdef scalar_eq
             end
             if nargin>6
                 alpha.number_equations_non_computable = n_noncomputable;
-                alpha.non_computable_function = str2func(filename);
+                alpha.non_computable_function = filename;
                 alpha.num_equations = alpha.num_equations + n_noncomputable;
             end
         end
@@ -128,37 +128,40 @@ classdef scalar_eq
             end
             
             % linear equations
-            if isempty(use_intlab) || ~use_intlab 
-                temp=zeros(size(alpha.linear_coef{3}));%zeros(alpha.size_scalar);
-                for i=1:alpha.number_equations_lin
-                    temp(i)=sum(sum(squeeze(alpha.linear_coef{2}(i,:,:)).*xi_vec.vector,1));
+            if alpha.number_equations_lin>0
+                if isempty(use_intlab) || ~use_intlab
+                    temp=zeros(size(alpha.linear_coef{3}));%zeros(alpha.size_scalar);
+                    for i=1:alpha.number_equations_lin
+                        temp(i)=sum(sum(squeeze(alpha.linear_coef{2}(i,:,:)).*xi_vec.vector,1));
+                    end
+                    y_scal(1:alpha.number_equations_lin)=alpha.linear_coef{3}+(alpha.linear_coef{1}*(xi_vec.scalar.'))+temp;
+                else
+                    temp=intval(zeros(size(alpha.linear_coef{3})));
+                    for i=1:alpha.number_equations_lin
+                        temp(i)=sum(sum(squeeze(intval(alpha.linear_coef{2}(i,:,:))).*xi_vec.vector,1));
+                    end
+                    y_scal(1:alpha.number_equations_lin)=intval(alpha.linear_coef{3})+(intval(alpha.linear_coef{1})*(xi_vec.scalar.'))+temp;
                 end
-                y_scal(1:alpha.number_equations_lin)=alpha.linear_coef{3}+(alpha.linear_coef{1}*(xi_vec.scalar.'))+temp;
-            else
-                temp=intval(zeros(size(alpha.linear_coef{3})));
-                for i=1:alpha.number_equations_lin
-                    temp(i)=sum(sum(squeeze(intval(alpha.linear_coef{2}(i,:,:))).*xi_vec.vector,1));
-                end
-                y_scal(1:alpha.number_equations_lin)=intval(alpha.linear_coef{3})+(intval(alpha.linear_coef{1})*(xi_vec.scalar.'))+temp;
             end
             
             % polynomial equations
-            y_scal(alpha.number_equations_lin+(1:alpha.number_equations_pol))=apply_sum(alpha.polynomial_equations,xi_vec);
-            
+            if alpha.number_equations_pol
+                y_scal(alpha.number_equations_lin+(1:alpha.number_equations_pol))=apply_sum(alpha.polynomial_equations,xi_vec);
+            end
             % non-computable equations
             if alpha.number_equations_non_computable>0
                 y_temp = alpha.non_computable_function(xi_vec);
-               
-                y_scal(alpha.number_equations_lin+alpha.number_equations_pol:end) = y_temp;
+                
+                y_scal(alpha.number_equations_lin+alpha.number_equations_pol+1:end) = y_temp;
             end
         end
         % end APPLY
         
         % DERIVATIVE
-        function [DlambdaG, DxG_v, DxG_hat] = compute_derivative(alpha,xi_vec)
-            % function [DlambdaG, DxG_v, DxG_hat] = compute_derivative(alpha,xi_vec)
+        function [DlambdaG, DxG_v, DxG_hat,DxG_non_comp] = compute_derivative(alpha,xi_vec)
+            % function [DlambdaG, DxG_v, DxG_hat,DxG_non_comp] = compute_derivative(alpha,xi_vec)
             %
-            % INPUTS 
+            % INPUTS
             % alpha    instance of scalar_eq
             % xi_vec   instance of Xi_vector
             %
@@ -173,7 +176,7 @@ classdef scalar_eq
                 error('Inputs not compatible')
             end
             DlambdaG = zeros(alpha.num_equations,xi_vec.size_scalar);
-            DxG_hat = zeros(alpha.number_equations_pol,xi_vec.size_vector);
+            DxG_hat = zeros(alpha.number_equations_pol+alpha.number_equations_non_computable,xi_vec.size_vector);
             if isintval(alpha.linear_coef{1}) || isintval(xi_vec.scalar)
                 DlambdaG = intval(DlambdaG);
                 DxG_hat = intval(DxG_hat);
@@ -182,19 +185,19 @@ classdef scalar_eq
             DxG_v = alpha.linear_coef{2};%, alpha.number_equations_lin,[]);
             
             if alpha.number_equations_pol>0
-            for i = 1: xi_vec.size_scalar
-                DlambdaG(alpha.number_equations_lin+(1:alpha.number_equations_pol),i)=...
-                    apply_sum(coef_derivative_scal(alpha.polynomial_equations,i),xi_vec);
-            end
-            for i =1 :xi_vec.size_vector
-                DxG_hat(:,i) = apply_sum(coef_derivative_vec(alpha.polynomial_equations,i),xi_vec);
-            end
+                for i = 1: xi_vec.size_scalar
+                    DlambdaG(alpha.number_equations_lin+(1:alpha.number_equations_pol),i)=...
+                        apply_sum(coef_derivative_scal(alpha.polynomial_equations,i),xi_vec);
+                end
+                for i =1 :xi_vec.size_vector
+                    DxG_hat(1:alpha.number_equations_pol,i) = apply_sum(coef_derivative_vec(alpha.polynomial_equations,i),xi_vec);
+                end
             end
             if alpha.number_equations_non_computable>0
-                [~, DF_lambda, DF_x] = alpha.non_computable_function(xi_vec);
-                DlambdaG(alpha.number_equations_lin+alpha.number_equations_pol+1:end,i)=...
-                    DF_lambda;
-                DxG_non_comp = DF_x; error('PROBABLY WRONG HERE')
+                [~, DF] = alpha.non_computable_function(xi_vec);
+                DlambdaG(alpha.number_equations_lin+alpha.number_equations_pol+1:end,:)=...
+                    DF(:,1:alpha.size_scalar);
+                DxG_hat(alpha.number_equations_pol+1:end,:)= DF(:,alpha.size_scalar+1:end);
             end
             
         end
@@ -204,7 +207,7 @@ classdef scalar_eq
         function bool = compatible(alpha, xi_vec)
             % function bool = compatible(alpha, xi_vec)
             %
-            % INPUT 
+            % INPUT
             % alpha   scalar_eq
             % xi_vec  Xi_vector
             % OUTPUT
@@ -243,7 +246,7 @@ classdef scalar_eq
                         problem = 1;
                         error('')
                     end
-                
+                    
                 else
                     pad=zeros(size(alpha.linear_coef{2},1),size(alpha.linear_coef{2},2),new_nodes-old_nodes);
                     beta.linear_coef{2}=cat(3,pad,cat(3,beta.linear_coef{2},pad));
@@ -279,17 +282,17 @@ classdef scalar_eq
             % function beta = change_lin_coef(alpha,lin_coef,n_lin_coef)
             % INPUT
             % alpha       scalar_eq
-            % lin_coef    cell{3}, compatible with linear_coef, that is 
+            % lin_coef    cell{3}, compatible with linear_coef, that is
             %             {1}(1,size_scalar), {2}(1,size_vector,1+2*number_of_nodes), {3}(1)
             % n_lin_coef  number of hte equation to be rewritten
             % OUTPUT
             % beta        scalar_eq with the nw line
             
             if ~iscell(lin_coef) ||...
-                 size(lin_coef{1},1) ~=1 || size(lin_coef{1},2) ~= alpha.size_scalar ||...
-                 size(lin_coef{2},1)~=1 || size(lin_coef{2},2)~=alpha.size_vector || size(lin_coef{2},3)~= 1+ 2*alpha.number_of_nodes||...
-                 max(size(lin_coef{3}))~=1
-                    error('Inputs not coeherent')
+                    size(lin_coef{1},1) ~=1 || size(lin_coef{1},2) ~= alpha.size_scalar ||...
+                    size(lin_coef{2},1)~=1 || size(lin_coef{2},2)~=alpha.size_vector || size(lin_coef{2},3)~= 1+ 2*alpha.number_of_nodes||...
+                    max(size(lin_coef{3}))~=1
+                error('Inputs not coeherent')
             elseif n_lin_coef > alpha.number_equations_lin
                 if  n_lin_coef == 1+ alpha.number_equations_lin
                     alpha.number_equations_lin =1+ alpha.number_equations_lin;
@@ -318,7 +321,7 @@ classdef scalar_eq
             % INPUT
             % alpha         scalar_eq
             % lin_coef_vec  vector of length
-            %               size_scalar+size_vector*(2*nodes+1) +1  
+            %               size_scalar+size_vector*(2*nodes+1) +1
             %               the last element being the constant
             % n_lin_coef    number of hte equation to be rewritten
             % OUTPUT
@@ -348,7 +351,7 @@ classdef scalar_eq
         % CHANGE_LIN_COEF_XI
         function beta = change_lin_coef_Xi(alpha, lin_coef_Xi_vec, const, n_lin_coef)
             % function beta = change_lin_coef_Xi(alpha, lin_coef_Xi_vec, const, n_lin_coef)
-            % 
+            %
             % INPUT
             % alpha             scalar_eq
             % lin_coef_Xi_vec   Xi_vector, compatible with alpha
@@ -387,7 +390,7 @@ classdef scalar_eq
             beta.linear_coef{1}(n_lin_coef,:) = [];
             beta.linear_coef{2}(n_lin_coef,:,:) = [];
             beta.linear_coef{3}(n_lin_coef) = [];
-            beta.num_equations= beta.num_equations -1; 
+            beta.num_equations= beta.num_equations -1;
             beta.number_equations_lin = beta.number_equations_lin -1;
         end
         % end REMOVE_LIN_COEF
@@ -399,7 +402,7 @@ classdef scalar_eq
             %
             % this function returns the vector v that defines the
             % n_lin_coef linear equation, that is, the linear equation
-            % n_lin_coef of alpha is <v,x> + c 
+            % n_lin_coef of alpha is <v,x> + c
             % INPUT
             % alpha         scalar_eq
             % n_lin_coef    integer
