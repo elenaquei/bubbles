@@ -1,4 +1,11 @@
 function [A_small, M, P, Q, R, phi, D3F2] = A_delay_symplex(alpha, x)
+% function [A_small, M, P, Q, R, phi, D3F2] = A_delay_symplex(alpha, x)
+%
+% returns the numerical center of the A operator, and all the bits and
+% pieces to construct the A operator up to any size
+global use_intlab
+temp_use_intlab = use_intlab;
+use_intlab = 0;
 
 small_der = derivative(alpha, x, 0);
 small_mat_der = derivative_to_matrix(small_der);
@@ -20,3 +27,5 @@ D3F2 = small_der.derivative_G_hat;
 D3F2(1:alpha.scalar_equations.number_equations_pol) = 0;
 
 A_small = inverse_mat_der;
+
+use_intlab = temp_use_intlab;

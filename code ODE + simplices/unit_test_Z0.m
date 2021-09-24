@@ -44,6 +44,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 use_intlab = 1;
 Z0 = Z0_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
+
+Y = Y_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
 use_intlab = 0;
 
 

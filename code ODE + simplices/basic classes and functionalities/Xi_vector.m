@@ -215,14 +215,14 @@ classdef Xi_vector
             global use_intlab
             
             nor=zeros(xi.size_scalar+xi.size_vector,1);
-            if ~use_intlab
+            if ~use_intlab && ~isintval(xi.scalar)
                 nor(1:xi.size_scalar)=abs(xi.scalar);
             else
                 nor(1:xi.size_scalar)=sup(abs(xi.scalar));
             end
             %nor(xi.size_scalar+1:end)=abs(xi.vector(:,xi.nodes+1));
             K=-xi.nodes:xi.nodes;
-            if use_intlab
+            if use_intlab || isintval(xi.vector)
                 K=intval(K);
                 if ~isintval(nu)
                     nu=intval(nu);
@@ -233,7 +233,7 @@ classdef Xi_vector
                 end
             end
             for i=1:xi.size_vector
-                if ~use_intlab
+                if ~use_intlab && ~isintval(xi.vector)
                     nor(xi.size_scalar+i)=sum(abs(xi.vector(i,:)).*(nu.^abs(K)));
                 else
                     nor(xi.size_scalar+i)=sup(sum(abs(xi.vector(i,:)).*(nu.^abs(K))));
