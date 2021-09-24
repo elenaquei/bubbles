@@ -660,9 +660,19 @@ classdef Xi_vector
                 K=intval(K);
             end
             Xi = x;
-            Xi.scalar = 0*x.scalar;
+            if use_intlab
+                K=intval(K);
+                Xi.scalar = intval(0*x.scalar);
+                Xi.vector = intval(zeros(size(x.vector)));
+            else
+                Xi.scalar = 0*x.scalar;
+            end
+            
             const_func = 0*K;
             const_func(x.nodes+1) = 1;
+            if use_intlab
+                const_func = intval(const_func);
+            end
             for i=1:x.size_vector
                 if tau(i) == 0 
                     Xi.vector(i,:) = const_func;
