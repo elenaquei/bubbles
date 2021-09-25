@@ -8,11 +8,9 @@ x2_long_vec = Xi_vec2vec(reshape(x2,n_nodes_long));
 
 x_vec_int = three_intval(x0_long_vec, x1_long_vec, x2_long_vec);
 
-Fx0 = Xi_vec2vec(apply(alpha, x0, 1));
-Fx1 = Xi_vec2vec(apply(alpha, x1, 1));
-Fx2 = Xi_vec2vec(apply(alpha, x2, 1));
+x_int = vec2Xi_vec(x_vec_int, x0.size_scalar, x0.size_vector, n_nodes_long);
 
-Fx_int = three_intval(Fx0, Fx1, Fx2);
+Fx_int = Xi_vec2vec(apply(alpha, x_int));
 
 big_A0 = create_A_of_size(alpha, x0, n_nodes_long);
 big_A1 = create_A_of_size(alpha, x1, n_nodes_long);

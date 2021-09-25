@@ -52,7 +52,7 @@ use_intlab = 0;
 
 function [F, dxF, dxF_mat] = noncomputable_eqs(x, n_eqs, constants)
 % function noncomputable_eqs(x, n_eqs)
-
+global use_intlab
 if nargin > 2
     if size(constants,1)~=n_eqs
         constants = constants.';
@@ -69,6 +69,9 @@ if nargin < 3
 end
 
 sum_x = zeros(x.size_vector + x.size_scalar,1);
+if isintval(x.scalar) || isintval(x.vector) || use_intlab
+    sum_x = intval(sum_x);
+end
 for j = 1: x.size_scalar
     sum_x(j) = x.scalar(j);
 end
