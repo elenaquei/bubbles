@@ -155,7 +155,7 @@ classdef Xi_vector
             if x.bool_ifft==0
                 x=x.set_ifft();
             end
-            z = 5;
+            
             if length(p)~=x.size_vector
                 error('Powers are not compatible')
             end
