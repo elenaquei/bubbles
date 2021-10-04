@@ -23,6 +23,9 @@ D3F2_int = three_intval(D3F20, D3F21, D3F22);
 
 DF_derivative = derivative(alpha, x);
 
+norm_P = norm_ell1_to_C(P);
+norm_R = norm_C_to_C(R);
+
 % first term: A_s * Pi_M ( D_z Pi_infty F)
 n_nodes = x0.nodes;
 
@@ -69,4 +72,17 @@ if isintval(val_max)
     val_max = sup(val_max);
 end
 val_intval = infsup(val_min, val_max);
+end
+
+function n = norm_ell1_to_C(P)
+n = zeros(size(P,1));
+nodes = (zeros(size(P,2))-1)/2;
+K = -nodes:nodes;
+K_big = repmat(K, n, 1);
+n = sum(abs(P).* nu.^(-abs(K_big)),2);
+end
+
+function n = norm_C_to_C(R)
+n = zeros(size(R,1));
+n = sum(abs(R),2);
 end
