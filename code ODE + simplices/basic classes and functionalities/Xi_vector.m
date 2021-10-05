@@ -104,7 +104,7 @@ classdef Xi_vector
             else
                 x_vector = [ zeros(x.size_vector, (deg-1)*x.nodes),x.vector, zeros(x.size_vector, (deg-1)*x.nodes)]; % appending zeros
                 x.ifft_vector = zeros(x.size_vector, dim_ifft);
-                if use_intlab
+                if use_intlab || isintval(x_vector)
                     x.ifft_vector = intval(x.ifft_vector);
                 end
                 for i=1:x.size_vector

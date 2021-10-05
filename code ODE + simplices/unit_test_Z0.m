@@ -16,15 +16,6 @@ xi_0 = Xi_vector([l1,l2], [x1;x2;x3]);
 xi_1 = Xi_vector([l1,l2]+ rand(1,2)*h, [x1;x2;x3]+ rand(3,length(x1))*h);
 xi_2 = Xi_vector([l1,l2]+ rand(1,2)*h, [x1;x2;x3]+ rand(3,length(x1))*h);
 
-% one_vec = [0,0,1,0,0];
-% mat_K = diag(-2:2);
-% mat_bigK = diag(-4:4);
-% mat_verybigK = diag(-6:6);
-% conv_mat = @(x) conj(toeplitz(x((length(x)+1)/2:end)));
-% 
-% conv_mat_big =@(x) conj(toeplitz([x((length(x)+1)/2:end),0*x((length(x)+3)/2:end)]));
-% Delay = @(x, tau) exp(1i*l1*(-(length(x)-1)/2:(length(x)-1)/2)*tau).*x;
-
 n_non_comp_eqs = 2;
 f = @(x) noncomputable_eqs(x, 2, [1,2,3,4,5;2,3,4,5,6]);
 
@@ -46,9 +37,9 @@ use_intlab = 1;
 Z0 = Z0_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
 
 Y = Y_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
+
+Z1 = Z1_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
 use_intlab = 0;
-
-
 
 function [F, dxF, dxF_mat] = noncomputable_eqs(x, n_eqs, constants)
 % function noncomputable_eqs(x, n_eqs)

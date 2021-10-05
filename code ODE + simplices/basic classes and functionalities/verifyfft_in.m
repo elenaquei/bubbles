@@ -105,7 +105,7 @@ if sign == -1
     y = ifftshift(y)*length(y);
 end
 
-if use_intlab
+if use_intlab || isintval(y)
     Z=verifyfft(y,sign);
 else
     Z=fft_in(y,sign);
