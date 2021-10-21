@@ -9,7 +9,7 @@ classdef polynomial_coefs
         value % cell{n_equations}(n_terms) -- coefficient of the term
         dot % cell{n_equations}{n_terms}(variables,:) -- number of derivatives applied to the given variable 
         power_vector % cell{n_equations}{n_terms}(variables,:)
-        delay % cell{n_equations}{n_terms}(variables,:)
+        delay % cell{n_equations}{n_terms}(variables)
         power_scalar % cell{n_equations}(scalar_variables,n_terms)
         monomial_per_term % cell{n_equations}(n_terms) -- number of monomials per each term considered
         %
