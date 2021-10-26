@@ -44,8 +44,8 @@ end
 
 function rotated_coefs = rotate_base_tangentspace(coefs,old_coefs)
 
-% 2D tangent space can be defined by a rotated base??
-% FUCK, it can also be flipped!
+% 2D tangent space can be defined by a rotated base
+% be careful, it can also be flipped!
 flipped_coefs = [coefs(:,2),coefs(:,1)];
 
 apply_theta_rotation = @(theta) [sin(theta) cos(theta); cos(theta) -sin(theta)] * coefs.';
