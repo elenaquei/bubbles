@@ -721,44 +721,67 @@ classdef Xi_vector
             % taking as input two Xi_vectors, it construct an use_intlab Xi_vector having
             % the two inputs as borders
             
-            %global use_intlab
-            
+            x0_scal = xBar0.scalar;
             if isintval(xBar0.scalar)
-                xBarS=Xi_vector(xBar0);
-                scal_max=max(sup(real(xBar0.scalar)),sup(real(xBar1.scalar)))+...
-                    1i*max(sup(imag(xBar0.scalar)),sup(imag(xBar1.scalar)));
-                scal_min=min(inf(real(xBar0.scalar)),inf(real(xBar1.scalar)))+...
-                    1i*min(inf(imag(xBar0.scalar)),inf(imag(xBar1.scalar)));
-                xBarS.scalar=infsup(scal_min,scal_max);
-                
-                vec_max=max(sup(real(xBar0.vector)),sup(real(xBar1.vector)))+...
-                    1i*max(sup(imag(xBar0.vector)),sup(imag(xBar1.vector)));
-                vec_min=min(inf(real(xBar0.vector)),inf(real(xBar1.vector)))+...
-                    1i*min(inf(imag(xBar0.vector)),inf(imag(xBar1.vector)));
-                xBarS.vector=infsup(vec_min,vec_max);
+                inf_real_x0_scal = inf(real(x0_scal));
+                sup_real_x0_scal = sup(real(x0_scal));
+                inf_imag_x0_scal = inf(imag(x0_scal));
+                sup_imag_x0_scal = sup(imag(x0_scal));
             else
-                xBarS=Xi_vector(xBar0);
-                scal_max=max((real(xBar0.scalar)),(real(xBar1.scalar)))+...
-                    1i*max((imag(xBar0.scalar)),(imag(xBar1.scalar)));
-                scal_min=min((real(xBar0.scalar)),(real(xBar1.scalar)))+...
-                    1i*min((imag(xBar0.scalar)),(imag(xBar1.scalar)));
-                xBarS.scalar=infsup(scal_min,scal_max);
-                
-                vec_max=max((real(xBar0.vector)),(real(xBar1.vector)))+...
-                    1i*max((imag(xBar0.vector)),(imag(xBar1.vector)));
-                vec_min=min((real(xBar0.vector)),(real(xBar1.vector)))+...
-                    1i*min((imag(xBar0.vector)),(imag(xBar1.vector)));
-                xBarS.vector=infsup(vec_min,vec_max);
-                %                 xBarS=Xi_vector(xBar0);
-                %                 scal_max=max(xBar0.scalar,xBar1.scalar);
-                %                 scal_min=min(xBar0.scalar,xBar1.scalar);
-                %                 xBarS.scalar=infsup(scal_min,scal_max);
-                %
-                %                 vec_max=max(xBar0.vector,xBar1.vector);
-                %                 vec_min=min(xBar0.vector,xBar1.vector);
-                %                 xBarS.vector=infsup(vec_min,vec_max);
-                
+                inf_real_x0_scal = real(x0_scal);
+                sup_real_x0_scal = real(x0_scal);
+                inf_imag_x0_scal = imag(x0_scal);
+                sup_imag_x0_scal = imag(x0_scal);
             end
+            x1_scal = xBar1.scalar;
+            if isintval(xBar1.scalar)
+                inf_real_x1_scal = inf(real(x1_scal));
+                sup_real_x1_scal = sup(real(x1_scal));
+                inf_imag_x1_scal = inf(imag(x1_scal));
+                sup_imag_x1_scal = sup(imag(x1_scal));
+            else
+                inf_real_x1_scal = real(x1_scal);
+                sup_real_x1_scal = real(x1_scal);
+                inf_imag_x1_scal = imag(x1_scal);
+                sup_imag_x1_scal = imag(x1_scal);
+            end
+            x0_vec = xBar0.vector;
+            if isintval(xBar0.vector)
+                inf_real_x0_vec = inf(real(x0_vec));
+                sup_real_x0_vec = sup(real(x0_vec));
+                inf_imag_x0_vec = inf(imag(x0_vec));
+                sup_imag_x0_vec = sup(imag(x0_vec));
+            else
+                inf_real_x0_vec = real(x0_vec);
+                sup_real_x0_vec = real(x0_vec);
+                inf_imag_x0_vec = imag(x0_vec);
+                sup_imag_x0_vec = imag(x0_vec);
+            end
+            x1_vec = xBar1.vector;
+            if isintval(xBar1.vector)
+                inf_real_x1_vec = inf(real(x1_vec));
+                sup_real_x1_vec = sup(real(x1_vec));
+                inf_imag_x1_vec = inf(imag(x1_vec));
+                sup_imag_x1_vec = sup(imag(x1_vec));
+            else
+                inf_real_x1_vec = real(x1_vec);
+                sup_real_x1_vec = real(x1_vec);
+                inf_imag_x1_vec = imag(x1_vec);
+                sup_imag_x1_vec = imag(x1_vec);
+            end
+            
+            xBarS=Xi_vector(xBar0);
+            scal_max=max(sup_real_x0_scal,sup_real_x1_scal)+...
+                1i*max(sup_imag_x0_scal,sup_imag_x1_scal);
+            scal_min=min(inf_real_x0_scal,inf_real_x1_scal)+...
+                1i*min(inf_imag_x0_scal,inf_imag_x1_scal);
+            xBarS.scalar=infsup(scal_min,scal_max);
+            
+            vec_max=max(sup_real_x0_vec,sup_real_x1_vec)+...
+                1i*max(sup_imag_x0_vec,sup_imag_x1_vec);
+            vec_min=min(inf_real_x0_vec,inf_real_x1_vec)+...
+                1i*min(inf_imag_x0_vec,inf_imag_x1_vec);
+            xBarS.vector=infsup(vec_min,vec_max);
             xBarS.bool_ifft = 0;
         end %INTERVAL_XI
         

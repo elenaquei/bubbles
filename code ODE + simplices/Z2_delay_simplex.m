@@ -1,6 +1,7 @@
-function [Z2]=Z2_delay_simplex(x0,x1,x2,alpha, Rmax)
+function [Z2]=Z2_delay_simplex(alpha, x0,x1,x2, Rmax)
 
-modes = x0.n_nodes;
+modes = x0.nodes;
+x_int = interval_Xi(interval_Xi(x0,x1), x2);
 
 [A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha, x0);
 [A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha, x1);
@@ -17,12 +18,12 @@ D3F2_int = three_intval(D3F20, D3F21, D3F22);
 
 block_norm_A = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(modes+1), phi_int, x0);
 
-upper_bound_psi_DF = dpsiDF(alpha, x, Rmax);
+upper_bound_psi_DF = dpsiDF(alpha, x_int, Rmax);
 
 Z22 = block_norm_A * upper_bound_psi_DF;
 
 block_norm_AM = block_norm((modes+1)*M_int, P_int, (modes+1)*Q_int, R_int, D3F2_int, phi_int, x0);
-DDF_without_dpsi = upper_bound_DDF_without_psi(alpha, x, Rmax);
+DDF_without_dpsi = upper_bound_DDF_without_psi(alpha, x_int, Rmax);
 Z21 = block_norm_AM * DDF_without_dpsi;
 
 Z2 = Z22 + Z21;
@@ -30,6 +31,8 @@ end
 
 function DpsiDF = dpsiDF(alpha, x, Rmax)
 % MOSTLY DONE
+global nu
+
 modes = x.nodes;
 if nu^(2*modes+2) < exp(1)
     Lemma_bound = nu^(2*modes+2)/ (exp(1) * log(nu^(2*modes+2)));
@@ -40,21 +43,21 @@ end
 K = -x.nodes:x.nodes;
 x_norm = norm(x) + Rmax;
 lambda_norm = x_norm(1:x.size_scalar);
-v_norm = x_norm(x.size_scalar:end);
+v_norm = x_norm(x.size_scalar+1:end);
 Kx = x;
 for j = 1:x.size_vector
-    Kx.vector(j,:) = K.*x.vector;
+    Kx.vector(j,:) = K.*x.vector(j,:);
 end
 Kx_norm = norm(Kx)+Rmax;
 Kv_norm = Kx_norm(x.size_scalar+1:end);
 KKx = x;
 for j = 1:x.size_vector
-    KKx.vector(j,:) = K.*Kx.vector;
+    KKx.vector(j,:) = K.*Kx.vector(j,:);
 end
 KKx_norm = norm(KKx)+Rmax;
 KKv_norm = KKx_norm(x.size_scalar+1:end);
 
-DpsiDF = zeros(length(x),1);
+DpsiDF = zeros(length(x_norm),1);
 
 for i=1:alpha.vector_field.n_equations % equation
     DpsiDF_i = 0;
@@ -63,34 +66,47 @@ for i=1:alpha.vector_field.n_equations % equation
         const=abs(alpha.vector_field.value{i}(j));
         delay_loc = alpha.vector_field.delay{i}{j};
         
-        X = prod(x_norm.^power_loc);
-        V_delay = prod(v_norm(delay_loc));
+        X = prod((x_norm.').^power_loc);
+        V_delay = prod(v_norm(find(delay_loc)));
         
         if any(delay_loc)
             if power_loc(1)>0
                 delay_term1 = 0;
-                for l = find(delay_loc)
+                for l = 1:length(delay_loc)
+                    if delay_loc(l) == 0
+                        continue
+                    end
                     delay_term1 = delay_term1 + abs(delay_loc(l))/v_norm(l) * ( Kv_norm(l) + KKv_norm(l));
                 end
                 delay_term1 = power_loc(1)/x_norm(1) *delay_term1;
                 delay_term2 = 0;
             end
-            for l1 = find(delay_loc)
-                for l2 = find(delay_loc)
+            for l1 = 1:length(delay_loc)
+                if delay_loc(l1) == 0
+                    continue
+                end
+                for l2 = 1:length(delay_loc)
+                    if delay_loc(l2) == 0
+                        continue
+                    end
                     if l1 == l2
                         continue
                     end
-                    delay_term2 = delay_term2 + abs(delay_loc(l1))/v_norm(l1) *  Kv_norm(l1) * abs(delay_loc(l2))/v_norm(12) *  Kv_norm(l2) ;
+                    delay_term2 = delay_term2 + abs(delay_loc(l1))/v_norm(l1) *  Kv_norm(l1) * abs(delay_loc(l2))/v_norm(l2) *  Kv_norm(l2) ;
                 end
             end
         end
         
         non_delay_term = 0;
         delay_term3 = 0;
-        for k = 1:length(x)
-            non_delay_term = non_delay_term + d(k) /x_norm(k) *(d(1) - k_is_1)/x_norm(1);
-            for l = find(delay_loc)
-                delay_term3 = delay_term3 +  d(k) /x_norm(k) * Kv_norm(l) * abs(delay_loc(l))/v_norm(l);
+        for k = 1:length(x_norm)
+            k_is_1 = 1*(k==1);
+            non_delay_term = non_delay_term + power_loc(k) /x_norm(k) *(power_loc(1) - k_is_1)/x_norm(1);
+            for l = 1:length(delay_loc)
+                if delay_loc(l) == 0
+                    continue
+                end
+                delay_term3 = delay_term3 +  power_loc(k) /x_norm(k) * Kv_norm(l) * abs(delay_loc(l))/v_norm(l);
             end
         end
         if all(delay_loc == 0)
@@ -99,7 +115,10 @@ for i=1:alpha.vector_field.n_equations % equation
             continue
         end
         delay_term4 = 0;
-        for k = find(delay_loc)
+        for k = 1:length(delay_loc)
+            if delay_loc(k) == 0
+                continue
+            end
             delay_term5 = sum(Kv_norm .* delay_loc./v_norm);
             
             delay_term4 = delay_term4 + 1/ v_norm(k) * (power_loc(1)/x_norm(1) + Lemma_bound * delay_loc(k) + delay_term5);
@@ -125,7 +144,7 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
         X = prod(x_norm.^power_loc);
         
         non_delay_term = 0;
-        for k = 1:length(x)
+        for k = 1:length(x_norm)
             non_delay_term = non_delay_term + d(k) /x_norm(k) *(d(1) - k_is_1)/x_norm(1);
         end
         DpsiDF_ij = const * X * V_delay * non_delay_term;
@@ -138,8 +157,8 @@ end
 warning('User input derivative not included yet')
 end
 
-function upper_bound_DDF_without_psi(alpha, x, Rmax)
-
+function DDF = upper_bound_DDF_without_psi(alpha, x, Rmax)
+global nu
 modes = x.nodes;
 if nu^(2*modes+2) < exp(1)
     Lemma_bound = nu^(2*modes+2)/ (exp(1) * log(nu^(2*modes+2)));
@@ -148,21 +167,21 @@ else
 end
 M = x.size_scalar;
 N = x.size_vector;
-x_norm = norm(x) + Rmax;
+x_norm = norm(x).' + Rmax;
 lambda_norm = x_norm(1:x.size_scalar);
-v_norm = x_norm(x.size_scalar:end);
+v_norm = x_norm(x.size_scalar+1:end);
 I = eye(M+N);
-DDF = zeros(length(x),1);
+DDF = zeros(length(x_norm),1);
 
 for i=1:alpha.vector_field.n_equations % equation
     DDF_i = 0;
     for j=1:alpha.vector_field.n_terms(i) % element of the equation
         power_loc=[alpha.vector_field.power_scalar{i}(:,j).', alpha.vector_field.power_vector{i}{j}.'];
         const=abs(alpha.vector_field.value{i}(j));
-        abs_delay_loc = abs(alpha.vector_field.delay{i}{j});
+        abs_delay_loc = abs(alpha.vector_field.delay{i}{j}).';
         n_delays = length(find(abs_delay_loc));
         X = prod(x_norm.^power_loc);
-        V_delay = prod(v_norm(abs_delay_loc));
+        V_delay = prod(v_norm(find(abs_delay_loc)));
         
         no_delay_term = 0;
         for k = 1:M+N
@@ -178,7 +197,7 @@ for i=1:alpha.vector_field.n_equations % equation
         delay_term2 = n_delays *(M+N) + ( n_delays + Lemma_bound * sum(abs_delay_loc .* v_norm)) * sum(power_loc);
         delay_term3 = (Lemma_bound * sum(v_norm.*abs_delay_loc) + n_delays) * n_delays;
         
-        DDF_ij = const * X * V_delay * ( delay_term1 + delay_term2 + delay_term3 + non_delay_term);
+        DDF_ij = const * X * V_delay * ( delay_term1 + delay_term2 + delay_term3 + no_delay_term);
         DDF_i = DDF_i + DDF_ij;
     end
     DDF(i+x.size_scalar) = DDF_i;
@@ -229,7 +248,7 @@ norm_V2 = norm_R * abs(D3F2) / abs(psi);
 norm_V3 = 1 / abs(psi);
 
 block = [ norm_M + norm_V1 + norm_V3, norm_P
-    norm_Q+norm_V2, n_R];
+    norm_Q+norm_V2, norm_R];
 end
 
 function n = norm_C_to_ell1(P, nodes, size_scalar, size_vector)
@@ -277,4 +296,21 @@ for i = 1:size_vector
         n(i,j) = max(nu.^(abs(K))*abs(M(indeces_i, indeces_j)).* nu.^(-abs(K)));
     end
 end
+end
+
+function val_intval = three_intval(a,b,c)
+
+val_intval = three_intval_real(real(a), real(b), real(c)) + 1i* three_intval_real(imag(a), imag(b), imag(c));
+end
+
+function val_intval = three_intval_real(a,b,c)
+val_min = min(a, min(b,c));
+val_max = max(a, max(b,c));
+if isintval(val_min)
+    val_min = inf(val_min);
+end
+if isintval(val_max)
+    val_max = sup(val_max);
+end
+val_intval = infsup(val_min, val_max);
 end

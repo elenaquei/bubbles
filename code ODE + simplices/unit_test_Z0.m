@@ -4,9 +4,11 @@ global use_intlab
 global nu
 nu = 1.1;
 use_intlab = 0;
+Rmax = 10^-2;
 x1 = [0,-1i,1,+1i,0];
 x2 = [1,2,3,2,1] + [0,1,0,-1,0]*1i;
 x3 = [2,-1,0,-1,2] + [1,1,0,-1,-1]*1i;
+
 
 
 l1 = -2;
@@ -39,6 +41,8 @@ Z0 = Z0_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
 Y = Y_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
 
 Z1 = Z1_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
+
+Z2 = Z2_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
 use_intlab = 0;
 
 function [F, dxF, dxF_mat] = noncomputable_eqs(x, n_eqs, constants)
