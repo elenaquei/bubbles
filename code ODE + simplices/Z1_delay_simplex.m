@@ -9,7 +9,7 @@ x0_long_vec = Xi_vec2vec(reshape(x0,n_nodes_long));
 x1_long_vec = Xi_vec2vec(reshape(x1,n_nodes_long));
 x2_long_vec = Xi_vec2vec(reshape(x2,n_nodes_long));
 
-x_vec_int = three_intval(x0_long_vec, x1_long_vec, x2_long_vec);
+x_vec_int = interpolation(x0_long_vec, x1_long_vec, x2_long_vec);
 
 x_int = vec2Xi_vec(x_vec_int, x0.size_scalar, x0.size_vector, n_nodes_long);
 
@@ -17,14 +17,14 @@ x_int = vec2Xi_vec(x_vec_int, x0.size_scalar, x0.size_vector, n_nodes_long);
 [A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
 [A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
 
-A_small_int = three_intval(A_small0, A_small1, A_small2);
+A_small_int = interpolation(A_small0, A_small1, A_small2);
 
-M_int = three_intval(M0, M1, M2);
-P_int = three_intval(P0, P1, P2);
-Q_int = three_intval(Q0, Q1, Q2);
-R_int = three_intval(R0, R1, R2);
-phi_int = three_intval(phi0, phi1, phi2);
-D3F2_int = three_intval(D3F20, D3F21, D3F22);
+M_int = interpolation(M0, M1, M2);
+P_int = interpolation(P0, P1, P2);
+Q_int = interpolation(Q0, Q1, Q2);
+R_int = interpolation(R0, R1, R2);
+phi_int = interpolation(phi0, phi1, phi2);
+D3F2_int = interpolation(D3F20, D3F21, D3F22);
 
 bool_long = 0; 
 % we already have extended x to be long enough, we don't need additional
@@ -109,23 +109,6 @@ norm_A_STAR3 = [norm_M * norm_Kinv_STAR3
 % STAR4
 
 Z1 = [norm_A_STAR1, norm_A_STAR2, norm_A_STAR3 + norm_A_STAR1];
-end
-
-function val_intval = three_intval(a,b,c)
-
-val_intval = three_intval_real(real(a), real(b), real(c)) + 1i* three_intval_real(imag(a), imag(b), imag(c));
-end
-
-function val_intval = three_intval_real(a,b,c)
-val_min = min(a, min(b,c));
-val_max = max(a, max(b,c));
-if isintval(val_min)
-    val_min = inf(val_min);
-end
-if isintval(val_max)
-    val_max = sup(val_max);
-end
-val_intval = infsup(val_min, val_max);
 end
 
 function n = norm_C_to_ell1(P, nodes, size_scalar, size_vector)

@@ -1,4 +1,4 @@
-function [Z2vector,Z2_s]=Z2_delay_simplex(x0,x1,x2,alpha0, alpha1, alpha2, RAD_MAX)
+function Z2 = Z2_delay_simplex(x0,x1,x2,alpha0, alpha1, alpha2, Rmax)
 global nu
 
 modes = x0.nodes;
@@ -8,14 +8,14 @@ x_int = interval_Xi(interval_Xi(x0,x1), x2);
 [A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
 [A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
 
-A_small_int = three_intval(A_small0, A_small1, A_small2);
+A_small_int = interpolation(A_small0, A_small1, A_small2);
 
-M_int = three_intval(M0, M1, M2);
-P_int = three_intval(P0, P1, P2);
-Q_int = three_intval(Q0, Q1, Q2);
-R_int = three_intval(R0, R1, R2);
-phi_int = three_intval(phi0, phi1, phi2);
-D3F2_int = three_intval(D3F20, D3F21, D3F22);
+M_int = interpolation(M0, M1, M2);
+P_int = interpolation(P0, P1, P2);
+Q_int = interpolation(Q0, Q1, Q2);
+R_int = interpolation(R0, R1, R2);
+phi_int = interpolation(phi0, phi1, phi2);
+D3F2_int = interpolation(D3F20, D3F21, D3F22);
 
 block_norm_A = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(modes+1), phi_int, x0);
 
@@ -140,7 +140,6 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
         d=[alpha.scalar_equations.polynomial_equations.power_scalar{i}(:,j).', alpha.scalar_equations.polynomial_equations.power_vector{i}{j}.'];
         const=alpha.scalar_equations.polynomial_equations.value{i}(j);
         N=length(d);
-        e=eye(N);
         
         X = prod(x_norm.^power_loc);
         
@@ -297,21 +296,4 @@ for i = 1:size_vector
         n(i,j) = max(nu.^(abs(K))*abs(M(indeces_i, indeces_j)).* nu.^(-abs(K)));
     end
 end
-end
-
-function val_intval = three_intval(a,b,c)
-
-val_intval = three_intval_real(real(a), real(b), real(c)) + 1i* three_intval_real(imag(a), imag(b), imag(c));
-end
-
-function val_intval = three_intval_real(a,b,c)
-val_min = min(a, min(b,c));
-val_max = max(a, max(b,c));
-if isintval(val_min)
-    val_min = inf(val_min);
-end
-if isintval(val_max)
-    val_max = sup(val_max);
-end
-val_intval = infsup(val_min, val_max);
 end
