@@ -2,7 +2,7 @@ function Z1 = Z1_delay_simplex(alpha0, alpha1, alpha2, x0, x1, x2)
 global use_intlab
 use_intlab = 1;
 
-degree = alpha.vector_field.deg_vector;
+degree = alpha0.vector_field.deg_vector;
 n_nodes_long = x0.nodes*degree;
 
 x0_long_vec = Xi_vec2vec(reshape(x0,n_nodes_long));
@@ -41,8 +41,8 @@ norm_Q = intval(norm_ell1_to_C(Q_int, x0.nodes, x0.size_scalar, x0.size_vector))
 n_nodes = x0.nodes;
 
 % norm of STAR1
-norm_STAR1 = intval(zeros(alpha.vector_field.n_equations));
-N = alpha.vector_field.n_equations;
+norm_STAR1 = intval(zeros(alpha0.vector_field.n_equations));
+N = alpha0.vector_field.n_equations;
 for i =1:N
     for j = 1:N
         norm_STAR1(i,j) = intval(norm(Xi_vector([],DF.derivative_Fx_toeplix(j,i,:))));
@@ -83,7 +83,7 @@ norm_A_STAR2 = [norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
     abs(phi_int)^-1 * norm_Kinv_STAR2];
 
 % STAR3
-norm_STAR3 = intval(zeros(alpha.vector_field.n_equations));
+norm_STAR3 = intval(zeros(alpha0.vector_field.n_equations));
 for i =1:N
     for j = 1:N
         norm_STAR3(i,j) = intval(operator_tail_norm(DF.derivative_Fx_toeplix(j,i,:), ...
