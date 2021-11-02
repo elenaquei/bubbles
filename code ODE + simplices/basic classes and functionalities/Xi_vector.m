@@ -621,6 +621,14 @@ classdef Xi_vector
         end
         % TAIL
         
+        % ISINTVAL
+        function bool = isintval(xi)
+            bool = 0;
+            if isintval(xi.scalar) || isintval(xi.vector)
+                bool = 1;
+            end
+        end
+        
         % TILDE_XI
         function Xi=tilde_Xi(x)
             % x   Xi_vector

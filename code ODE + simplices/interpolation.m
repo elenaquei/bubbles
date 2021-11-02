@@ -16,13 +16,14 @@ end
 
 function alpha = interpolation_full_problem(alpha0, alpha1, alpha2)
 alpha = alpha0;
-alpha.scalar_eqs = interpolation_scal(alpha0.scalar_eqs, alpha1.scalar_eqs, alpha2.scalar_eqs);
+alpha.scalar_equations = interpolation_scal(alpha0.scalar_equations, alpha1.scalar_equations, alpha2.scalar_equations);
 end
 
 function alpha = interpolation_scal(alpha0, alpha1, alpha2)
 alpha = alpha0;
 for i =1:3
-    alpha.lin_coef = interpolation_float(alpha0.lin_coef, alpha1.lin_coef, alpha2.lin_coef);
+    alpha.linear_coef{i} = interpolation_float(alpha0.linear_coef{i},...
+        alpha1.linear_coef{i}, alpha2.linear_coef{i});
 end
 end
 

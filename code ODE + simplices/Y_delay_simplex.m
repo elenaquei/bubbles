@@ -19,7 +19,7 @@ big_A2 = create_A_of_size(alpha2, x2, n_nodes_long);
 
 big_A_int = interpolation(big_A0, big_A1, big_A2);
 
-Y_vec = x_vec_int - big_A_int * Fx_int;
+Y_vec = big_A_int * Fx_int;
 
 Y_x_vec = vec2Xi_vec(Y_vec, x0.size_scalar, x0.size_vector, n_nodes_long);
 

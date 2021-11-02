@@ -134,9 +134,6 @@ if use_intlab
         alpha1.scalar_equations.polynomial_equations.value{i}=intval(alpha1.scalar_equations.polynomial_equations.value{i});
         alpha2.scalar_equations.polynomial_equations.value{i}=intval(alpha2.scalar_equations.polynomial_equations.value{i});
     end
-    %for i=1:2
-    %    coefs_linear{i}=intval(coefs_linear{i});
-    %end
 end
 
 
@@ -149,6 +146,7 @@ if ~ isempty(previous_iter0) && ~isempty(previous_iter0.Y)
 else
     [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0,alpha1,alpha2);
 end
+Y_test = Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
 
 if talkative>1
     fprintf('\nComputed Y, time %s\n\n',datestr(now,13));

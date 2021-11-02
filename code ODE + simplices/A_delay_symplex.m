@@ -23,8 +23,13 @@ R = inverse_mat_der(index_scalar, index_scalar);
 phi = x.scalar(1);
 
 % attention, attention, attention: D3F2, as defined, is a hell of a mess!
-D3F2 = small_der.derivative_G_hat;
-D3F2(1:alpha.scalar_equations.number_equations_pol) = 0;
+D3F2 = zeros(alpha.scalar_equations.num_equations, x.size_vector);
+if isintval(small_der.derivative_G_hat)
+    D3F2 = intval(D3F2);
+end
+index_non_comp_DF = alpha.scalar_equations.number_equations_lin+alpha.scalar_equations.number_equations_pol+1 : alpha.scalar_equations.num_equations;
+index_non_comp_DG = alpha.scalar_equations.number_equations_pol+1:alpha.scalar_equations.number_equations_pol+alpha.scalar_equations.number_equations_non_computable;
+D3F2(index_non_comp_DF) = small_der.derivative_G_hat(index_non_comp_DG);
 
 A_small = inverse_mat_der;
 

@@ -394,7 +394,7 @@ classdef polynomial_coefs
             help_xi_vec = reshape_Xi(xi_vec, K_nodes);%%xi_vec.nodes*a.deg_vector);
             
             y = zeros(size_1,size_2);
-            if use_intlab
+            if use_intlab || isintval(xi_vec)
                 y = intval(y);
             end
             for i =1 :size_1
@@ -513,7 +513,7 @@ classdef polynomial_coefs
             Dx_delay = cell(xi_vec.size_vector,a.n_equations);
             
             xi_vec= set_ifft(xi_vec,a.deg_vector);
-            if use_intlab 
+            if use_intlab || isintval(xi_vec)
                 Dlambda = intval(Dlambda);
                 Dx_vec = intval(Dx_vec);
                 Dx_diag = intval(Dx_diag);

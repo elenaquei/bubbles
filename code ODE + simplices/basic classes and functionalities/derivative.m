@@ -112,7 +112,7 @@ classdef derivative
             end
             DlF = reshape(permute(A.derivative_Flambda,[1,3,2]),[M, N*(2*A.nodes+1),1]).';
             DxF = zeros(N*(2*A.nodes+1));
-            if use_intlab
+            if use_intlab || isintval(A.derivative_Flambda)
                 DxF = intval(DxF);
             end
             index = 1:(2*A.nodes+1);

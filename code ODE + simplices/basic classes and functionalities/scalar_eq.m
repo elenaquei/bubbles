@@ -123,13 +123,13 @@ classdef scalar_eq
             % y_scal  complex vector
             global use_intlab
             y_scal = zeros(alpha.num_equations,1);
-            if use_intlab
+            if use_intlab || isintval(xi_vec)
                 y_scal = intval(zeros(alpha.num_equations,1));
             end
             
             % linear equations
             if alpha.number_equations_lin>0
-                if isempty(use_intlab) || ~use_intlab
+                if (isempty(use_intlab) || ~use_intlab) && ~isintval(xi_vec)
                     temp=zeros(size(alpha.linear_coef{3}));%zeros(alpha.size_scalar);
                     for i=1:alpha.number_equations_lin
                         temp(i)=sum(sum(squeeze(alpha.linear_coef{2}(i,:,:)).*xi_vec.vector,1));
@@ -190,7 +190,7 @@ classdef scalar_eq
                         apply_sum(coef_derivative_scal(alpha.polynomial_equations,i),xi_vec);
                 end
                 for i =1 :xi_vec.size_vector
-                    DxG_hat(1:alpha.number_equations_pol,i) = apply_sum(coef_derivative_vec(alpha.polynomial_equations,i),xi_vec);
+                    DxG_hat(1:alpha.number_equations_pol,i) = apply_sum(conv_coef_derivative_vec(alpha.polynomial_equations,i),xi_vec);
                 end
             end
             if alpha.number_equations_non_computable>0
