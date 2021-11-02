@@ -1,4 +1,4 @@
-function Z1 = Z1_delay_simplex(alpha, x0, x1, x2)
+function Z1 = Z1_delay_simplex(alpha0, alpha1, alpha2, x0, x1, x2)
 global use_intlab
 use_intlab = 1;
 
@@ -13,9 +13,9 @@ x_vec_int = three_intval(x0_long_vec, x1_long_vec, x2_long_vec);
 
 x_int = vec2Xi_vec(x_vec_int, x0.size_scalar, x0.size_vector, n_nodes_long);
 
-[A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha, x0);
-[A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha, x1);
-[A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha, x2);
+[A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
+[A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
+[A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
 
 A_small_int = three_intval(A_small0, A_small1, A_small2);
 
@@ -29,7 +29,8 @@ D3F2_int = three_intval(D3F20, D3F21, D3F22);
 bool_long = 0; 
 % we already have extended x to be long enough, we don't need additional
 % terms
-DF = derivative(alpha, x_int, bool_long);
+alpha_int = interpolation(alpha0, alpha1, alpha2); warning('hey, check this out!')
+DF = derivative(alpha_int, x_int, bool_long);
 
 norm_D3F2 = intval(sup(abs(D3F2_int)));
 norm_P = intval(norm_C_to_ell1(P_int, x0.nodes, x0.size_scalar, x0.size_vector));

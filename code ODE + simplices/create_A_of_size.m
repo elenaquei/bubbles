@@ -20,6 +20,8 @@ Zero2 = zeros(size(K_inv_tail,1), size(R,2));
 
 D3F2_big = kron(D3F2, ones(1,length(K_tail)));
 
+error('A needs to be permuted back to standard - not like the paper... :(')
+
 A = [M     P      -P*D3F2_big * 1i /phi * K_inv_tail
     Q      R      -R*D3F2_big * 1i /phi * K_inv_tail
     Zero1  Zero2  1i / phi * K_inv_tail];

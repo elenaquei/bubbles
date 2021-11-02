@@ -1,11 +1,12 @@
-function [Z2]=Z2_delay_simplex(alpha, x0,x1,x2, Rmax)
+function [Z2vector,Z2_s]=Z2_delay_simplex(x0,x1,x2,alpha0, alpha1, alpha2, RAD_MAX)
+global nu
 
 modes = x0.nodes;
 x_int = interval_Xi(interval_Xi(x0,x1), x2);
 
-[A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha, x0);
-[A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha, x1);
-[A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha, x2);
+[A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
+[A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
+[A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
 
 A_small_int = three_intval(A_small0, A_small1, A_small2);
 
@@ -18,7 +19,7 @@ D3F2_int = three_intval(D3F20, D3F21, D3F22);
 
 block_norm_A = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(modes+1), phi_int, x0);
 
-upper_bound_psi_DF = dpsiDF(alpha, x_int, Rmax);
+upper_bound_psi_DF = dpsiDF(alpha0, x, Rmax);
 
 Z22 = block_norm_A * upper_bound_psi_DF;
 
