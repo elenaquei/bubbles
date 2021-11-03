@@ -24,7 +24,7 @@ function [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,simplex, list_of_nod
 global use_intlab
 global Display
 global talkative
-
+global debug
 % ERROR Spotting
 
 if length(list_of_nodes) == 3
@@ -146,8 +146,10 @@ if ~ isempty(previous_iter0) && ~isempty(previous_iter0.Y)
 else
     [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0,alpha1,alpha2);
 end
-Y_test = Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
-warning('This is only for debugging')
+if debug
+    Y_test = Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
+    disp('Additional computations are being carried out in DEBUGGING MODE')
+end
 
 if talkative>1
     fprintf('\nComputed Y, time %s\n\n',datestr(now,13));
@@ -159,8 +161,10 @@ end
 
 % Z0 BOUND
 [Z0vector,Z0s]=Z0_bound_simplex(DH0,DH1,DH2,A0,A1,A2,xBar0);
-Z0 = Z0_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
-
+if debug
+    Z0 = Z0_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
+    disp('Additional computations are being carried out in DEBUGGING MODE')
+end
 if talkative>1
     fprintf('\nComputed Z0, time %s\n\n',datestr(now,13));
 end
@@ -176,7 +180,10 @@ else
     [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar2,alpha0,...
         alpha1,alpha2,Adagger_delta1,Adagger_delta2);
 end
-Z1 = Z1_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
+if debug
+    Z1 = Z1_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
+    disp('Additional computations are being carried out in DEBUGGING MODE')
+end
 
 if talkative>1
     fprintf('\nComputed Z1, time %s\n\n',datestr(now,13));
@@ -188,6 +195,11 @@ end
 
 % Z2 BOUND
 [Z2vector,Z2s]=Z2_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0);
+if debug
+    Z2 = Z2_delay_simplex(xBar0,xBar1,xBar2,alpha0, alpha1, alpha2);
+    disp('Additional computations are being carried out in DEBUGGING MODE')
+end
+
 
 if talkative>1
     fprintf('\nComputed Z2, time %s\n\n',datestr(now,13));

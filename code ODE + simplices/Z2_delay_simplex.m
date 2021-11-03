@@ -1,5 +1,8 @@
-function Z2 = Z2_delay_simplex(x0,x1,x2,alpha0, alpha1, alpha2, Rmax)
+function Z2 = Z2_delay_simplex(x0,x1,x2,alpha0, alpha1, alpha2)
 global nu
+global RAD_MAX
+
+Rmax = RAD_MAX;
 
 modes = x0.nodes;
 x_int = interval_Xi(interval_Xi(x0,x1), x2);
@@ -19,12 +22,12 @@ D3F2_int = interpolation(D3F20, D3F21, D3F22);
 
 block_norm_A = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(modes+1), phi_int, x0);
 
-upper_bound_psi_DF = dpsiDF(alpha0, x, Rmax);
+upper_bound_psi_DF = dpsiDF(alpha0, x_int, Rmax);
 
 Z22 = block_norm_A * upper_bound_psi_DF;
 
 block_norm_AM = block_norm((modes+1)*M_int, P_int, (modes+1)*Q_int, R_int, D3F2_int, phi_int, x0);
-DDF_without_dpsi = upper_bound_DDF_without_psi(alpha, x_int, Rmax);
+DDF_without_dpsi = upper_bound_DDF_without_psi(alpha0, x_int, Rmax);
 Z21 = block_norm_AM * DDF_without_dpsi;
 
 Z2 = Z22 + Z21;
@@ -42,7 +45,7 @@ else
 end
 
 K = -x.nodes:x.nodes;
-x_norm = norm(x) + Rmax;
+x_norm = norm(x).' + Rmax;
 lambda_norm = x_norm(1:x.size_scalar);
 v_norm = x_norm(x.size_scalar+1:end);
 Kx = x;
@@ -58,7 +61,7 @@ end
 KKx_norm = norm(KKx)+Rmax;
 KKv_norm = KKx_norm(x.size_scalar+1:end);
 
-DpsiDF = zeros(length(x_norm),1);
+DpsiDF = intval(zeros(length(x_norm),1));
 
 for i=1:alpha.vector_field.n_equations % equation
     DpsiDF_i = 0;
@@ -67,7 +70,7 @@ for i=1:alpha.vector_field.n_equations % equation
         const=abs(alpha.vector_field.value{i}(j));
         delay_loc = alpha.vector_field.delay{i}{j};
         
-        X = prod((x_norm.').^power_loc);
+        X = prod(x_norm.^power_loc);
         V_delay = prod(v_norm(find(delay_loc)));
         
         if any(delay_loc)
@@ -141,7 +144,7 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
         const=alpha.scalar_equations.polynomial_equations.value{i}(j);
         N=length(d);
         
-        X = prod(x_norm.^power_loc);
+        X = prod(x_norm.^power_loc.');
         
         non_delay_term = 0;
         for k = 1:length(x_norm)
@@ -150,7 +153,7 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
         DpsiDF_ij = const * X * V_delay * non_delay_term;
         DpsiDF_i = DpsiDF_i + DpsiDF_ij;
     end
-    DpsiDF(i+alpha.scalar_equations.num_equations_lin) = DpsiDF_i;
+    DpsiDF(i+alpha.scalar_equations.number_equations_lin) = DpsiDF_i;
 end
 
 % MISSING: USER INPUT DERIVATIVE!!
@@ -171,7 +174,7 @@ x_norm = norm(x).' + Rmax;
 lambda_norm = x_norm(1:x.size_scalar);
 v_norm = x_norm(x.size_scalar+1:end);
 I = eye(M+N);
-DDF = zeros(length(x_norm),1);
+DDF = intval(zeros(length(x_norm),1));
 
 for i=1:alpha.vector_field.n_equations % equation
     DDF_i = 0;
@@ -208,12 +211,10 @@ end
 % second derivative of the scalar polynomial equations
 for i=1:alpha.scalar_equations.number_equations_pol % equation
     % alpha.scalar_equations.number_equations_lin+
-    DpsiDF_i = 0;
+    DDF_i = 0;
     for j=1:alpha.scalar_equations.polynomial_equations.n_terms(i) % element of the equation
-        d=[alpha.scalar_equations.polynomial_equations.power_scalar{i}(:,j).', alpha.scalar_equations.polynomial_equations.power_vector{i}{j}.'];
+        power_loc=[alpha.scalar_equations.polynomial_equations.power_scalar{i}(:,j).', alpha.scalar_equations.polynomial_equations.power_vector{i}{j}.'];
         const=alpha.scalar_equations.polynomial_equations.value{i}(j);
-        N=length(d);
-        I=eye(N);
         
         X = prod(x_norm.^power_loc);
         
@@ -227,7 +228,7 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
             continue
         end
     end
-    DDF(i+alpha.scalar_equations.num_equations_lin) = DDF_i;
+    DDF(i+alpha.scalar_equations.number_equations_lin) = DDF_i;
 end
 
 % MISSING: USER INPUT DERIVATIVE!!
