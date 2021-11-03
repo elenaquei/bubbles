@@ -11,7 +11,8 @@
 % dY = XY - beta XZ - Y+G
 % dZ = beta XY + XZ -Z
 % dU = delta U + gamma UX +T
-
+global debug
+debug =1;
 global nu
 global use_intlab
 global talkative
