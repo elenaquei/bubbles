@@ -130,7 +130,7 @@ end
 min_gap = gap_angle_vec(priority_node_index);
 if abs(min_gap) > pi/5
     priority_node = min(list_of_frontal_nodes);
-    if priority_node > 100
+    if -priority_node > 100
        [~, min_eps_index] = max(abs(epsilon_vec));
        priority_node = list_of_frontal_nodes(min_eps_index);
     end

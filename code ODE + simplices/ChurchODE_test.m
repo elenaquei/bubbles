@@ -19,7 +19,7 @@ end
 
 % some elements useful for the computation and the validation
 n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 1000;
+n_iter = 500;
 step_size = 5*10^-3; % initial step size 
 save_file = 'ChurchODE'; % where the solutions are stored
 bool_validated = 0;
@@ -32,12 +32,16 @@ epsilon = 1;
 % l2 alpha
 % l3 beta
 
-string_Church = '-dot x1 + l1 l3 x1 - l1 x2 - l1 x1 x1^2+ l1 x1 x2^2+ l1 x1 x3+l1 l2^2 x1\n -dot x2 + l1 x1 + l3 x2 -l1 x2 x1^2 -l1 x2 x2^2-epsilon l1 x2  x3-l1  l2^2 x2\n - dot x3 -l1 x3^5 + 3 l1 x3^3 - l1 x3 + l2'; % ChurchODE
+string_Church = 'dot x - beta x + y +x^3+xy^2+xz+alpha^2x \n dot y - x - beta y + yx^2+y^3+epsilon yz+alpha^2y\n dot z + z^5 - 3z^3 + z - alpha';
 string_Church_vars = strrep(string_Church, 'epsilon' , num2str(epsilon));
 
 vectorfield = strrep(string_Church_vars, 'l1' , '');
-vectorfield = strrep(vectorfield, 'l2' , 'l1');
-vectorfield = strrep(vectorfield, 'l3' , 'l2');
+vectorfield = strrep(vectorfield, 'alpha' , 'l1');
+vectorfield = strrep(vectorfield, 'beta' , 'l2');
+vectorfield = strrep(vectorfield, 'x' , 'temp');
+vectorfield = strrep(vectorfield, 'z' , 'x3');
+vectorfield = strrep(vectorfield, 'y' , 'x2');
+vectorfield = strrep(vectorfield, 'temp' , 'x1');
 % string defining the vector field of the Hopf normal form
 
 f_Church = from_string_to_polynomial_coef(vectorfield);
