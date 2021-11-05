@@ -14,8 +14,8 @@ classdef scalar_eq
     methods
         %CONSTRUCTOR
         function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar,...
-                n_vector, lin_coefficients, polynomials, n_noncomputable, filename)
-            % function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar, n_vector, lin_coefficients, polynomials)
+                n_vector, lin_coefficients, polynomials, n_noncomputable, function_handle)
+            % function alpha = scalar_eq(n_equations_lin, n_equations_vec, n_scalar, n_vector, lin_coefficients, polynomials, n_noncomputable, function_handle)
             %
             % INPUT
             % n_equations_lin       number of linear equations
@@ -27,9 +27,10 @@ classdef scalar_eq
             %                       the previous inputs
             % n_noncomputable       number of equations that shouldn't be
             %                       delt with directly (user input)
-            % filename              name of the file where the
-            %                       noncomputable equations are computed and
-            %                       derivatives given
+            % function_handle       handle to a computation of the
+            %                       function and its derivative, test the 
+            %                       output shape by calling
+            %                       _test_noncomputable_output
             % OUTPUT
             % alpha                 scalar_eq
             %
@@ -88,13 +89,11 @@ classdef scalar_eq
                     error('The coefficients of the linear equations are not in the specified form');
                 end
                 alpha.linear_coef = lin_coefficients;
+                alpha.number_of_nodes=(size(lin_coefficients{2},3)-1)/2;
                 if alpha.number_equations_lin>0
-                    alpha.number_of_nodes=(size(lin_coefficients{2},3)-1)/2;
                     if ~isint(alpha.number_of_nodes) || alpha.number_of_nodes ==0
                         error('The number of nodes defined by the linear equations is non-integer or not positive');
                     end
-                else
-                    alpha.number_of_nodes=0;
                 end
                 % lin_coef must be cell(3,1) with specific structure
             end
@@ -106,7 +105,7 @@ classdef scalar_eq
             end
             if nargin>6
                 alpha.number_equations_non_computable = n_noncomputable;
-                alpha.non_computable_function = filename;
+                alpha.non_computable_function = function_handle;
                 alpha.num_equations = alpha.num_equations + n_noncomputable;
             end
         end
@@ -438,5 +437,15 @@ classdef scalar_eq
             end
         end
         % end EXTRACT_ALL_LIN_COEF
+        
+        % DISP
+        function disp(alpha)
+            fprintf('   Number of scalar equations: %i,   of which linear: %i,   polynomial: %i,   others: %i\n',alpha.num_equations, alpha.number_equations_lin, alpha.number_equations_pol, alpha.number_equations_non_computable)
+            fprintf('   Expects a Xi_vector of scalar size: %i,   vector size: %i,   number of nodes: %i\n', alpha.size_scalar, alpha.size_vector, alpha.number_of_nodes)
+            if alpha.number_equations_pol>0
+                disp('   Scalar nonlinear equations:'); disp(alpha.polynomial_equations);
+            end
+        end
+        % end DISP
     end
 end

@@ -118,6 +118,11 @@ classdef full_problem
         end
         % end SQUARE
         
+        % HAS_DELAY
+        function bool = has_delay(alpha)
+            bool = has_delay(alpha.vector_field);
+        end
+        % end HAS_DELAY
         
         % RESHAPE
         function beta = reshape(alpha, new_nodes)
@@ -600,9 +605,11 @@ classdef full_problem
         
         
         
-        %function disp(alpha)
-        %
-        %end
+        function disp(alpha)
+            disp(alpha.scalar_equations)
+            disp('   Vector field:')
+            disp(alpha.vector_field)
+        end
         
     end
 end

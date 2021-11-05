@@ -17,12 +17,21 @@ catch
     startintlab;
 end
 
-% some elements useful for the computation and the validation
-n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 500;
-step_size = 5*10^-3; % initial step size 
-save_file = 'ChurchODE'; % where the solutions are stored
-bool_validated = 0;
+bool_validated = 1;
+if ~bool_validated
+    % some elements useful for the computation and the validation
+    n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
+    n_iter = 500;
+    % step size
+    step_size = 10^-2; 
+    save_file = 'ChurchODE'; % where the solutions are stored
+else
+    n_nodes = 20; 
+    n_iter = 500;
+    % step size
+    step_size = 10^-4; 
+    save_file = 'ChurchODE_validated'; % where the solutions are stored
+end
 
 N = 3;
 DIM= N;
@@ -32,7 +41,7 @@ epsilon = 0.8;
 % l2 alpha
 % l3 beta
 
-string_Church = 'dot x - beta x + y +x^3+xy^2+xz+alpha^2x \n dot y - x - beta y + yx^2+y^3+epsilon yz+alpha^2y\n dot z + z^5 - 3z^3 + z - alpha';
+string_Church = 'dot x - beta x + y +x^3+xy^2+xz^2+alpha^2x \n dot y - x - beta y + yx^2+y^3+epsilon yz^2+alpha^2y\n dot z + z^5 - 3z^3 + 0.01 z - 0.1 alpha';
 string_Church_vars = strrep(string_Church, 'epsilon' , num2str(epsilon));
 
 vectorfield = strrep(string_Church_vars, 'l1' , '');
@@ -49,7 +58,6 @@ f_Church = from_string_to_polynomial_coef(vectorfield);
 % validation
 
 use_intlab = 0;
-n_nodes = 5;
 x1 = zeros(1, 2 * n_nodes + 1);% sin
 x1 ( n_nodes ) = 1/2*1i;
 x1 (n_nodes + 2) = - 1/2*1i;
@@ -70,3 +78,5 @@ bool_Hopf = 1;
 
 save_file = continuation_simplex(sol_N_better, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated);
+new_name_file = 'ChurchODE_2_validated';
+new_name_file = start_were_we_left_off(save_file, n_iter,new_name_file);

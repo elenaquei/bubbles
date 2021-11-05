@@ -82,7 +82,7 @@ if nargin<2 || isempty(number_scalars)
         if isempty(str2num(string_s(index_l(i)+1))) && string_s(index_l(i)-1)~='e'
             error('No scalar numbering')
         end
-        if string_s(index_l(i)-1)~='e'
+        if index_l(i)>1 && string_s(index_l(i)-1)~='e'
             number_scalars = max(number_scalars,str2num(string_s(index_l(i)+1)));
         end
     end

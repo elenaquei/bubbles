@@ -7,13 +7,29 @@ use_intlab = 0;
 Rmax = 10^-2;
 
 load('./Kevins_code/point_candidate.mat')
+save_file = 'DDE_example';
+% extract info from point_candidate
+z0 = X_ref(8:8+2*N);
+z1 = X_ref(9+2*N:9+4*N);
+z2 = X_ref(10+4*N:end);
 
-% TODO: extract info from point_candidate
-xi = Xi_vector([],[]);
+x0 = X_ref(1);
+p = X_ref(2);
+R0 = X_ref(3);
+psi = X_ref(4);
+a = X_ref(5);
+eta1 = X_ref(6);
+eta2 = X_ref(7);
+mu = R0*exp(-p*x0);
 
-% TODO: create new non_computable equations
-n_non_comp_eqs = 2;
-f = @(x) noncomputable_eqs(x, 2, [1,2,3,4,5;2,3,4,5,6]);
+xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
+n_scal = xi.size_scalar;
+n_vec = xi.size_vector;
+n_nodes = xi.nodes;
+
+% create non-computable equations
+n_non_comp_eqs = 3;
+f = @(x) noncomputable_eqs_for_DDE(x);
 
 % not blowed up: \dot y + y - R0 h(Delay(y, tau)) * y * (1 - y)
 
@@ -25,87 +41,111 @@ f = @(x) noncomputable_eqs(x, 2, [1,2,3,4,5;2,3,4,5,6]);
 % scalar unknowns: psi, x, a, mu, p, eta1, eta2
 % we know mu = R0 * exp(-p x)
 
-tau = 1;
-
 minus_F1 = '+ z0 - mu x Delay(z1,tau) + mu x^2 Delay(z1,tau) + a mu Delay(z2,tau) z0^2 - mu Delay(z2,tau) z0  + 2 x mu Delay(z2,tau) z0';
 minus_F2 = '- p   z2 z0 + p   mu x Delay(z1,tau) z2 - p   mu x^2 Delay(z1,tau) z2 - p   a mu Delay(z2,tau) z0^2 z2 + p   z2 mu Delay(z2,tau) z0  - 2 p   x mu Delay(z2,tau) z0 z2 + eta1';
 minus_F3 = '- a p z2 z0 + a p mu x Delay(z1,tau) z2 - a p mu x^2 Delay(z1,tau) z2 - a p a mu Delay(z2,tau) z0^2 z2 + a p z2 mu Delay(z2,tau) z0  - 2 a p x mu Delay(z2,tau) z0 z2 + eta2';
 
-string_vector_field = strcat('psi dot z0', minus_F1, '\n psi dot z1', minus_F2, '\n psi dot z2', minus_F3);
+human_vector_field = strcat('psi dot z0', minus_F1, '\n psi dot z1', minus_F2, '\n psi dot z2', minus_F3);
 
-string_vector_field = strrep(string_vector_field, 'psi' , 'l1');
+string_vector_field = strrep(human_vector_field, 'psi' , 'l1');
 string_vector_field = strrep(string_vector_field, 'x' , 'l2');
-string_vector_field = strrep(string_vector_field, 'a' , 'l3');
+string_vector_field = strrep(string_vector_field, 'a ' , 'l3');
 string_vector_field = strrep(string_vector_field, 'mu' , 'l4');
-string_vector_field = strrep(string_vector_field, 'p' , 'l5');
-string_vector_field = strrep(string_vector_field, 'eta1' , 'l6');
-string_vector_field = strrep(string_vector_field, 'eta2' , 'l7');
+string_vector_field = strrep(string_vector_field, 'R0' , 'l5');
+string_vector_field = strrep(string_vector_field, 'p' , 'l6');
+string_vector_field = strrep(string_vector_field, 'eta1' , 'l7');
+string_vector_field = strrep(string_vector_field, 'eta2' , 'l8');
 string_vector_field = strrep(string_vector_field, 'z0' , 'x1');
 string_vector_field = strrep(string_vector_field, 'z1' , 'x2');
 string_vector_field = strrep(string_vector_field, 'z2' , 'x3');
 string_vector_field = strrep(string_vector_field, 'tau' , num2str(tau)); % OR - tau??
 
-vector_field = from_string_to_polynomial_coef(string_vector_field,2,3);
+vector_field = from_string_to_polynomial_coef(string_vector_field,n_scal,n_vec);
 
-n_scal = xi_0.size_scalar;
-n_vec = xi_0.size_vector;
+scalar_eq_pol = '-x + mu * x - mu x^2';
+scalar_eq_pol = strrep(scalar_eq_pol, 'x' , 'l2');
+scalar_eq_pol = strrep(scalar_eq_pol, 'mu' , 'l4');
+polynomial = from_string_to_polynomial_coef(scalar_eq_pol,n_scal,n_vec);
+lin_coefficients = cell(3,1);
+lin_coefficients{2} = zeros(0,n_vec, 2*n_nodes+1);
+scalar_equation = scalar_eq(0,1,n_scal, n_vec, lin_coefficients, polynomial, n_non_comp_eqs, f);
 
-polynomial = polynomial_coefs(n_scal, n_vec, 0, ...
-    [], [],[],[]);
-scalar_equation = scalar_eq(0, 0, n_scal,...
-    n_vec, cell(3,1), polynomial, n_non_comp_eqs, f);
+scalar_equation = F_update_Hopf(scalar_equation,xi);
 
-full_zero_finding_problem = full_problem(scalar_equation,vector_field);
+zero_finding_problem = full_problem(scalar_equation,vector_field);
+full_zero_finding_problem = continuation_equation_simplex(zero_finding_problem, xi);
+y = apply(full_zero_finding_problem, xi);
+xi = Newton_2(xi,full_zero_finding_problem);
+
+xi_0 = xi; 
+xi_1 = xi; 
+xi_2 = xi;
 
 use_intlab = 1;
-Z0 = Z0_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
+Y = Y_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
 
-Y = Y_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
+Z0 = Z0_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
 
-Z1 = Z1_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2);
+Z1 = Z1_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
 
-Z2 = Z2_delay_simplex(full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
+Z2 = Z2_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
 use_intlab = 0;
 
-function [F, dxF, dxF_mat] = noncomputable_eqs(x, n_eqs, constants)
-% function noncomputable_eqs(x, n_eqs)
-global use_intlab
-if nargin > 2
-    if size(constants,1)~=n_eqs
-        constants = constants.';
-    end
-    if size(constants,1)~=n_eqs || size(constants,2)~= x.size_vector + x.size_scalar
-        error('constants has the wrong size');
-    end
-end
-if nargin < 2
-    n_eqs = 1;
-end
-if nargin < 3
-    constants = ones(n_eqs, x.size_vector + x.size_scalar);
-end
 
-sum_x = zeros(x.size_vector + x.size_scalar,1);
-if isintval(x.scalar) || isintval(x.vector) || use_intlab
+save_file = continuation_simplex_DDE(xi, zero_finding_problem,...
+    n_iter, step_size, save_file, bool_Hopf, bool_validated);
+
+
+
+function [F, dxF, dxF_mat] = noncomputable_eqs_for_DDE(xi)
+% function [F, dxF, dxF_mat] = noncomputable_eqs_for_DDE(xi)
+global use_intlab
+
+sum_x = zeros(xi.size_vector + xi.size_scalar,1);
+if isintval(xi.scalar) || isintval(xi.vector) || use_intlab
     sum_x = intval(sum_x);
 end
-for j = 1: x.size_scalar
-    sum_x(j) = x.scalar(j);
+for j = 1: xi.size_scalar
+    sum_x(j) = xi.scalar(j);
 end
-for j = 1:x.size_vector
-    sum_x(x.size_scalar + j) = sum(x.vector(j,:));
+for j = 1:xi.size_vector
+    sum_x(xi.size_scalar + j) = sum(xi.vector(j,:));
 end
+% psi, x0, a, mu, R0, p, eta1, eta2],[z0;z1;z2]
+mu = sum_x(4);
+R0 =sum_x(5);
+p =sum_x(6);
+x = sum_x(2);
+a = sum_x(3);
+z0 = sum_x(end-2);
+z1 = sum_x(end-1);
+z2 = sum_x(end);
 
-F = constants * sum_x;
+g = @(u,epsilon) (epsilon~=0)* (exp(-epsilon*u)-1)/epsilon + (epsilon==0)*(-u);
+d1g = @(u,epsilon) (epsilon~=0)*(-exp(-epsilon*u)) + (epsilon==0)*(-1);
+d2g = @(u,epsilon) (epsilon~=0)*exp(-epsilon*u)*(-u*epsilon-1+exp(epsilon*u))/epsilon^2 + (epsilon==0)*0;
+
+F = [mu - R0*exp(-p*x); -z1 + g(p*z0, a) ; -z2 + exp(-a * p * z0)];
 if nargout == 1
     return
 end
-dxF = constants;
+DpsiF = [0;0;0];
+DxF = [ R0*p*exp(-p*x);0;0];
+DaF = [ 0; d2g(p * z0, a); - p * z0 * exp(-a * p * z0)];
+DmuF = [ 1; 0; 0];
+DR0F = [-exp(-p*x); 0; 0];
+DpF = [ R0 * x * exp(-p*x); d1g(p*z0, a)*z0; - a * z0 * exp(-a*p*z0)];
+DetaF = [0;0;0];
+Dz0F = [0; d2g(p*z0, a) * p ; -a * p * exp(-a*p*z0)];
+Dz1F = [0;1;0];
+Dz2F = [0;0;1];
+
+dxF = [DpsiF, DxF, DaF, DmuF, DR0F, DpF, DetaF, DetaF, Dz0F, Dz1F, Dz2F];
 if nargout == 2
     return
 end
-x_one_vec = 1 + 0*x.vector(1,:);
+x_one_vec = 1 + 0*xi.vector(1,:);
 
-dxF_mat = [constants(:,1:x.size_scalar), kron(constants(:,(x.size_scalar+1):end), x_one_vec)];
+dxF_mat = [dxF(:,1:xi.size_scalar), kron(dxF(:,(xi.size_scalar+1):end), x_one_vec)];
 return
 end

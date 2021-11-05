@@ -18,6 +18,6 @@ small_mat_der_int = interpolation(small_mat_der0, small_mat_der1, small_mat_der2
 Z0_mat = intval(eye(size(A_small0))) - A_small_int * small_mat_der_int;
 
 
-Z0 = norm_Ximat(Z0_mat, x0);
+Z0 = sup(norm_Ximat(Z0_mat, x0));
 
 end
