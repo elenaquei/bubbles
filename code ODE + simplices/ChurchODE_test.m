@@ -27,7 +27,7 @@ bool_validated = 0;
 N = 3;
 DIM= N;
 
-epsilon = 1;
+epsilon = 0.8;
 % l1 periodi
 % l2 alpha
 % l3 beta
