@@ -53,11 +53,11 @@ apply_theta_rotation_flipped = @(theta) [sin(theta) cos(theta); cos(theta) -sin(
 theta_best = 0;
 norm_best = norm(old_coefs - apply_theta_rotation(theta_best));
 for theta = 0:0.2:2*pi
+    flipped = 0;
     norm_rotated = norm(old_coefs - apply_theta_rotation(theta));
     if norm_rotated < norm_best
         theta_best = theta;
         norm_best = norm_rotated;
-        flipped = 0;
     end
     
     norm_rotated_flipped = norm(old_coefs - apply_theta_rotation_flipped(theta));
