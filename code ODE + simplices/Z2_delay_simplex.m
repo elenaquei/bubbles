@@ -1,5 +1,4 @@
 function Z2 = Z2_delay_simplex(x0,x1,x2,alpha0, alpha1, alpha2)
-global nu
 global RAD_MAX
 
 Rmax = RAD_MAX;
@@ -7,11 +6,9 @@ Rmax = RAD_MAX;
 modes = x0.nodes;
 x_int = interval_Xi(interval_Xi(x0,x1), x2);
 
-[A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
-[A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
-[A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
-
-A_small_int = interpolation(A_small0, A_small1, A_small2);
+[~, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
+[~, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
+[~, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
 
 M_int = interpolation(M0, M1, M2);
 P_int = interpolation(P0, P1, P2);

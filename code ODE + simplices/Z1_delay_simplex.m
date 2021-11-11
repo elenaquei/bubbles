@@ -29,7 +29,7 @@ D3F2_int = interpolation(D3F20, D3F21, D3F22);
 bool_long = 0; 
 % we already have extended x to be long enough, we don't need additional
 % terms
-alpha_int = interpolation(alpha0, alpha1, alpha2); warning('hey, check this out!')
+alpha_int = interpolation(alpha0, alpha1, alpha2);
 DF = derivative(alpha_int, x_int, bool_long);
 
 norm_D3F2 = intval(sup(abs(D3F2_int)));

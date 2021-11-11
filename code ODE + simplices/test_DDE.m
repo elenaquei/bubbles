@@ -2,12 +2,15 @@
 % needs to be associated with the file "non_computable_func_unit_test.m"
 global use_intlab
 global nu
+global talkative
+talkative = 2;
 nu = 1.1;
 use_intlab = 0;
 Rmax = 10^-2;
 
 load('./Kevins_code/point_candidate.mat')
 save_file = 'DDE_example';
+
 % extract info from point_candidate
 z0 = X_ref(8:8+2*N);
 z1 = X_ref(9+2*N:9+4*N);
@@ -26,6 +29,7 @@ xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
 n_nodes = xi.nodes;
+xi = symmetrise(xi);
 
 % create non-computable equations
 n_non_comp_eqs = 3;
@@ -43,13 +47,14 @@ f = @(x) noncomputable_eqs_for_DDE(x);
 
 minus_F1 = '+ z0 - mu x Delay(z1,tau) + mu x^2 Delay(z1,tau) + a mu Delay(z2,tau) z0^2 - mu Delay(z2,tau) z0  + 2 x mu Delay(z2,tau) z0';
 minus_F2 = '- p   z2 z0 + p   mu x Delay(z1,tau) z2 - p   mu x^2 Delay(z1,tau) z2 - p   a mu Delay(z2,tau) z0^2 z2 + p   z2 mu Delay(z2,tau) z0  - 2 p   x mu Delay(z2,tau) z0 z2 + eta1';
-minus_F3 = '- a p z2 z0 + a p mu x Delay(z1,tau) z2 - a p mu x^2 Delay(z1,tau) z2 - a p a mu Delay(z2,tau) z0^2 z2 + a p z2 mu Delay(z2,tau) z0  - 2 a p x mu Delay(z2,tau) z0 z2 + eta2';
+minus_F3 = '- a p z2 z0 + a p mu x Delay(z1,tau) z2 - a p mu x^2 Delay(z1,tau) z2 - a^2 p mu Delay(z2,tau) z0^2 z2 + a p z2 mu Delay(z2,tau) z0  - 2 a p x mu Delay(z2,tau) z0 z2 + eta2';
 
 human_vector_field = strcat('psi dot z0', minus_F1, '\n psi dot z1', minus_F2, '\n psi dot z2', minus_F3);
 
 string_vector_field = strrep(human_vector_field, 'psi' , 'l1');
 string_vector_field = strrep(string_vector_field, 'x' , 'l2');
 string_vector_field = strrep(string_vector_field, 'a ' , 'l3');
+string_vector_field = strrep(string_vector_field, 'a^' , 'l3^');
 string_vector_field = strrep(string_vector_field, 'mu' , 'l4');
 string_vector_field = strrep(string_vector_field, 'R0' , 'l5');
 string_vector_field = strrep(string_vector_field, 'p' , 'l6');
@@ -58,7 +63,7 @@ string_vector_field = strrep(string_vector_field, 'eta2' , 'l8');
 string_vector_field = strrep(string_vector_field, 'z0' , 'x1');
 string_vector_field = strrep(string_vector_field, 'z1' , 'x2');
 string_vector_field = strrep(string_vector_field, 'z2' , 'x3');
-string_vector_field = strrep(string_vector_field, 'tau' , num2str(tau)); % OR - tau??
+string_vector_field = strrep(string_vector_field, 'tau' , num2str(-tau)); 
 
 vector_field = from_string_to_polynomial_coef(string_vector_field,n_scal,n_vec);
 
@@ -75,6 +80,9 @@ scalar_equation = F_update_Hopf(scalar_equation,xi);
 zero_finding_problem = full_problem(scalar_equation,vector_field);
 full_zero_finding_problem = continuation_equation_simplex(zero_finding_problem, xi);
 y = apply(full_zero_finding_problem, xi);
+if norm(norm(y)) > 10^-6
+    error('Initial approx too bad')
+end
 xi = Newton_2(xi,full_zero_finding_problem);
 
 xi_0 = xi; 
