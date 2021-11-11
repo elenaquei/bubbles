@@ -58,13 +58,12 @@ coefs_linear0 = alpha0.scalar_equations.linear_coef;
 coefs_linear1 = alpha1.scalar_equations.linear_coef;
 coefs_linear2 = alpha2.scalar_equations.linear_coef;
 
-xBarS1_short=interval_Xi(xBar0,xBar1);
-xBarS2_short=interval_Xi(xBar0,xBar2);
-xBarS_short = interval_Xi(xBarS1_short,xBarS2_short);
+xBarS1_short=interpolation(xBar0,xBar1);
+xBarS2_short=interpolation(xBar0,xBar2);
+xBarS_short = interpolation(xBar0,xBar1,xBar2);
 
-coefs_linearS1 = infsup_coefs(coefs_linear0,coefs_linear1);
-coefs_linearS2 = infsup_coefs(coefs_linear0,coefs_linear2);
-coefs_linearS = infsup_coefs(coefs_linearS1,coefs_linearS2);
+coefs_linearS1 = interpolation(coefs_linear0,coefs_linear1);
+coefs_linearS2 = interpolation(coefs_linear0,coefs_linear2);
 
 xBarS1= reshape_Xi(xBarS1_short,xBarS1_short.nodes*(alpha0.vector_field.deg_vector-1));
 xBarS2= reshape_Xi(xBarS2_short,xBarS2_short.nodes*(alpha0.vector_field.deg_vector-1));
@@ -84,13 +83,12 @@ if alpha0.vector_field.deg_vector>2
 end
 
 alphaS1 = alpha1;
-alphaS1.scalar_equations.linear_coef = coefs_linearS1;
+alphaS1.scalar_equations.linear_coef = coefs_linearS1; % here, the size is changed, why?
 
 alphaS2 = alpha2;
 alphaS2.scalar_equations.linear_coef = coefs_linearS2;
 
-alphaS = alpha0;
-alphaS.scalar_equations.linear_coef = coefs_linearS;
+alphaS = interpolation(alpha0, alpha1, alpha2);
 
 temp_intlab=use_intlab;
 use_intlab=1;
@@ -117,7 +115,7 @@ Y2_d2d2 = Adelta_dxF_xDelta(A0, A2, xBarDelta2, xBar0, alphaS, xBarS_short);
 Y2_d1d2 = Adelta_dxF_xDelta(A0, A1, xBarDelta2, xBar0, alphaS, xBarS_short); 
 Y2_d2d1 = Adelta_dxF_xDelta(A0, A2, xBarDelta1, xBar0, alphaS, xBarS_short);
 
-Y2 = 2*cnorm_Xi_vector(max(max(Y2_d1d1,Y2_d2d2),max(Y2_d1d2,Y2_d2d1)),nu);
+% Y2 = 2*cnorm_Xi_vector(max(max(Y2_d1d1,Y2_d2d2),max(Y2_d1d2,Y2_d2d1)),nu);
 
 %%
 
@@ -150,9 +148,9 @@ Y3_d2d1 = Y3_d1d2;
 Y3_d2d2 = vec2Xi_vec(As_big*Xi_vec2vec(DDH_xD2_xD2),...
     xBarDelta1.size_scalar,xBarDelta1.size_vector,nodes_new);
 
-Y3_vec = max(sup(abs(Y3_d1d1)), max(abs(Y3_d1d2), abs(Y3_d2d2)));
+% Y3_vec = max(sup(abs(Y3_d1d1)), max(abs(Y3_d1d2), abs(Y3_d2d2)));
 
-Y3=cnorm_Xi_vector(Y3_vec,nu);
+% Y3=cnorm_Xi_vector(Y3_vec,nu);
 
 %%
 
@@ -187,7 +185,6 @@ end
 Adiff1_small = A1-A0;
 Adiff2_small = A2-A0;
 
-
 Y4_d1d1 = vec2Xi_vec(Adiff1_small*Hdiff1_xs,...
     xBar0.size_scalar,xBar0.size_vector,xBar0.nodes);
 Y4_d1d2 = vec2Xi_vec(Adiff1_small*Hdiff2_xs,...
@@ -197,13 +194,12 @@ Y4_d2d1 = vec2Xi_vec(Adiff2_small*Hdiff1_xs,...
 Y4_d2d2 = vec2Xi_vec(Adiff2_small*Hdiff2_xs,...
     xBar0.size_scalar,xBar0.size_vector,xBar0.nodes);
 
-
 Y4_d1d1 = reshape_Xi(Y4_d1d1,Y2_d1d1.nodes);
 Y4_d1d2 = reshape_Xi(Y4_d1d2,Y2_d1d1.nodes);
 Y4_d2d1 = reshape_Xi(Y4_d2d1,Y2_d1d1.nodes);
 Y4_d2d2 = reshape_Xi(Y4_d2d2,Y2_d1d1.nodes);
 
-Y4 = 2* cnorm_Xi_vector(max(max(abs(Y4_d1d1),abs(Y4_d1d2)),max(abs(Y4_d2d1),abs(Y4_d2d2))),nu);
+%Y4 = 2* cnorm_Xi_vector(max(max(abs(Y4_d1d1),abs(Y4_d1d2)),max(abs(Y4_d2d1),abs(Y4_d2d2))),nu);
 
 Y5_d1d1 = vec2Xi_vec(As*DxHdiff1_xsxD1,...
     xBar0.size_scalar,xBar0.size_vector,xBar0.nodes);
@@ -219,14 +215,10 @@ Y5_d1d2 = reshape_Xi(Y5_d1d2,Y2_d1d1.nodes);
 Y5_d2d1 = reshape_Xi(Y5_d2d1,Y2_d1d1.nodes);
 Y5_d2d2 = reshape_Xi(Y5_d2d2,Y2_d1d1.nodes);
 
-
-Y5 = cnorm_Xi_vector(max(max(abs(Y5_d1d1),abs(Y5_d1d2)),max(abs(Y5_d2d1),abs(Y5_d2d2))),nu);
-
+% Y5 = cnorm_Xi_vector(max(max(abs(Y5_d1d1),abs(Y5_d1d2)),max(abs(Y5_d2d1),abs(Y5_d2d2))),nu);
 
 
-%%
-
-% ideally - but sizes are different
+% merging
 Ys_d1d1 = Y2_d1d1 + Y3_d1d1 + 2*Y4_d1d1 + 2*Y5_d1d1;
 Ys_d1d2 = Y2_d1d2 + Y3_d1d2 + 2*Y4_d1d2 + 2*Y5_d1d2;
 Ys_d2d1 = Y2_d2d1 + Y3_d2d1 + 2*Y4_d2d1 + 2*Y5_d2d1;

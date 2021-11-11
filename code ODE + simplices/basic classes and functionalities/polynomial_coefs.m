@@ -453,6 +453,7 @@ classdef polynomial_coefs
             % OUTPUT
             % y         complex vector, a applied to sum(xi_vec), that is
             %           x(0)
+            global use_intlab
             if ~compatible_vec(a,xi_vec)
                 error('Inputs not compatible')
             end
@@ -460,9 +461,15 @@ classdef polynomial_coefs
             xi_vec_sum = sum(xi_vec.vector,2);
             y = zeros(size_1,1);
             if size_1>0
-            if isintval(a.value{1}(1)) || isintval(xi_vec.scalar)
-                y = intval(y);
-            end
+                if use_intlab && ~isintval(a.value{1}(1))
+                    a = intval(a);
+                end
+                if use_intlab && ~isintval(xi_vec)
+                    xi_vec = intval(xi_vec);
+                end
+                if isintval(a.value{1}(1)) || isintval(xi_vec.scalar) || use_intlab
+                    y = intval(y);
+                end
             end
             for i =1 :size_1
                 for j = 1:a.n_terms(i)
@@ -716,6 +723,15 @@ classdef polynomial_coefs
             end
         end
         % end NE
+        
+        % INTVAL
+        function alpha_intval = intval(alpha)
+            alpha_intval = alpha;
+            for i = 1:size(alpha.value)
+                alpha_intval.value{i} = intval(alpha.value{i});
+            end     
+        end
+        % end INTVAL
         
         % HAS_DELAY
         function bool = has_delay(alpha)

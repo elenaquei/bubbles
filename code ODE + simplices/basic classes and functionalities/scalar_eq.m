@@ -122,13 +122,13 @@ classdef scalar_eq
             % y_scal  complex vector
             global use_intlab
             y_scal = zeros(alpha.num_equations,1);
-            if use_intlab || isintval(xi_vec)
+            if use_intlab || isintval(xi_vec) || isintval(alpha)
                 y_scal = intval(zeros(alpha.num_equations,1));
             end
             
             % linear equations
             if alpha.number_equations_lin>0
-                if (isempty(use_intlab) || ~use_intlab) && ~isintval(xi_vec)
+                if (isempty(use_intlab) || ~use_intlab) && ~isintval(xi_vec) && ~isintval(alpha)
                     temp=zeros(size(alpha.linear_coef{3}));%zeros(alpha.size_scalar);
                     for i=1:alpha.number_equations_lin
                         temp(i)=sum(sum(squeeze(alpha.linear_coef{2}(i,:,:)).*xi_vec.vector,1));
@@ -170,13 +170,13 @@ classdef scalar_eq
             % DxG_hat    infinite derivative, such that
             % tensor_product(DxG_hat, infinite_sequence_of_1) give the
             % derivative with respect to x of p(lambda,x(0))
-            
+            global use_intlab
             if ~compatible(alpha,xi_vec)
                 error('Inputs not compatible')
             end
             DlambdaG = zeros(alpha.num_equations,xi_vec.size_scalar);
             DxG_hat = zeros(alpha.number_equations_pol+alpha.number_equations_non_computable,xi_vec.size_vector);
-            if isintval(alpha.linear_coef{1}) || isintval(xi_vec.scalar)
+            if isintval(alpha.linear_coef{1}) || isintval(xi_vec.scalar) || use_intlab
                 DlambdaG = intval(DlambdaG);
                 DxG_hat = intval(DxG_hat);
             end
@@ -227,6 +227,21 @@ classdef scalar_eq
         end
         % end COMPATIBLE
         
+        % INTVAL
+        function alpha_intval = intval(alpha)
+            alpha_intval = alpha;
+            alpha_intval.polynomial_equations = intval(alpha.polynomial_equations);
+            for i = 1:3
+                alpha_intval.linear_coef{i} = intval(alpha.linear_coef{i});
+            end
+        end
+        % end INTVAL
+        
+        % ISINTVAL
+        function bool = isintval(alpha)
+            bool = isintval(alpha.linear_coef{1});
+        end
+        % end ISINTVAL
         
         % RESHAPE
         function beta = reshape(alpha, new_nodes)

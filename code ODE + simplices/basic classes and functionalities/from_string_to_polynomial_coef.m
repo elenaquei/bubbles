@@ -137,6 +137,14 @@ for i = 1:num_equations
         string_eq{i}= sprintf('+%s',string_eq{i});
     end
     position_signs = find((string_eq{i}=='+')+ (string_eq{i}=='-'));
+    for j = 1:length(position_signs) % remove signs of negative delay
+        if position_signs(j)>1 
+            if string_eq{i}(position_signs(j)-1)==','
+                position_signs(j) = 0;
+            end
+        end
+    end
+    position_signs = position_signs(position_signs>0);
     n_terms(i) = length(position_signs);
     % where they are
     start_terms{i} = position_signs;
@@ -224,7 +232,8 @@ for i = 1:num_equations
                %     each time with following powers
                if string_term(end_number_x+1)==','
                    delay_starts = end_number_x+2;
-                   if isempty(str2num(string_term(delay_starts)))
+                   delay_ends = find(string_term == ')')-1;
+                   if isempty(str2num(string_term(delay_starts:delay_ends)))
                        error('Signal of "," but no digit afterwards');
                    end
                    
@@ -296,7 +305,8 @@ end
 
 vector_field = polynomial_coefs(number_scalars, number_function_unknowns, num_equations, ...
                 n_terms, value,power_scalar,power_vector, dot, delay);
-if talkative>0
+if talkative>1
+    disp('The equation is:')
     disp(vector_field);
 end
 end

@@ -124,6 +124,14 @@ classdef full_problem
         end
         % end HAS_DELAY
         
+        % INTVAL
+        function alpha_intval = intval(alpha)
+            alpha_intval = alpha;
+            alpha_intval.scalar_equations = intval(alpha.scalar_equations);
+            alpha_intval.vector_field = intval(alpha.vector_field);
+        end
+        % end INTVAL
+        
         % RESHAPE
         function beta = reshape(alpha, new_nodes)
             % function beta = reshape(alpha, new_nodes)

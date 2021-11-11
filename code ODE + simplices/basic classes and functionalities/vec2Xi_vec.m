@@ -15,6 +15,8 @@ if nargin==2
     size_scal=Xi_vec.size_scalar;
     size_vec=Xi_vec.size_vector;
     nodes=Xi_vec.nodes;
+elseif nargin==3
+    nodes = (((length(vec) - size_scal)/size_vec)-1)/2;
 end
 
 k=size_scal+size_vec*(2*nodes+1);
