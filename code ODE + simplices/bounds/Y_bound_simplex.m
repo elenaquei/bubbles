@@ -58,12 +58,13 @@ coefs_linear0 = alpha0.scalar_equations.linear_coef;
 coefs_linear1 = alpha1.scalar_equations.linear_coef;
 coefs_linear2 = alpha2.scalar_equations.linear_coef;
 
-xBarS1_short=interpolation(xBar0,xBar1);
-xBarS2_short=interpolation(xBar0,xBar2);
-xBarS_short = interpolation(xBar0,xBar1,xBar2);
+xBarS1_short=interval_Xi(xBar0,xBar1);
+xBarS2_short=interval_Xi(xBar0,xBar2);
+xBarS_short = interval_Xi(xBarS1_short,xBarS2_short);
 
-coefs_linearS1 = interpolation(coefs_linear0,coefs_linear1);
-coefs_linearS2 = interpolation(coefs_linear0,coefs_linear2);
+coefs_linearS1 = infsup_coefs(coefs_linear0,coefs_linear1);
+coefs_linearS2 = infsup_coefs(coefs_linear0,coefs_linear2);
+coefs_linearS = infsup_coefs(coefs_linearS1,coefs_linearS2);
 
 xBarS1= reshape_Xi(xBarS1_short,xBarS1_short.nodes*(alpha0.vector_field.deg_vector-1));
 xBarS2= reshape_Xi(xBarS2_short,xBarS2_short.nodes*(alpha0.vector_field.deg_vector-1));
@@ -83,19 +84,20 @@ if alpha0.vector_field.deg_vector>2
 end
 
 alphaS1 = alpha1;
-alphaS1.scalar_equations.linear_coef = coefs_linearS1; % here, the size is changed, why?
+alphaS1.scalar_equations.linear_coef = coefs_linearS1;
 
 alphaS2 = alpha2;
 alphaS2.scalar_equations.linear_coef = coefs_linearS2;
 
-alphaS = interpolation(alpha0, alpha1, alpha2);
+alphaS = alpha0;
+alphaS.scalar_equations.linear_coef = coefs_linearS;
 
 temp_intlab=use_intlab;
 use_intlab=1;
 
 %%
-    function Y2 = Adelta_dxF_xDelta(A0, A1, xBarDelta, xBar0, alphaS, xBarS_short)
-        DH_xs2 = derivative_to_matrix(derivative(alphaS,xBarS_short));
+    function Y2 = Adelta_dxF_xDelta(A0, A1, xBarDelta, xBar0)
+        
         new_nodes = ((size(DH_xs2,1)-xBar0.size_scalar)/xBar0.size_vector - 1)/2;
         xBarDelta_long = reshape_Xi(xBarDelta,new_nodes);
         
@@ -108,28 +110,18 @@ use_intlab=1;
         Y2=vec2Xi_vec(Adiff*full_DH_xs,...
             xBarDelta_long.size_scalar,xBarDelta_long.size_vector,xBarDelta_long.nodes);
     end
-
-Y2_d1d1 = Adelta_dxF_xDelta(A0, A1, xBarDelta1, xBar0, alphaS, xBarS_short);
-Y2_d2d2 = Adelta_dxF_xDelta(A0, A2, xBarDelta2, xBar0, alphaS, xBarS_short);
+DH_xs2 = derivative_to_matrix(derivative(alphaS,xBarS_short));
+Y2_d1d1 = Adelta_dxF_xDelta(A0, A1, xBarDelta1, xBar0);
+Y2_d2d2 = Adelta_dxF_xDelta(A0, A2, xBarDelta2, xBar0);
 % order doesn't matter, as long as we coer all options
-Y2_d1d2 = Adelta_dxF_xDelta(A0, A1, xBarDelta2, xBar0, alphaS, xBarS_short); 
-Y2_d2d1 = Adelta_dxF_xDelta(A0, A2, xBarDelta1, xBar0, alphaS, xBarS_short);
+Y2_d1d2 = Adelta_dxF_xDelta(A0, A1, xBarDelta2, xBar0); 
+Y2_d2d1 = Adelta_dxF_xDelta(A0, A2, xBarDelta1, xBar0);
 
 % Y2 = 2*cnorm_Xi_vector(max(max(Y2_d1d1,Y2_d2d2),max(Y2_d1d2,Y2_d2d1)),nu);
 
 %%
 
-if isintval(A0)
-    As = infsup (   ...
-    min(min(inf(real(A0)),inf(real(A1))),inf(real(A2))), ...
-    max( max(sup(real(A0)),sup(imag(A1))), sup(real(A2))))+...
-        1i*infsup (   ...
-    min(min(inf(imag(A0)),inf(imag(A1))),inf(imag(A2))), ...
-    max( max(sup(imag(A0)),sup(imag(A1))), sup(imag(A2))));
-else
-    As = infsup( min(min(real(A0),real(A1)), real(A2)),max(max(real(A0),real(A1)),real(A2)) )+...
-        1i*infsup( min(min(imag(A0),imag(A1)), imag(A2)),max(max(imag(A0),imag(A1)),imag(A2)));
-end
+As = interpolation(A0, A1, A2);
 % 4 options for DDH_xdeltai_xDeltaj
 DDH_xD1_xD1 = Function_directional_second_derivative(alpha1,xBarS_short,xBarDelta1_short,xBarDelta1_short);
 DDH_xD1_xD2 = Function_directional_second_derivative(alpha1,xBarS_short,xBarDelta1_short,xBarDelta2_short);

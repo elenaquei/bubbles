@@ -5,13 +5,7 @@ use_intlab = 1;
 degree = alpha0.vector_field.deg_vector;
 n_nodes_long = x0.nodes*degree;
 
-x0_long_vec = Xi_vec2vec(reshape(x0,n_nodes_long));
-x1_long_vec = Xi_vec2vec(reshape(x1,n_nodes_long));
-x2_long_vec = Xi_vec2vec(reshape(x2,n_nodes_long));
-
-x_vec_int = interpolation(x0_long_vec, x1_long_vec, x2_long_vec);
-
-x_int = vec2Xi_vec(x_vec_int, x0.size_scalar, x0.size_vector, n_nodes_long);
+x_int = interpolation(x0, x1, x2);
 
 [A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
 [A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
@@ -26,7 +20,7 @@ R_int = interpolation(R0, R1, R2);
 phi_int = interpolation(phi0, phi1, phi2);
 D3F2_int = interpolation(D3F20, D3F21, D3F22);
 
-bool_long = 0; 
+bool_long = 1; 
 % we already have extended x to be long enough, we don't need additional
 % terms
 alpha_int = interpolation(alpha0, alpha1, alpha2);
@@ -167,7 +161,7 @@ end
 function op_norm = operator_tail_norm(x, nodes, degree)
 % TODO : efficiency!
 global nu
-
+warning('THIS IS TOOO SLOOOOOW! ! ! ! ! ! ! ! ! ! ')
 K_all = -nodes*degree : nodes*degree;
 K_center = K_all .* (abs(K_all)<=nodes);
 K_tail = K_all .* (abs(K_all)>nodes);

@@ -14,9 +14,10 @@ elseif isa(alpha0, 'scalar_eqs')
 elseif isa(alpha0, 'full_problem')
     alpha = interpolation_full_problem(alpha0, alpha1);
 elseif isa(alpha0, 'cell')
+    alpha = cell(size(alpha0));
     for i = 1:size(alpha0,1)
         for j = 1: size(alpha0,2)
-            alpha = interpolation(alpha0, alpha1);
+            alpha{i,j} = interpolation(alpha0{i,j}, alpha1{i,j});
         end
     end
 else
