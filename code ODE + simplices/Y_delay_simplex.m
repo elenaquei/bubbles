@@ -45,7 +45,9 @@ coef_int = alpha.scalar_equations.linear_coef;
 for i = 1:3
     coefDelta1{i} = coef1{i} - coef0{i};
     coefDelta2{i} = coef2{i} - coef0{i};
+    coef_int{i} = interpolation(coef0{i}, coef1{i}, coef2{i});
 end
+coef_int{3} = 0* coef_int{3};
 first_s_der.scalar(1:alpha1.scalar_equations.number_equations_lin) = ...
     interpolation(apply_lin_coef(coefDelta1, x_int_short), apply_lin_coef(coefDelta2, x_int_short)) + ...
     interpolation(apply_lin_coef(coef_int, x_Delta1), apply_lin_coef(coef_int, x_Delta2));

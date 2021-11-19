@@ -1,7 +1,11 @@
 function Z2 = Z2_delay_simplex(alpha0, alpha1, alpha2,x0,x1,x2, Rmax)
 global RAD_MAX
-if nargin < 7 || isempty(Rmax)
-    Rmax = RAD_MAX;
+if nargin < 7 || isempty(Rmax) 
+    if ~isempty(RAD_MAX)
+        Rmax = RAD_MAX;
+    else
+        Rmax = 10^-6;
+    end
 end
 
 modes = x0.nodes;

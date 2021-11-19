@@ -86,7 +86,7 @@ end
 
 DF_old = derivative_to_matrix(derivative(full_zero_finding_problem, xi,0));
 f = @(x)Xi_vec2vec(apply(full_zero_finding_problem,vec2Xi_vec(x,xi)));
-DF_num = numerical_der(f, Xi_vec2vec(xi));
+%DF_num = numerical_der(f, Xi_vec2vec(xi));
 
 xi = Newton_2(xi,full_zero_finding_problem);
 
@@ -104,11 +104,11 @@ if 3 == 2
     Z2 = Z2_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
     use_intlab = 0;
 end
-n_iter = 10;
+n_iter = 6;
 step_size = 10^-5;
 save_file = 'first_DDE';
 bool_Hopf = 0; % the Hopf blow up is already taken into account
-bool_validated = 0;
+bool_validated = 1;
 first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
 
