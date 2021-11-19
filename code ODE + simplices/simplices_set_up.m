@@ -20,8 +20,7 @@ list_of_nodes = cell(1,7);
 list_of_nodes{1} = starting_node;
 
 % wrapper
-xc_h = step_size;
-tau = 1.;
+tau = 1.; % for the future: additional scaling of the step size
 starting_solution_Xi = starting_node.solution;
 starting_solution = Xi_vec2vec(starting_solution_Xi);
 
@@ -51,7 +50,7 @@ y_fan = R2_to_TM*y_fan_R2;
 x_fan_start = zeros(size(y_fan,1),n_new_points);
 for j=1:n_new_points
     y_fan(:,j) = y_fan(:,j)/norm(y_fan(:,j),2);
-    x_fan_start(:,j) = starting_solution + y_fan(:,j)*xc_h*tau;
+    x_fan_start(:,j) = starting_solution + y_fan(:,j)*step_size*tau;
 end
 % Refine predictors with Gauss-Newton
 x_fan = 0*x_fan_start;

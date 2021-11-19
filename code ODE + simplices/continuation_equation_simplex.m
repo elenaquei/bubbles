@@ -5,16 +5,16 @@ DF_x = derivative_to_matrix(derivative(F_new,x,0));
 U_old = Q(:,end-1:end);     % Orthonormalize???
 U = good_rotation(U_old,x);
 
+new_eq = F_new.scalar_equations.number_equations_lin + [1:2];
+
 if nargin>2
-    old_coefs1 = extract_lin_coef(F_old.scalar_equations,3);
-    old_coefs2 = extract_lin_coef(F_old.scalar_equations,4);
+    old_coefs1 = extract_lin_coef(F_old.scalar_equations,new_eq(1));
+    old_coefs2 = extract_lin_coef(F_old.scalar_equations,new_eq(2));
     old_coefs = [old_coefs1,old_coefs2].';
     
     rotated_coefs = rotate_base_tangentspace(U,old_coefs);
     U = rotated_coefs;
 end
-
-new_eq = F_new.scalar_equations.number_equations_lin + [1:2];
 
 lin_coef_vec1 = [ U(:,1).', - U(:,1).' * Xi_vec2vec(x)];
 
@@ -22,9 +22,9 @@ F_new.scalar_equations = change_lin_coef_vector(F_new.scalar_equations, ...
     lin_coef_vec1, new_eq(1));
 
 lin_coef_vec2 = [ U(:,2).', - U(:,2).' * Xi_vec2vec(x)];
+
 F_new.scalar_equations = change_lin_coef_vector(F_new.scalar_equations, ...
     lin_coef_vec2, new_eq(2));
-
 
 end
 

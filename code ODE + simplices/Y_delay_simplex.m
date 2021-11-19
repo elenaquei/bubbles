@@ -309,8 +309,10 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
     DDF(i+alpha.scalar_equations.number_equations_lin) = DDF(i+alpha.scalar_equations.number_equations_lin) + DDF_i;
 end
 
-% MISSING: USER INPUT DERIVATIVE!!
-warning('User input derivative not included yet')
+% added user input derivative
+[~,~,~,DD_user] = alpha.scalar_equations.non_computable_function(x_norm);
+DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) = ...
+    DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) + sum(DD_user,2);
 end
 
 

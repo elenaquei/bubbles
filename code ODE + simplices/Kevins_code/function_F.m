@@ -1,7 +1,7 @@
 function F = function_F(X,Xs,tau,L,K)
 % Some comments added for Elena - this code was not very commented.
-n_nodes = X_sol.n_nodes;
-K= -n_nodes:n_nodes;
+N = X.nodes;
+K= -N:N;
 
 % n_nodes = ((size(X_sol)*[1;0] - 7)/3 - 1)/2;
 

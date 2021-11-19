@@ -1,7 +1,8 @@
-function Z2 = Z2_delay_simplex(x0,x1,x2,alpha0, alpha1, alpha2)
+function Z2 = Z2_delay_simplex(alpha0, alpha1, alpha2,x0,x1,x2, Rmax)
 global RAD_MAX
-
-Rmax = RAD_MAX;
+if nargin < 7 || isempty(Rmax)
+    Rmax = RAD_MAX;
+end
 
 modes = x0.nodes;
 x_int = interval_Xi(interval_Xi(x0,x1), x2);
@@ -80,8 +81,10 @@ for i=1:alpha.vector_field.n_equations % equation
                     delay_term1 = delay_term1 + abs(delay_loc(l))/v_norm(l) * ( Kv_norm(l) + KKv_norm(l));
                 end
                 delay_term1 = power_loc(1)/x_norm(1) *delay_term1;
-                delay_term2 = 0;
+            else
+                delay_term1 = 0;
             end
+            delay_term2 = 0;
             for l1 = 1:length(delay_loc)
                 if delay_loc(l1) == 0
                     continue
@@ -120,7 +123,7 @@ for i=1:alpha.vector_field.n_equations % equation
             if delay_loc(k) == 0
                 continue
             end
-            delay_term5 = sum(Kv_norm .* delay_loc./v_norm);
+            delay_term5 = sum(Kv_norm .* delay_loc./v_norm.');
             
             delay_term4 = delay_term4 + 1/ v_norm(k) * (power_loc(1)/x_norm(1) + Lemma_bound * delay_loc(k) + delay_term5);
         end
@@ -153,8 +156,11 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
     DpsiDF(i+alpha.scalar_equations.number_equations_lin) = DpsiDF_i;
 end
 
-% MISSING: USER INPUT DERIVATIVE!!
-warning('User input derivative not included yet')
+% added user input derivative
+[~,~,~,DD_user] = alpha.scalar_equations.non_computable_function(x_norm);
+DD_user_norm = DD_user(:,1);
+DpsiDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) = ...
+    DpsiDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) + DD_user_norm;
 end
 
 function DDF = upper_bound_DDF_without_psi(alpha, x, Rmax)
@@ -228,8 +234,11 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
     DDF(i+alpha.scalar_equations.number_equations_lin) = DDF_i;
 end
 
-% MISSING: USER INPUT DERIVATIVE!!
-warning('User input derivative not included yet')
+% added user input derivative
+[~,~,~,DD_user] = alpha.scalar_equations.non_computable_function(x_norm);
+DD_user_norm = sum(DD_user(:,2:end),2);
+DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) = ...
+    DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) + DD_user_norm;
 end
 
 function block = block_norm(M, P, Q, R, D3F2, psi, x)

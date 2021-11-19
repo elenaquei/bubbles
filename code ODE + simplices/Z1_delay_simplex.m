@@ -80,7 +80,7 @@ norm_A_STAR2 = [norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
 norm_STAR3 = intval(zeros(alpha0.vector_field.n_equations));
 for i =1:N
     for j = 1:N
-        norm_STAR3(i,j) = intval(operator_tail_norm(DF.derivative_Fx_toeplix(j,i,:), ...
+        norm_STAR3(i,j) = intval(operator_tail_norm(squeeze(DF.derivative_Fx_toeplix(j,i,:)), ...
             n_nodes, degree));
         delay_part = 0;
         for term = 1:size(DF.derivative_Fx_delay{i,j})
@@ -163,20 +163,31 @@ function op_norm = operator_tail_norm(x, nodes, degree)
 global nu
 warning('THIS IS TOOO SLOOOOOW! ! ! ! ! ! ! ! ! ! ')
 K_all = -nodes*degree : nodes*degree;
-K_center = K_all .* (abs(K_all)<=nodes);
-K_tail = K_all .* (abs(K_all)>nodes);
+K_center = K_all(abs(K_all)<=nodes);
+K_tail = K_all(abs(K_all)>nodes);
 
 % max |m|>nodes sum |n|<nodes |x_{n-m}| * nu ^(|n|-|m|)
 % if n-m>deg*nodes, x_{n-m} = 0
 
 op_norm = 0;
 for m = K_tail
-    sum_loc = 0;
-    for n = K_center
-        if abs( n - m ) <=  nodes*degree
-            sum_loc = sum_loc + abs( x(n-m+nodes*degree+1)) * nu^(abs(n) - abs(m));
-        end
+    min_index = max(K_all(1),-m-nodes);
+    max_index = min(K_all(end),-m+nodes);
+    bad_indices_neg = -m-nodes : K_all(1)-1;
+    bad_indices_pos = K_all(end)+1:-m+nodes;
+    if ~isempty(bad_indices_neg)
+        K_center_loc = K_center(length(bad_indices_neg)+1:end);
+    elseif ~isempty(bad_indices_pos)
+        K_center_loc = K_center(1:end-length(bad_indices_pos));
+    else
+        K_center_loc = K_center;
     end
+    sum_loc = sum( abs(x((min_index:max_index)+nodes*degree+1)).*nu.^(abs(K_center_loc.') - abs(m)));
+%     for n = K_center
+%         if abs( n - m ) <=  nodes*degree
+%             sum_loc = sum_loc + abs( x(n-m+nodes*degree+1)) * nu^(abs(n) - abs(m));
+%         end
+%     end
     if sum_loc > op_norm
         op_norm = sum_loc;
     end

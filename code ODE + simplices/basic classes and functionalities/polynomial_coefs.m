@@ -125,7 +125,7 @@ classdef polynomial_coefs
             
             alpha.monomial_per_term = cell(alpha.n_equations,1);
             for i = 1:alpha.n_equations
-                alpha.monomial_per_term{i} = zeros(alpha.n_terms(i));
+                alpha.monomial_per_term{i} = zeros(alpha.n_terms(i),1);
                 for j = 1:alpha.n_terms(i)
                     alpha.monomial_per_term{i}(j) = size(alpha.power_vector{i}{j},2);
                 end
@@ -527,6 +527,11 @@ classdef polynomial_coefs
             end
             for i = 1: xi_vec.size_scalar
                 Dlambda(i,:,:)=apply(coef_derivative_scal(a,i),xi_vec,1);
+                if has_delay(a) && i ==1
+                    der_wrt_period = der_delay_wrt_period(a,xi_vec);
+                    size_der_period = size(der_wrt_period);
+                    Dlambda(1,:,:) = Dlambda(1,:,:) + reshape(der_wrt_period,[1,size_der_period]);
+                end
             end
             
             for i =1 :xi_vec.size_vector
@@ -581,6 +586,57 @@ classdef polynomial_coefs
         end
         % end COMPUTE_DERIVATIVE
         
+        % DER_DELAY_WRT_PERIOD
+        function D_psi = der_delay_wrt_period(a,xi_vec)
+            global use_intlab
+            size_nodes_time_deg = size_verifyfft(ones(xi_vec.nodes*2*a.deg_vector+1,1));
+            D_psi = zeros(a.n_equations,size_nodes_time_deg);
+            if use_intlab || isintval(xi_vec)
+                D_psi = intval(D_psi);
+            end
+            size_extended_vector = size(xi_vec.ifft_vector,2);%xi_vec.nodes*2*a.deg_vector+1;
+            K_nodes = size_extended_vector/2;
+            K = -K_nodes:(K_nodes-1);
+            for i = 1:a.n_equations
+                for j = 1:a.n_terms(i)
+                    if all(a.delay{i}{j} == 0)
+                        continue
+                    end
+                    term = a.value{i}(j)* prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
+                    if term == 0
+                        continue
+                    end
+                    for k = 1:a.monomial_per_term{i}(j)
+                        
+                        if any(a.dot{i}{j}(:,k)>0)
+                            if a.monomial_per_term{i}(j)==1 && sum(a.dot{i}{j}(:,k))==1
+                                index = find(a.dot{i}{j}(:,k));
+                                term = term * (verifyfft_in((1i*K).^a.dot{i}{j}(index,k).*help_xi_vec.vector(index,1:(end-1)),-1).');
+                            else
+                                warning('General DERIVATIVES not implemented here')
+                            end
+                        end
+                        
+                        
+                        [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
+                        term = term .* ifft_prod;
+                        indices_delay = find(a.delay{i}{j}(:,k));
+                        term_loc = 0;
+                        for index_delay = indices_delay
+                            delay_x = xi_vec.delay(a.delay{i}{j}(:,k));
+                            delay_der = 1i * a.delay{i}{j}(index_delay,k) * (-delay_x.nodes:delay_x.nodes);
+                            delay_x.vector(index_delay,:) = delay_der .* delay_x.vector(index_delay,:);
+                            delay_x = set_ifft(delay_x,a.deg_vector);
+                            [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
+                            term_loc = term_loc + ifft_prod_delay;
+                        end
+                        term = term .* term_loc;
+                    end
+                    D_psi(i,:) = D_psi(i,:) + term;
+                end
+            end
+        end
+        % end DER_DELAY_WRT_PERIOD
         
         % COEF_DERIVATIVE_SCAL
         function beta = coef_derivative_scal(alpha, j)
