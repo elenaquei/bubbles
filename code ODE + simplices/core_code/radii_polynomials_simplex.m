@@ -207,7 +207,7 @@ end
 
 % Z2 BOUND
 if has_delay(alpha0)
-    Z2vector = Z2_delay_simplex(xBar0,xBar1,xBar2,alpha0, alpha1, alpha2);
+    Z2vector = Z2_delay_simplex(alpha0, alpha1, alpha2,xBar0,xBar1,xBar2);
 else
 [Z2vector,Z2s]=Z2_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0);
 end

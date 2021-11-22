@@ -31,13 +31,16 @@ end
 
 function rotated_coefs = good_rotation(coefs, x0)
 rotated_coefs = 0*coefs;
-for i = 1:2
+for i = 1:size(coefs,2)
     x_vec = coefs(:,i);
     [~,index] = max(abs(real(x_vec(1:x0.size_scalar))));
     angle = atan( imag(x_vec(index))/real(x_vec(index)));
     x_vec = exp( - 1i * angle) * x_vec;
     % bringing x_Xi_vec to be symmetric (by multiplication with the appropriate complex rotation)
     rotated_x_vec = Xi_vec2vec(symmetrise(vec2Xi_vec(x_vec,x0)));
+    if norm(rotated_x_vec - x_vec)>10^-5
+        warning('The rotation might not have been sufficient')
+    end
     rotated_coefs(:,i) = rotated_x_vec;
 end
 end
@@ -52,10 +55,12 @@ apply_theta_rotation = @(theta) [sin(theta) cos(theta); cos(theta) -sin(theta)] 
 apply_theta_rotation_flipped = @(theta) [sin(theta) cos(theta); cos(theta) -sin(theta)] * flipped_coefs.';
 theta_best = 0;
 norm_best = norm(old_coefs - apply_theta_rotation(theta_best));
+flipped = 0;
 for theta = 0:0.2:2*pi
-    flipped = 0;
+    
     norm_rotated = norm(old_coefs - apply_theta_rotation(theta));
     if norm_rotated < norm_best
+        flipped = 0;
         theta_best = theta;
         norm_best = norm_rotated;
     end
