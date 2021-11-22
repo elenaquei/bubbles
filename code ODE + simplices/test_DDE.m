@@ -160,8 +160,13 @@ d2g = @(u,epsilon) (epsilon~=0)*exp(-epsilon*u)*(-u*epsilon-1+exp(epsilon*u))/ep
 d1d1g = @(u, epsilon) (epsilon~=0)* epsilon * exp(-epsilon*u) + (epsilon==0)*0;
 d1d2g = @(u, epsilon) (epsilon~=0)* u * exp(-epsilon*u) + (epsilon==0)*0;
 d2d2g = @(u, epsilon) (epsilon~=0)* exp(-epsilon*u)/(epsilon^3) * ...
-    ((-u^2*epsilon - 2*u + 2*u*exp(epsilon*u))/epsilon ...
-    - 2*(u*epsilon - 1+exp(epsilon*u))) + (epsilon==0)*0;
+    (u^2*epsilon^2 + 2*u*epsilon - 2 * exp(u*epsilon) + 2) + (epsilon==0)*0;
+
+abs_d1d2g = @(u, epsilon) (epsilon~=0)* u * exp(epsilon*u) + (epsilon==0)*0;
+abs_d2d2g = @(u, epsilon) (epsilon~=0)* exp(epsilon*u)/(epsilon^3) * ...
+    (u^2*epsilon^2 + 2*u*epsilon + 2 * exp(u*epsilon) + 2) + (epsilon==0)*0;
+abs_d1d1g = @(u, epsilon) (epsilon~=0)* epsilon * exp(epsilon*u) + (epsilon==0)*0;
+abs_d1g =  @(u,epsilon) (epsilon~=0)*(exp(epsilon*u)) + (epsilon==0)*(1);
 
 F = [mu - R0*exp(-p*x); -z1 + g(p*z0, a) ; -z2 + exp(-a * p * z0)];
 if nargout == 1
@@ -195,14 +200,14 @@ end
 
 DpsiDF = [0;0;0];
 DxDF = [p*(R0 * p + 1 + R0 * x) * exp(p*x) + R0*exp(p*x); 0; 0];
-DaDF = [ 0; d1d2g(p*z0,a)*(z0+p) + d2d2g(p*z0,a); (z0 + p*z0*(p*z0+a*z0+a*p))*exp(a*p*z0)];
+DaDF = [ 0; abs_d1d2g(p*z0,a)*(z0+p) + abs_d2d2g(p*z0,a); (z0 + p*z0*(p*z0+a*z0+a*p))*exp(a*p*z0)];
 DmuDF = [ 0; 0; 0];
 DR0DF = [(p+x)*exp(-p*x); 0; 0];
 DpDF = [ x*(R0*p + 1 + R0*x)*exp(p*x) + R0*exp(p*x);
-    d1d1g(p*z0,a)*(z0+p)*z0+d1g(p*z0,a) + d1d2g(p*z0,a)*z0;
+    abs_d1d1g(p*z0,a)*(z0+p)*z0+abs_d1g(p*z0,a) + abs_d1d2g(p*z0,a)*z0;
     (z0+a)*exp(a*p*z0) + a*z0*(p*z0+a*z0+a*p)*exp(a*p*z0)];
 DetaDF = [0;0;0];
-Dz0DF = [0; d1d1g(p*z0,a)*(z0+p)*p + d1g(p*z0,a)+d1d2g(p*z0,a)*p;
+Dz0DF = [0; abs_d1d1g(p*z0,a)*(z0+p)*p + abs_d1g(p*z0,a)+abs_d1d2g(p*z0,a)*p;
     (p+a)*exp(a*p*z0) + (p*z0+a*z0+a*p)*(a*p)*exp(a*p*z0)];
 Dz1DF = [0;0;0];
 Dz2DF = [0;0;0];

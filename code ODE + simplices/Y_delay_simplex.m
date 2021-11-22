@@ -313,8 +313,9 @@ end
 
 % added user input derivative
 [~,~,~,DD_user] = alpha.scalar_equations.non_computable_function(x_norm);
-DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) = ...
-    DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) + sum(DD_user,2);
+index_non_comp = alpha.scalar_equations.num_equations - alpha.scalar_equations.number_equations_non_computable +1 : alpha.scalar_equations.num_equations;
+DDF(index_non_comp) = ...
+    DDF(index_non_comp) + sum(DD_user,2);
 end
 
 

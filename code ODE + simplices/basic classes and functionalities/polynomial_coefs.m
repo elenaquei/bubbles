@@ -888,9 +888,12 @@ end
 
 
 function s = best_double_print(x_double)
-if mod(x_double,1)==0
+if ~isintval(x_double) && mod(x_double,1)==0
     s =  sprintf(' %d ', abs(x_double));
 else
+    if isintval(x_double)
+        x_double = mid(x_double);
+    end
     if abs(x_double)>0.0001 && abs(x_double)< 10^3
         s =  sprintf(' %f ', x_double);
     else
