@@ -102,7 +102,6 @@ norm_A_STAR3 = [norm_M * norm_Kinv_STAR3
     zeros(x0.size_vector,x0.size_vector) * norm_Kinv_STAR3];
 % STAR4
 
-warning('Ordering of rows need to be consistent!')
 Z1 = sum([norm_A_STAR1, norm_A_STAR2, norm_A_STAR3 + norm_A_STAR1],2);
 end
 

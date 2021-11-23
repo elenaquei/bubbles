@@ -45,7 +45,11 @@ alpha= vec2Xi_vec(vec, alpha0);
 end
 
 function alpha = interpolation_float(a, b)
-alpha = three_intval_real(real(a), real(b)) + 1i* three_intval_real(imag(a), imag(b));
+if all(imag(a)==0) && all(imag(b)==0)
+    alpha = three_intval_real(real(a), real(b));
+else
+    alpha = three_intval_real(real(a), real(b)) + 1i* three_intval_real(imag(a), imag(b));
+end
 end
 
 function val_intval = three_intval_real(a,b)
