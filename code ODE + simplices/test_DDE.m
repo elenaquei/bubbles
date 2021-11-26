@@ -26,6 +26,7 @@ eta2 = X_ref(7);
 mu = R0*exp(-p*x0);
 
 xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
+xi = reshape(xi, 4);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
 n_nodes = xi.nodes;
@@ -93,15 +94,15 @@ xi = Newton_2(xi,full_zero_finding_problem);
 xi_0 = xi;
 xi_1 = xi;
 xi_2 = xi;
-if 3 == 2
+if 3 == 3
     use_intlab = 1;
-    Y = Y_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
+    % Y = Y_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
     
-    Z0 = Z0_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
+    % Z0 = Z0_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
     
     Z1 = Z1_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
     
-    Z2 = Z2_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
+    % Z2 = Z2_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
     use_intlab = 0;
 end
 n_iter = 6;
@@ -163,8 +164,15 @@ d2d2g = @(u, epsilon) (epsilon~=0)* exp(-epsilon*u)/(epsilon^3) * ...
     (u^2*epsilon^2 + 2*u*epsilon - 2 * exp(u*epsilon) + 2) + (epsilon==0)*0;
 
 abs_d1d2g = @(u, epsilon) (epsilon~=0)* u * exp(epsilon*u) + (epsilon==0)*0;
-abs_d2d2g = @(u, epsilon) (epsilon~=0)* exp(epsilon*u)/(epsilon^3) * ...
-    (u^2*epsilon^2 + 2*u*epsilon + 2 * exp(u*epsilon) + 2) + (epsilon==0)*0;
+
+abs_d2d2g_plus = @(u, epsilon) exp(epsilon*u)/(epsilon^3) * ...
+    (u^2*epsilon^2 + 2*u*epsilon - 2 * exp(u*epsilon) + 2);
+abs_d2d2g_minus = @(u, epsilon) exp(epsilon*u)/(epsilon^3) * ...
+    (u^2*epsilon^2 - 2*u*epsilon - 2 * exp(-u*epsilon) + 2);
+
+abs_d2d2g = @(u, epsilon) (epsilon~=0)* max(abs_d2d2g_plus(u,epsilon),...
+    abs_d2d2g_minus(u,epsilon)) + (epsilon==0)*0;
+
 abs_d1d1g = @(u, epsilon) (epsilon~=0)* epsilon * exp(epsilon*u) + (epsilon==0)*0;
 abs_d1g =  @(u,epsilon) (epsilon~=0)*(exp(epsilon*u)) + (epsilon==0)*(1);
 

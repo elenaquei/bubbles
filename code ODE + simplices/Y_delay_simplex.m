@@ -223,12 +223,15 @@ for i=1:alpha.vector_field.n_equations % equation
             if delay_loc(k) == 0
                 continue
             end
-            delay_term5 = sum(Kv_norm .* delay_loc./v_norm.');
+            delay_term5 = sum(Kv_norm .* abs(delay_loc)./v_norm.');
             
-            delay_term4 = delay_term4 + 1/ v_norm(k) * (power_loc(1)/x_norm(1) + Lemma_bound * delay_loc(k) + delay_term5);
+            delay_term4 = delay_term4 + 1/ v_norm(k) * (power_loc(1)/x_norm(1) + Lemma_bound * abs(delay_loc(k)) + delay_term5);
         end
         DpsiDF_ij = const * X * V_delay * ( delay_term1 + delay_term2 + delay_term3 + delay_term4 + non_delay_term);
         DpsiDF_i = DpsiDF_i + DpsiDF_ij;
+        if any(DpsiDF_ij<0)
+            error('An absolute value is missing!')
+        end
     end
     DDF(i+x.size_scalar) = DpsiDF_i;
 end
