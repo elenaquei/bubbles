@@ -405,7 +405,11 @@ classdef polynomial_coefs
                     if a.value{i}(j)==0
                         continue
                     end
-                    term = a.value{i}(j)*prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
+                    index_loc = find(a.power_scalar{i}(:,j));
+                    term = a.value{i}(j);
+                    if ~isempty(index_loc)
+                        term = term *prod(xi_vec.scalar(index_loc).^(a.power_scalar{i}(index_loc,j).'));
+                    end
                     for k = 1:a.monomial_per_term{i}(j)
                         
                         if any(a.dot{i}{j}(:,k)>0)
@@ -473,7 +477,12 @@ classdef polynomial_coefs
             end
             for i =1 :size_1
                 for j = 1:a.n_terms(i)
-                    term = a.value{i}(j)*prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
+                    index_loc = find(a.power_scalar{i}(:,j).');
+                    term = a.value{i}(j);
+                    if ~isempty(index_loc)
+                        term = term*prod(xi_vec.scalar(index_loc).^(a.power_scalar{i}(index_loc,j).'));
+                    end
+                    
                     for k = 1:a.monomial_per_term{i}(j)
                         if any(a.delay{i}{j}(:,k)>0)
                             warning('DELAYS not implemented here')
@@ -546,7 +555,12 @@ classdef polynomial_coefs
                         end
                         if a.monomial_per_term{k}(j)==1 && sum(a.dot{k}{j}(:,1))==1
                             index = find(a.dot{k}{j}(:,1));
-                            Dx_diag(index,k) = Dx_diag(index,k)+ a.value{k}(j)*prod(xi_vec.scalar.^(a.power_scalar{k}(:,j).'));
+                            index_loc = find(a.power_scalar{k}(:,j).');
+                            if ~isempty(index_loc)
+                                Dx_diag(index,k) = Dx_diag(index,k)+ a.value{k}(j)*prod(xi_vec.scalar(index_loc).^(a.power_scalar{k}(index_loc,j).'));
+                            else
+                                Dx_diag(index,k) = Dx_diag(index,k)+ a.value{k}(j);
+                            end
                             continue
                         elseif sum(sum(a.dot{k}{j}(:,:)))~=1
                             warning('General DERIVATIVES not implemented here')
@@ -566,7 +580,11 @@ classdef polynomial_coefs
                             continue
                         end
                         % convolution term
-                        term = a.value{j}(k) * prod(xi_vec.scalar.^(a.power_scalar{j}(:,k).'));
+                        index_loc = find(a.power_scalar{j}(:,k).');
+                        term = a.value{j}(k);
+                        if ~isempty(index_loc)
+                            term = term* prod(xi_vec.scalar(index_loc).^(a.power_scalar{j}(index_loc,k).'));
+                        end
                         [~,ifft_prod] = power(xi_vec,a.power_vector{j}{k}(:));
                         delete_i_delay = a.delay{j}{k}(:); % taking the derivative w.r.t. i
                         delete_i_delay(i) =0;
@@ -602,7 +620,11 @@ classdef polynomial_coefs
                     if all(a.delay{i}{j} == 0)
                         continue
                     end
-                    term = a.value{i}(j)* prod(xi_vec.scalar.^(a.power_scalar{i}(:,j).'));
+                    index_loc = find(a.power_scalar{i}(:,j).');
+                    term = a.value{i}(j);
+                    if ~isempty(index_loc)
+                        term = term* prod(xi_vec.scalar(index_loc).^(a.power_scalar{i}(index_loc,j).'));
+                    end
                     if term == 0
                         continue
                     end
