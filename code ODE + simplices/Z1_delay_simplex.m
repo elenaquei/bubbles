@@ -3,7 +3,12 @@ global use_intlab
 use_intlab = 1;
 
 degree = alpha0.vector_field.deg_vector;
-n_nodes_long = x0.nodes*degree;
+n_nodes = x0.nodes;
+size_vector = x0.size_vector;
+size_scalar = x0.size_scalar;
+N = alpha0.vector_field.n_equations;
+n_nodes_long = n_nodes*degree;
+
 
 x_int = interpolation(x0, x1, x2);
 
@@ -27,26 +32,24 @@ alpha_int = interpolation(alpha0, alpha1, alpha2);
 DF = derivative(alpha_int, x_int, bool_long);
 
 norm_D3F2 = intval(sup(abs(D3F2_int)));
-norm_P = intval(norm_C_to_ell1(P_int, x0.nodes, x0.size_scalar, x0.size_vector));
+norm_P = intval(norm_C_to_ell1(P_int, size_scalar, size_vector));
 norm_R = abs(R_int);
-% norm_M = intval(norm_ell1_to_ell1(M_int, x0.size_vector));
-% norm_Q = intval(norm_ell1_to_C(Q_int, x0.size_scalar, x0.size_vector));
+% norm_M = intval(norm_ell1_to_ell1(M_int, size_vector));
+% norm_Q = intval(norm_ell1_to_C(Q_int, size_scalar, size_vector));
 % first term: A_s * Pi_M ( D_z Pi_infty F)
-n_nodes = x0.nodes;
-N = alpha0.vector_field.n_equations;
 
 % norm A star 1 with direct computation
 
-nodes_each_section = (degree+1)*x0.nodes;
-center_indices = nodes_each_section + 1 + (-x0.nodes:x0.nodes);
-tail_indices = nodes_each_section + 1 + [-nodes_each_section: -x0.nodes-1, x0.nodes+1:nodes_each_section];
+nodes_each_section = (degree+1)*n_nodes;
+center_indices = nodes_each_section + 1 + (-n_nodes:n_nodes);
+tail_indices = nodes_each_section + 1 + [-nodes_each_section: -n_nodes-1, n_nodes+1:nodes_each_section];
 size_each_section = 2 * nodes_each_section + 1;
 K = -nodes_each_section:nodes_each_section;
 % SLOW OR MEMORY ISSUES? 
-STAR1 = intval(sparse( size_each_section*x0.size_vector, ...
-    size_each_section*x0.size_vector));
-STAR3 = intval(sparse( (x0.nodes*2+1)*x0.size_vector, ...
-    size_each_section*x0.size_vector));
+STAR1 = intval(sparse( size_each_section*size_vector, ...
+    size_each_section*size_vector));
+STAR3 = intval(sparse( (n_nodes*2+1)*size_vector, ...
+    size_each_section*size_vector));
 norm_STAR1 = intval(zeros(alpha0.vector_field.n_equations));
 
 nodes = @(vec) (length(vec) -1)/2;
@@ -56,9 +59,9 @@ make_conv_mat = @(vec) toeplitz(...
 
 for i =1:N
     index_i = (i-1)*size_each_section + (1:size_each_section);
-    % index_i_small = (i-1)*(x0.nodes*2+1) + (1:(x0.nodes*2+1));
+    index_i_small = (i-1)*(n_nodes*2+1) + (1:(n_nodes*2+1));
     % center_indices_i = (i-1)*size_each_section + center_indices;
-    center_indices_i_small = (i-1)*(x0.nodes*2+1) + (1:2*x0.nodes+1);
+    center_indices_i_small = (i-1)*(n_nodes*2+1) + (1:2*n_nodes+1);
     tail_indices_i = (i-1)*size_each_section + tail_indices;
     for j = 1:N
         index_j = (j-1)*size_each_section + (1:size_each_section);
@@ -85,7 +88,7 @@ for i =1:N
                     error('this should never happen')
                 end
                 delay = DF.derivative_Fx_delay{i,j}{term}.exp_coef;
-                delay_mat = diag(exp(-1i*delay*phi_int*K));
+                delay_mat = diag(exp(delay*K));
                 delay_term_ij = delay_term_ij +  make_conv_mat(conv)*delay_mat;
             end
         end
@@ -98,53 +101,43 @@ for i =1:N
     end
 end
 % clear delay_mat delay_term_ij convolution_term_ij
-norm_A_STAR1 = [norm_ell1_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1, x0.size_vector)
-    norm_ell1_to_C(R_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1,x0.size_scalar, x0.size_vector)
+norm_A_STAR1 = [norm_ell1_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1, size_vector)
+    norm_ell1_to_C(R_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1,size_scalar, size_vector)
     norm_STAR1];
 
 % STAR2
-Pi_infty_indices = ...
-    [-n_nodes*degree:-n_nodes-1, 0*(-n_nodes:n_nodes), n_nodes+1:n_nodes*degree];
+% Pi_infty_indices = ...
+ %    [-n_nodes*degree:-n_nodes-1, 0*(-n_nodes:n_nodes), n_nodes+1:n_nodes*degree];
 center_indices = n_nodes*degree-1:n_nodes*degree + 2*n_nodes-1;
 derivative_parameters_F_tail = DF.derivative_Flambda;
-norm_STAR2 = intval(zeros(x0.size_vector, x0.size_scalar));
-for i = 1:x0.size_scalar
-    for j = 1:x0.size_vector
-        derivative_parameters_F_tail(i,j, center_indices) = 0;
-        norm_STAR2(j,i) = intval(norm(Xi_vector([],derivative_parameters_F_tail(i,j,:))));
+derivative_parameters_F_tail(:,:, center_indices) = 0;
+
+norm_Kinv_STAR2 = intval(zeros(size_vector, size_scalar));
+nodes_loc = (size(derivative_parameters_F_tail,3)-1)/2;
+Kinv_STAR2 = intval(zeros((2*nodes_loc+1)*size_vector, size_scalar));
+for i = 1:size_scalar
+    for j = 1:size_vector
+        indices = (2*nodes_loc+1)*(j-1) + (1:1+2*nodes_loc);
+        K_without_zero = -nodes_loc:nodes_loc;
+        K_without_zero(K_without_zero==0) = 1;
+        K_der_F_tail = (K_without_zero.^-1).*squeeze(derivative_parameters_F_tail(i,j,:)).';
+        Kinv_STAR2(indices,i) = K_der_F_tail;
+        norm_Kinv_STAR2(j,i) = intval(norm(Xi_vector([],K_der_F_tail)));
     end
 end
-norm_Kinv_STAR2 = sum(abs(1./intval(Pi_infty_indices(Pi_infty_indices~=0)))) * norm_STAR2;
+%norm_Kinv_STAR2 = sum(abs(1./intval(Pi_infty_indices(Pi_infty_indices~=0)))) * norm_STAR2;
 
-
-norm_A_STAR2 = [norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
-    norm_R.' * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
+norm_A_STAR2 = [norm_C_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2, size_scalar, size_vector)
+    abs(R_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2)
     abs(phi_int)^-1 * norm_Kinv_STAR2];
+%[norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
+%    norm_R.' * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
+%    abs(phi_int)^-1 * norm_Kinv_STAR2];
 
-% STAR3
-% norm_STAR3 = intval(zeros(alpha0.vector_field.n_equations));
-% for i =1:N
-%     for j = 1:N
-%         norm_STAR3(i,j) = intval(operator_tail_norm(squeeze(DF.derivative_Fx_toeplix(j,i,:)), ...
-%             n_nodes, degree));
-%         delay_term_ij = 0;
-%         for term = 1:size(DF.derivative_Fx_delay{i,j})
-%             if ~isempty(DF.derivative_Fx_delay{i,j}{term})
-%                 conv = DF.derivative_Fx_delay{i,j}{term}.convolution;
-%                 norm_conv = operator_tail_norm(conv, n_nodes, ...
-%                     degree);
-%                 delay_term_ij = delay_term_ij +  norm_conv;
-%             end
-%         end
-%         norm_STAR3(i,j) = norm_STAR3(i,j) + delay_term_ij;
-%     end
-% end
-% % I think??
-% norm_Kinv_STAR3 = 1/intval(n_nodes+1) * norm_STAR3;
-
-norm_A_STAR3 = [norm_ell1_to_ell1(M_int * STAR3, x0.size_vector)
-    norm_ell1_to_C(Q_int * STAR3, x0.size_scalar, x0.size_vector)
-    zeros(x0.size_vector,x0.size_vector)];
+% STAR 3
+norm_A_STAR3 = [norm_ell1_to_ell1(M_int * STAR3, size_vector)
+    norm_ell1_to_C(Q_int * STAR3, size_scalar, size_vector)
+    zeros(size_vector,size_vector)];
 
 
 % STAR4
@@ -152,7 +145,7 @@ norm_STAR4 = intval(zeros(alpha0.vector_field.n_equations));
 N = alpha0.vector_field.n_equations;
 for i =1:N
     for j = 1:N
-        norm_STAR4(i,j) = intval(norm(Xi_vector([],DF.derivative_Fx_toeplix(j,i,:))));
+        norm_STAR4_ij = intval(norm(Xi_vector([],DF.derivative_Fx_toeplix(j,i,:))));
         delay_term_ij = 0;
         for term = 1:size(DF.derivative_Fx_delay{i,j})
             if ~isempty(DF.derivative_Fx_delay{i,j}{term})
@@ -161,7 +154,7 @@ for i =1:N
                 delay_term_ij = delay_term_ij +  norm_conv;
             end
         end
-        norm_STAR4(i,j) = norm_STAR4(i,j) + delay_term_ij;
+        norm_STAR4(i,j) = norm_STAR4_ij + delay_term_ij;
     end
 end
 norm_Kinv_STAR4 = 1/intval(n_nodes+1) * norm_STAR4;
@@ -170,17 +163,20 @@ norm_A_STAR4 = [norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR4
     norm_R * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR4
     abs(phi_int)^-1 * norm_Kinv_STAR4];
 
-
-Z1 = sum([norm_A_STAR1, norm_A_STAR2, norm_A_STAR3 + norm_A_STAR4],2);
+Z1_components = sum([norm_A_STAR1, norm_A_STAR2, norm_A_STAR3 + norm_A_STAR4],2);
+Z1_scalar = Z1_components(size_vector+(1:size_scalar));
+Z1_vector = Z1_components(1:size_vector) + Z1_components(size_vector+size_scalar+1:end);
+Z1 = [Z1_scalar;Z1_vector];
 end
 
-function n = norm_C_to_ell1(P, nodes, size_scalar, size_vector)
+function n = norm_C_to_ell1(P, size_scalar, size_vector)
 global use_intval
 global nu
 n = zeros(size_vector,size_scalar);
 if isintval(P) || use_intval
     n = intval(n);
 end
+nodes = (size(P,1)/size_vector - 1)/2;
 K = (-nodes:nodes).';
 K_big = repmat(K, 1, size_scalar);
 for i = 1:size_vector
@@ -231,9 +227,7 @@ n = sum(abs(R),2);
 end
 
 function op_norm = operator_tail_norm(x, nodes, degree)
-% TODO : efficiency!
 global nu
-warning('THIS IS TOOO SLOOOOOW! ! ! ! ! ! ! ! ! ! ')
 K_all = -nodes*degree : nodes*degree;
 K_center = K_all(abs(K_all)<=nodes);
 K_tail = K_all(abs(K_all)>nodes);

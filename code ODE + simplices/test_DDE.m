@@ -4,7 +4,7 @@ global use_intlab
 global nu
 global talkative
 talkative = 2;
-nu = 1.1;
+nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
 
@@ -26,7 +26,7 @@ eta2 = X_ref(7);
 mu = R0*exp(-p*x0);
 
 xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
-xi = reshape(xi, 4);
+xi = reshape(xi, 70);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
 n_nodes = xi.nodes;
@@ -94,7 +94,7 @@ xi = Newton_2(xi,full_zero_finding_problem);
 xi_0 = xi;
 xi_1 = xi;
 xi_2 = xi;
-if 3 == 3
+if 3 == 1
     use_intlab = 1;
     % Y = Y_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
     
