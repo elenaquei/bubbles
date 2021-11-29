@@ -13,9 +13,12 @@ x_int = interpolation(x0, x1, x2);
 bool_long = 1;
 Fx_0 = apply(alpha, x0, bool_long);
 
-big_A0 = create_A_of_size(alpha0, x0, n_nodes_long);
-big_A1 = create_A_of_size(alpha1, x1, n_nodes_long);
-big_A2 = create_A_of_size(alpha2, x2, n_nodes_long);
+[A0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
+[A1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
+[A2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
+big_A0 = create_A_of_size(A0, M0, P0, Q0, R0, phi0, D3F20, n_nodes_long);
+big_A1 = create_A_of_size(A1, M1, P1, Q1, R1, phi1, D3F21, n_nodes_long);
+big_A2 = create_A_of_size(A2, M2, P2, Q2, R2, phi2, D3F22, n_nodes_long);
     
     
     function Y_0 = non_cont_Y(A, alpha, x)
@@ -68,7 +71,7 @@ Y_der_norm = intval(norm(vec2Xi_vec(Y_der, x0.size_scalar, x0.size_vector, n_nod
 
 
 % residual
-mixed_second_der = intval(zeros(x0.size_scalar+x0.size_vector,1));
+mixed_second_der = intval(zeros(length(x0),1));
 mixed_second_der(1:alpha1.scalar_equations.number_equations_lin) = ...
     interpolation(...
     interpolation(apply_lin_coef(coefDelta1, x_Delta1), apply_lin_coef(coefDelta2, x_Delta2)),...
@@ -79,10 +82,7 @@ norm_x_Delta = min( sup(norm(x_Delta1)), sup(norm(x_Delta2)));
 
 bound_second_der = DDF(alpha, x_int);
 
-[~, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
-[~, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
-[~, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
-
+A_int = interpolation(A0, A1, A2);
 M_int = interpolation(M0, M1, M2);
 P_int = interpolation(P0, P1, P2);
 Q_int = interpolation(Q0, Q1, Q2);
@@ -91,7 +91,9 @@ phi_int = interpolation(phi0, phi1, phi2);
 D3F2_int = interpolation(D3F20, D3F21, D3F22);
 normA = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(x0.nodes+1), phi_int, x0);
 
-residual = normA * (mixed_second_der + bound_second_der*max(norm_x_Delta.^2));
+norm_AdxdsF = norm(vec2Xi_vec(A_int * mixed_second_der,x0));
+
+residual = norm_AdxdsF + normA *  bound_second_der*max(norm_x_Delta.^2);
 
 Y = sup(Y_edge + Y_der_norm + residual);
 
