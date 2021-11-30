@@ -249,11 +249,6 @@ for m = K_tail
         K_center_loc = K_center;
     end
     sum_loc = sum( abs(x((min_index:max_index)+nodes*degree+1)).*nu.^(abs(K_center_loc.') - abs(m)));
-%     for n = K_center
-%         if abs( n - m ) <=  nodes*degree
-%             sum_loc = sum_loc + abs( x(n-m+nodes*degree+1)) * nu^(abs(n) - abs(m));
-%         end
-%     end
     if sum_loc > op_norm
         op_norm = sum_loc;
     end

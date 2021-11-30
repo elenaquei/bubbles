@@ -405,10 +405,11 @@ classdef polynomial_coefs
                     if a.value{i}(j)==0
                         continue
                     end
-                    index_loc = find(a.power_scalar{i}(:,j));
-                    term = a.value{i}(j);
-                    if ~isempty(index_loc)
-                        term = term *prod(xi_vec.scalar(index_loc).^(a.power_scalar{i}(index_loc,j).'));
+                    index_non_zero=find(a.power_scalar{i}(:,j));
+                    if isempty(index_non_zero)
+                        term = a.value{i}(j);
+                    else
+                        term = a.value{i}(j)*prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
                     end
                     for k = 1:a.monomial_per_term{i}(j)
                         
@@ -542,6 +543,16 @@ classdef polynomial_coefs
                     Dlambda(1,:,:) = Dlambda(1,:,:) + reshape(der_wrt_period,[1,size_der_period]);
                 end
             end
+            for i =1:xi_vec.size_scalar
+                for j = 1:a.n_equations
+                    Dlambda(i,j,:) =  verifyfft_in(squeeze(Dlambda(i,j,:)),1);
+                    degree = 0;
+                    for k = 1:a.n_terms(j)
+                        degree = max(sum(a.power_vector{j}{k}),degree);
+                    end
+                    Dlambda(i,j,:) = impose_zeros(Dlambda(i,j,:),degree, xi_vec.nodes);
+                end
+            end
             
             for i =1 :xi_vec.size_vector
                 Dx_vec(i,:,:) = apply(conv_coef_derivative_vec(a,i),xi_vec,1);
@@ -580,10 +591,11 @@ classdef polynomial_coefs
                             continue
                         end
                         % convolution term
-                        index_loc = find(a.power_scalar{j}(:,k).');
-                        term = a.value{j}(k);
-                        if ~isempty(index_loc)
-                            term = term* prod(xi_vec.scalar(index_loc).^(a.power_scalar{j}(index_loc,k).'));
+                        index_non_zero = find(a.power_scalar{j}(:,k));
+                        if isempty(index_non_zero)
+                            term = a.value{j}(k);
+                        else
+                            term = a.value{j}(k) * prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{j}(index_non_zero,k).'));
                         end
                         [~,ifft_prod] = power(xi_vec,a.power_vector{j}{k}(:));
                         delete_i_delay = a.delay{j}{k}(:); % taking the derivative w.r.t. i
@@ -592,7 +604,17 @@ classdef polynomial_coefs
                         delay_x= set_ifft(delay_x,a.deg_vector);
                         [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
                         % [~,ifft_prod_delay] = power(xi_vec.delay(a.delay{j}{k}(:)),ones(1:xi_vec.size_vector));
-                        Dx_delay_loc{k}.convolution =  verifyfft_in(term .* ifft_prod .* ifft_prod_delay, 1);
+                        Dx_delay_loc{k}.convolution =  term .* verifyfft_in( ifft_prod .* ifft_prod_delay, 1);
+                        
+                        
+                        degree = sum(a.power_vector{j}{k}(:))+ nnz(a.delay{j}{k}(:));
+                        initial_nodes = xi_vec.nodes;
+                        Dx_delay_loc{k}.convolution = impose_zeros(Dx_delay_loc{k}.convolution, degree, initial_nodes);
+                        % TODO: force the tail to be 0 when possible (check
+                        % number of non-zero modes and act on it) - this is
+                        % taken care, in general, in the
+                        % "derivative_to_matrix" function, but there are
+                        % cases in which that happens tooooooo late.
                         
                         % exponential term
                         tau = a.delay{j}{k}(i);
@@ -620,11 +642,12 @@ classdef polynomial_coefs
                     if all(a.delay{i}{j} == 0)
                         continue
                     end
-                    index_loc = find(a.power_scalar{i}(:,j).');
-                    term = a.value{i}(j);
-                    if ~isempty(index_loc)
-                        term = term* prod(xi_vec.scalar(index_loc).^(a.power_scalar{i}(index_loc,j).'));
-                    end
+                    index_non_zero = find(a.power_scalar{i}(:,j));
+                        if isempty(index_non_zero)
+                            term = a.value{i}(j);
+                        else
+                            term =a.value{i}(j)* prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
+                        end
                     if term == 0
                         continue
                     end
@@ -922,6 +945,25 @@ else
         s =  sprintf(' %e ', x_double);
     end
 end
+end
+
+
+function vector_padded = impose_zeros(vector, degree, initial_nodes)
+n_nodes = (length(vector)-1)/2;
+if mod(n_nodes,1)~=0
+    n_nodes = floor(n_nodes);
+    extras = 1;
+else
+    extras = 0;
+end
+non_zero_nodes = degree * initial_nodes;
+zero_nodes = n_nodes - non_zero_nodes;
+vector_padded = vector;
+if zero_nodes<=0
+    return
+end
+vector_padded(1:zero_nodes+extras-1) = 0*vector_padded(1:zero_nodes+extras-1);
+vector_padded(end-zero_nodes+1:end) = 0*vector_padded(end-zero_nodes+1:end);
 end
 
     

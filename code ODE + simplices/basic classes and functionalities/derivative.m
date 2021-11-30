@@ -54,12 +54,13 @@ classdef derivative
             
             [scalar_der_F ,diagonal_der_F, toeplix_der_F, delay_der_F] = ...
                 compute_derivative(alpha.vector_field,x);
-            DF.derivative_Flambda = 0*scalar_der_F; % SIZE xi_vec.size_scalar,a.n_equations,xi_vec.nodes*2*a.deg_vector+1
-            for i =1:DF.size_scalar
-                for j = 1:alpha.vector_field.n_equations
-                    DF.derivative_Flambda(i,j,:) =  verifyfft_in(squeeze(scalar_der_F(i,j,:)),1);
-                end
-            end
+%             DF.derivative_Flambda = 0*scalar_der_F; % SIZE xi_vec.size_scalar,a.n_equations,xi_vec.nodes*2*a.deg_vector+1
+%             for i =1:DF.size_scalar
+%                 for j = 1:alpha.vector_field.n_equations
+%                     DF.derivative_Flambda(i,j,:) =  verifyfft_in(squeeze(scalar_der_F(i,j,:)),1);
+%                 end
+%             end
+            DF.derivative_Flambda = scalar_der_F;
             
             DF.derivative_Fx_diagonal = diagonal_der_F;
             DF.derivative_Fx_delay = delay_der_F;
