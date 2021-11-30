@@ -213,6 +213,16 @@ classdef Xi_vector
             % cnorm_Xi_vector
             
             global use_intlab
+            global norm_weight
+            if isempty(norm_weight) 
+                norm_weight = ones(xi.size_scalar+xi.size_vector,1);
+            elseif length(norm_weight) ~= xi.size_scalar+xi.size_vector
+                if length(norm_weight) == 1
+                    norm_weight = norm_weight * ones(xi.size_scalar+xi.size_vector,1);
+                else
+                    error('The weight of the norm is incompatible with the size of the problem')
+                end
+            end
             
             nor=zeros(xi.size_scalar+xi.size_vector,1);
             if ~use_intlab && ~isintval(xi.scalar)
@@ -239,6 +249,7 @@ classdef Xi_vector
                     nor(xi.size_scalar+i)=sup(sum(abs(xi.vector(i,:)).*(nu.^abs(K))));
                 end
             end
+            nor = norm_weight.*nor;
         end %CNORM
         
         
