@@ -39,26 +39,6 @@ while i < n_iter
     [list_of_nodes,list_of_simplices, list_of_new_frontal_nodes, index_new_simplices]= ...
         grow_simplex(node_i, step_size, list_of_nodes, list_of_simplices, F);
     
-    if mod(node_number,10)==0
-        hold on
-        plot_index = union(plot_index,index_new_simplices);
-        plot(list_of_simplices, list_of_nodes,plot_index);
-        drawnow
-        plot_index = [];
-        if bool_validated
-        save(save_file,'list_of_simplices','list_of_nodes','Interval',...
-            'Z0_iter','Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf',...
-            'bool_validated','list_of_frontal_nodes');
-        else
-            save(save_file,'list_of_simplices','list_of_nodes',...
-                'step_size','bool_Hopf',...
-                'bool_validated','list_of_frontal_nodes');
-        end
-        
-        
-    else
-        plot_index = union(plot_index,index_new_simplices);
-    end
     
     if any(list_of_new_frontal_nodes<0)
         index = list_of_new_frontal_nodes<0;
@@ -95,6 +75,28 @@ while i < n_iter
             Y_iter(:,j)    = vert(Yvector);
         end
     end
+    
+    if mod(node_number,10)==0
+        hold on
+        plot_index = union(plot_index,index_new_simplices);
+        plot(list_of_simplices, list_of_nodes,plot_index);
+        drawnow
+        plot_index = [];
+        if bool_validated
+        save(save_file,'list_of_simplices','list_of_nodes','Interval',...
+            'Z0_iter','Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf',...
+            'bool_validated','list_of_frontal_nodes');
+        else
+            save(save_file,'list_of_simplices','list_of_nodes',...
+                'step_size','bool_Hopf',...
+                'bool_validated','list_of_frontal_nodes');
+        end
+        
+        
+    else
+        plot_index = union(plot_index,index_new_simplices);
+    end
+    
     
     %if talkative>1
     %    figure

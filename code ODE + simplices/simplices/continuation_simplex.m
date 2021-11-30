@@ -20,7 +20,6 @@ first_node = node(1,x0,F);
 [list_of_simplices,list_of_nodes,list_of_frontal_nodes] = ...
     simplices_set_up(first_node, F, step_size);
 
-plot(list_of_simplices, list_of_nodes);
 
 % validate all new simplices
 if bool_validated
@@ -55,6 +54,8 @@ if bool_validated
         Y_iter(:,j)    = vert(Yvector);
     end
 end
+
+plot(list_of_simplices, list_of_nodes);
 
 if bool_validated
 save_file = continuation_simplex_core(save_file, list_of_simplices,list_of_nodes,...
