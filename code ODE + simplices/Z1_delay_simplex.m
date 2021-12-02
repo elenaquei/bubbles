@@ -12,6 +12,8 @@ elseif length(norm_weight) ~= x0.size_scalar+x0.size_vector
         error('The weight of the norm is incompatible with the size of the problem')
     end
 end
+norm_weight_long = [norm_weight(x0.size_scalar+1:end); norm_weight(1:x0.size_scalar); norm_weight(x0.size_scalar+1:end)];
+
 use_intlab = 1;
 
 degree = alpha0.vector_field.deg_vector;
@@ -43,9 +45,9 @@ bool_long = 1;
 alpha_int = interpolation(alpha0, alpha1, alpha2);
 DF = derivative(alpha_int, x_int, bool_long);
 
-norm_D3F2 = diag(norm_weight(1:alpha.scalar_equations.num_equations)) * intval(sup(abs(D3F2_int)));
-norm_P = diag(norm_weight(alpha.scalar_equations.num_equations+1:end)) * intval(norm_C_to_ell1(P_int, size_scalar, size_vector));
-norm_R = diag(norm_weight(1:alpha.scalar_equations.num_equations)) * abs(R_int);
+norm_D3F2 = diag(norm_weight(1:size_scalar)) * intval(sup(abs(D3F2_int)));
+norm_P = diag(norm_weight(size_scalar+1:end)) * intval(norm_C_to_ell1(P_int, size_scalar, size_vector));
+norm_R = diag(norm_weight(1:size_scalar)) * abs(R_int);
 % norm_M = intval(norm_ell1_to_ell1(M_int, size_vector));
 % norm_Q = intval(norm_ell1_to_C(Q_int, size_scalar, size_vector));
 % first term: A_s * Pi_M ( D_z Pi_infty F)
@@ -113,9 +115,9 @@ for i =1:N
     end
 end
 % clear delay_mat delay_term_ij convolution_term_ij
-norm_A_STAR1 = [norm_ell1_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1, size_vector)
+norm_A_STAR1 = diag(norm_weight_long) * [norm_ell1_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1, size_vector)
     norm_ell1_to_C(R_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1,size_scalar, size_vector)
-    norm_STAR1] * diag(norm_weight);
+    norm_STAR1];
 
 % STAR2
 % Pi_infty_indices = ...
@@ -127,7 +129,7 @@ derivative_parameters_F_tail(:,:, center_indices) = 0;
 norm_Kinv_STAR2 = intval(zeros(size_vector, size_scalar));
 nodes_loc = (size(derivative_parameters_F_tail,3)-1)/2;
 Kinv_STAR2 = intval(zeros((2*nodes_loc+1)*size_vector, size_scalar));
-norm_Fourier_sequence=@(vec)sup(sum(abs(vec(:)).*(nu.^abs(-nodes_loc:nodes_loc))));
+norm_Fourier_sequence=@(vec)sup(sum(abs(vec).*(nu.^abs(-(length(vec)-1)/2:(length(vec)-1)/2))));
 for i = 1:size_scalar
     for j = 1:size_vector
         indices = (2*nodes_loc+1)*(j-1) + (1:1+2*nodes_loc);
@@ -140,37 +142,38 @@ for i = 1:size_scalar
 end
 %norm_Kinv_STAR2 = sum(abs(1./intval(Pi_infty_indices(Pi_infty_indices~=0)))) * norm_STAR2;
 
-norm_A_STAR2 = [norm_C_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2, size_scalar, size_vector)
+norm_A_STAR2 = diag(norm_weight_long) * [norm_C_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2, size_scalar, size_vector)
     abs(R_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2)
-    abs(phi_int)^-1 * norm_Kinv_STAR2]* diag(norm_weight);
+    abs(phi_int)^-1 * norm_Kinv_STAR2];
 %[norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
 %    norm_R.' * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
 %    abs(phi_int)^-1 * norm_Kinv_STAR2];
 
 % STAR 3
-norm_A_STAR3 = [norm_ell1_to_ell1(M_int * STAR3, size_vector)
+norm_A_STAR3 = diag(norm_weight_long) * [norm_ell1_to_ell1(M_int * STAR3, size_vector)
     norm_ell1_to_C(Q_int * STAR3, size_scalar, size_vector)
-    zeros(size_vector,size_vector)]* diag(norm_weight);
+    zeros(size_vector,size_vector)];
 
 
 % STAR4
 norm_STAR4 = intval(zeros(alpha0.vector_field.n_equations));
 N = alpha0.vector_field.n_equations;
+
 for i =1:N
     for j = 1:N
-        norm_STAR4_ij = intval(norm(Xi_vector([],DF.derivative_Fx_toeplix(j,i,:))));
+        norm_STAR4_ij = intval(norm_Fourier_sequence(squeeze(DF.derivative_Fx_toeplix(j,i,:)).'));
         delay_term_ij = 0;
         for term = 1:size(DF.derivative_Fx_delay{i,j})
             if ~isempty(DF.derivative_Fx_delay{i,j}{term})
                 conv = DF.derivative_Fx_delay{i,j}{term}.convolution;
-                norm_conv = intval(norm(Xi_vector([], conv.')));
+                norm_conv = intval(norm_Fourier_sequence(conv.'));
                 delay_term_ij = delay_term_ij +  norm_conv;
             end
         end
         norm_STAR4(i,j) = norm_STAR4_ij + delay_term_ij;
     end
 end
-norm_Kinv_STAR4 = 1/intval(n_nodes+1) * norm_STAR4 * diag(norm_weight(x0.size_scalar+1:end));
+norm_Kinv_STAR4 = 1/intval(n_nodes+1) * diag(norm_weight(size_scalar+1:end)) * norm_STAR4;
 
 norm_A_STAR4 = [norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR4
     norm_R * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR4

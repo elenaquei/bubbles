@@ -1,16 +1,5 @@
 function norm_mat=norm_Ximat(B,xBar_size_scal, xBar_size_vector, xBar_nodes_col, xBar_nodes_row)
 % function norm_mat=norm_Ximat(B,xBar)
-global norm_weight
-
-if isempty(norm_weight)
-    norm_weight = ones(x0.size_scalar+x0.size_vector,1);
-elseif length(norm_weight) ~= x0.size_scalar+x0.size_vector
-    if length(norm_weight) == 1
-        norm_weight = norm_weight * ones(x0.size_scalar+x0.size_vector,1);
-    else
-        error('The weight of the norm is incompatible with the size of the problem')
-    end
-end
 
 if nargin == 2
     xBar = xBar_size_scal;
@@ -24,7 +13,7 @@ else
     norm_mat= norm_mat_loc(B,xBar_size_scal, xBar_size_vector,  xBar_nodes_col, xBar_nodes_row);
 end
 
-norm_mat = norm_mat * diag(norm_weight);
+norm_mat = norm_mat;
 
 return
 
@@ -36,6 +25,17 @@ function [norm_vec]= norm_mat_loc(Z_mat,size_scal,size_vec,nodes_col,nodes_row)
 % and horizontal number of components is not the same.
 global nu 
 global use_intlab
+global norm_weight
+
+if isempty(norm_weight)
+    norm_weight = ones(size_scal+size_vec,1);
+elseif length(norm_weight) ~= size_scal+size_vec
+    if length(norm_weight) == 1
+        norm_weight = norm_weight * ones(size_scal+size_vec,1);
+    else
+        error('The weight of the norm is incompatible with the size of the problem')
+    end
+end
 
 if nargin==4
     nodes_row=nodes_col;

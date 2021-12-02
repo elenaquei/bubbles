@@ -329,10 +329,10 @@ function block = block_norm(M, P, Q, R, D3F2, psi, x)
 global norm_weight
 
 if isempty(norm_weight)
-    norm_weight = ones(x0.size_scalar+x0.size_vector,1);
-elseif length(norm_weight) ~= x0.size_scalar+x0.size_vector
+    norm_weight = ones(x.size_scalar+x.size_vector,1);
+elseif length(norm_weight) ~= x.size_scalar+x.size_vector
     if length(norm_weight) == 1
-        norm_weight = norm_weight * ones(x0.size_scalar+x0.size_vector,1);
+        norm_weight = norm_weight * ones(x.size_scalar+x.size_vector,1);
     else
         error('The weight of the norm is incompatible with the size of the problem')
     end
@@ -343,11 +343,11 @@ size_vector = x.size_vector;
 nodes = x.nodes;
 
 abs_psi = norm_weight(1) * abs(psi);
-abs_D3F2 = diag(norm_weight(1:x0.size_scalar)) * abs(D3F2);
-norm_P = diag(norm_weight(x0.size_scalar+1:end)) * norm_C_to_ell1(P, nodes, size_scalar, size_vector);
-norm_Q = diag(norm_weight(1:x0.size_scalar)) * norm_ell1_to_C(Q, nodes, size_scalar, size_vector);
-norm_M = diag(norm_weight(x0.size_scalar+1:end)) * norm_ell1_to_ell1(M, nodes, size_vector);
-norm_R = diag(norm_weight(1:x0.size_scalar)) * abs(R);
+abs_D3F2 = diag(norm_weight(1:size_scalar)) * abs(D3F2);
+norm_P = diag(norm_weight(size_scalar+1:end)) * norm_C_to_ell1(P, nodes, size_scalar, size_vector);
+norm_Q = diag(norm_weight(1:size_scalar)) * norm_ell1_to_C(Q, nodes, size_scalar, size_vector);
+norm_M = diag(norm_weight(size_scalar+1:end)) * norm_ell1_to_ell1(M, nodes, size_vector);
+norm_R = diag(norm_weight(1:size_scalar)) * abs(R);
 norm_V1 = norm_P * abs_D3F2 / abs_psi;
 norm_V2 = norm_R * abs_D3F2 / abs_psi;
 norm_V3 = 1/ abs_psi;
