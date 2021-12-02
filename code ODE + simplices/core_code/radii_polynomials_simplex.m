@@ -1,6 +1,6 @@
 function [flag,Imin,Imax,Yvector,Z0vector,Z1vector,Z2vector,simplex, list_of_nodes] = ...
     radii_polynomials_simplex(simplex, list_of_nodes,bool_Hopf)%xBar0,xBar1,xBar2,...
-    %alpha0,alpha1,alpha2,previous_iter0,previous_iter1)
+%alpha0,alpha1,alpha2,previous_iter0,previous_iter1)
 % INPUT:
 % simplex   instance of the class simplex - validation material
 % list_of_nodes     cell of instances of the node class
@@ -138,21 +138,16 @@ end
 
 
 
-
 % Y BOUND
 if has_delay(alpha0)
     Yvector = Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
 else
-if ~ isempty(previous_iter0) && ~isempty(previous_iter0.Y)
-    [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,...
-        alpha0,alpha1,alpha2,previous_iter0.Y,previous_iter1.Y);
-else
-    [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0,alpha1,alpha2);
-end
-end
-if debug
-    Y_test = Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
-    disp('Additional computations are being carried out in DEBUGGING MODE')
+    if ~isempty(previous_iter0) && ~isempty(previous_iter0.Y)
+        [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,...
+            alpha0,alpha1,alpha2,previous_iter0.Y,previous_iter1.Y);
+    else
+        [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0,alpha1,alpha2);
+    end
 end
 
 if talkative>1
@@ -167,12 +162,9 @@ end
 if has_delay(alpha0)
     Z0vector = Z0_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
 else
-    [Z0vector,Z0s]=Z0_bound_simplex(DH0,DH1,DH2,A0,A1,A2,xBar0);
+    [Z0vector,Z0s] = Z0_bound_simplex(DH0,DH1,DH2,A0,A1,A2,xBar0);
 end
-if debug
-    Z0 = Z0_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
-    disp('Additional computations are being carried out in DEBUGGING MODE')
-end
+
 if talkative>1
     fprintf('\nComputed Z0, time %s\n\n',datestr(now,13));
 end
@@ -184,17 +176,13 @@ end
 if has_delay(alpha0)
     Z1vector = Z1_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
 else
-if  ~ isempty(previous_iter0) && ~isempty(previous_iter0.Z1)
-    [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar1,alpha0,...
-        alpha1,alpha1,Adagger_delta1,Adagger_delta2,previous_iter0.Z1,previous_iter1.Z1);
-else
-    [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar2,alpha0,...
-        alpha1,alpha2,Adagger_delta1,Adagger_delta2);
-end
-end
-if debug
-    Z1 = Z1_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2);
-    disp('Additional computations are being carried out in DEBUGGING MODE')
+    if ~isempty(previous_iter0) && ~isempty(previous_iter0.Z1)
+        [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar1,alpha0,...
+            alpha1,alpha1,Adagger_delta1,Adagger_delta2,previous_iter0.Z1,previous_iter1.Z1);
+    else
+        [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar2,alpha0,...
+            alpha1,alpha2,Adagger_delta1,Adagger_delta2);
+    end
 end
 
 if talkative>1
@@ -209,11 +197,7 @@ end
 if has_delay(alpha0)
     Z2vector = Z2_delay_simplex(alpha0, alpha1, alpha2,xBar0,xBar1,xBar2);
 else
-[Z2vector,Z2s]=Z2_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0);
-end
-if debug
-    Z2 = Z2_delay_simplex(xBar0,xBar1,xBar2,alpha0, alpha1, alpha2);
-    disp('Additional computations are being carried out in DEBUGGING MODE')
+    [Z2vector,Z2s]=Z2_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0);
 end
 
 
@@ -221,14 +205,14 @@ if talkative>1
     fprintf('\nComputed Z2, time %s\n\n',datestr(now,13));
 end
 if ~has_delay(alpha0)
-new_iter=struct('Y',new_iter_Y,'Z1',new_iter_Z1,'Z1_extrema',Z1s(:,end),...
-    'Z0_extrema',Z0s(:,end),'Y_extrema',Ys(:,end),'Z2',Z2vector);
-list_of_nodes{indeces(3)}.previous_validation = new_iter;
+    new_iter=struct('Y',new_iter_Y,'Z1',new_iter_Z1,'Z1_extrema',Z1s(:,end),...
+        'Z0_extrema',Z0s(:,end),'Y_extrema',Ys(:,end),'Z2',Z2vector);
+    list_of_nodes{indeces(3)}.previous_validation = new_iter;
 end
 % computation of the radius
 try
     [bool,Imin,Imax]=find_negative(Z2vector,Z1vector,Z0vector,Yvector);
-catch 
+catch
     return
 end
 if talkative>1
@@ -238,7 +222,7 @@ if ~bool
     return
 end
 
-if any(size(Imin))<1 || min(Imin,Imax)<0
+if any(size(Imin)<1) || min(Imin,Imax)<0
     return
 end
 
@@ -258,7 +242,7 @@ if Display
     plot(Imin,0,'k*',Imax,0,'k*')
 end
 
-% flag 
+% flag
 if Imax-Imin>1e-4
     flag=2;
 else

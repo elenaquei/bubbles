@@ -17,6 +17,10 @@ if nargin < 8 || isempty(plotting_instructions)
     plotting_instructions = 10;
 end
 
+if talkative>1
+    fprintf('\nStarting continuation with simplices, time %s\n\n',datestr(now,13));
+end
+
 Interval = zeros(2,6);
 Z0_iter = zeros(x0.size_scalar+x0.size_vector,6);
 Z1_iter = zeros(x0.size_scalar+x0.size_vector,6);
@@ -64,6 +68,10 @@ if bool_validated
 end
 
 plot(list_of_simplices, list_of_nodes);
+
+if talkative>1
+    fprintf('\nSet up completed, time %s\n\n',datestr(now,13));
+end
 
 if bool_validated
 save_file = continuation_simplex_core(save_file, list_of_simplices,list_of_nodes,...

@@ -8,7 +8,6 @@ talkative = 1;
 use_intlab = 0;
 RAD_MAX = 10^-2;
 
-debug_flag = 1;
 
 try
     intval(1);
@@ -22,6 +21,9 @@ n_nodes = 7;
 step_size = 5*10^-4;
 n_iter = 3000;
 save_file = 'saved elements/close_FHN2_validated'; % path where the validation will be saved
+bool_Hopf = 1;
+bool_validated = 1;
+plotting_instructions = 5;
 
 % starting parameters
 %  (alpha,I,epsilon,gamma) = (0.1, 0.4, 0.2480, 1) 
@@ -89,8 +91,6 @@ sol_N = Newton_2(sol,test_Hopf,30,10^-7);
 big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 % launch the validation
-bool_Hopf = 1;
 use_intlab = 1;
-bool_validated = 1;
 save_file = continuation_simplex(sol_N, big_Hopf,...
-    n_iter, step_size, save_file, bool_Hopf, bool_validated);
+    n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);

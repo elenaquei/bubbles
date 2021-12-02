@@ -27,7 +27,7 @@ function [xBar,iter, yBar,res,DFm,RES]=Newton_2(xBar,alpha,maxiter,min_res)
 global use_intlab
 global talkative
 
-if talkative>1
+if talkative>2
     disp('Entering Newton')
 end
 
@@ -45,7 +45,7 @@ end
 %disp('start')
 RES=zeros(maxiter,1);
 for iter=1:maxiter
-    if talkative>2
+    if talkative>3
         fprintf('Iteration %d, time %s\n',iter,datestr(now,13));
     end
     yBar=apply(alpha,xBar,0); % OK
@@ -54,7 +54,7 @@ for iter=1:maxiter
     res=(norm(yBar));
     RES(iter,1:length(res))=res;
     res = max(res);
-    if talkative>2
+    if talkative>3
         fprintf('Residual %e, time %s\n',res,datestr(now,13));
     end
     %plot(i,res,'*');
@@ -86,10 +86,10 @@ if iter==maxiter && res>min_res
     return%
 end
 
-if talkative>1
+if talkative>2
     fprintf('The residual of the Newton method is %d.\n',res)
 end
-if talkative>1
+if talkative>2
     fprintf('Exiting Newton\n\n')
 end
 
