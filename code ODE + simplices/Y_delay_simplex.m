@@ -78,9 +78,10 @@ mixed_second_der(1:alpha1.scalar_equations.number_equations_lin) = ...
     interpolation(apply_lin_coef(coefDelta2, x_Delta1), apply_lin_coef(coefDelta1, x_Delta2)));
 mixed_second_der = sup(abs(mixed_second_der));
 
-norm_x_Delta = min( sup(norm(x_Delta1)), sup(norm(x_Delta2)));
+norm_x_Delta = max( sup(norm(x_Delta1)), sup(norm(x_Delta2)));
 
-bound_second_der = DDF(alpha, x_int);
+bound_second_der = DDF(alpha, x_int); 
+% TODO: should this be weighted? the norm of XDelta is already weighted...
 
 A_int = interpolation(A0, A1, A2);
 M_int = interpolation(M0, M1, M2);
@@ -89,7 +90,7 @@ Q_int = interpolation(Q0, Q1, Q2);
 R_int = interpolation(R0, R1, R2);
 phi_int = interpolation(phi0, phi1, phi2);
 D3F2_int = interpolation(D3F20, D3F21, D3F22);
-normA = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(x0.nodes+1), phi_int, x0);
+normA = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(x0.nodes+1), phi_int, x0); % weighted
 
 norm_AdxdsF = norm(vec2Xi_vec(A_int * mixed_second_der,x0));
 
@@ -325,17 +326,31 @@ end
 
 
 function block = block_norm(M, P, Q, R, D3F2, psi, x)
+global norm_weight
+
+if isempty(norm_weight)
+    norm_weight = ones(x0.size_scalar+x0.size_vector,1);
+elseif length(norm_weight) ~= x0.size_scalar+x0.size_vector
+    if length(norm_weight) == 1
+        norm_weight = norm_weight * ones(x0.size_scalar+x0.size_vector,1);
+    else
+        error('The weight of the norm is incompatible with the size of the problem')
+    end
+end
+
 size_scalar = x.size_scalar;
 size_vector = x.size_vector;
 nodes = x.nodes;
 
-norm_P = norm_C_to_ell1(P, nodes, size_scalar, size_vector);
-norm_Q = norm_ell1_to_C(Q, nodes, size_scalar, size_vector);
-norm_M = norm_ell1_to_ell1(M, nodes, size_vector);
-norm_R = abs(R);
-norm_V1 = norm_P * abs(D3F2) / abs(psi);
-norm_V2 = norm_R * abs(D3F2) / abs(psi);
-norm_V3 = 1 / abs(psi);
+abs_psi = norm_weight(1) * abs(psi);
+abs_D3F2 = diag(norm_weight(1:x0.size_scalar)) * abs(D3F2);
+norm_P = diag(norm_weight(x0.size_scalar+1:end)) * norm_C_to_ell1(P, nodes, size_scalar, size_vector);
+norm_Q = diag(norm_weight(1:x0.size_scalar)) * norm_ell1_to_C(Q, nodes, size_scalar, size_vector);
+norm_M = diag(norm_weight(x0.size_scalar+1:end)) * norm_ell1_to_ell1(M, nodes, size_vector);
+norm_R = diag(norm_weight(1:x0.size_scalar)) * abs(R);
+norm_V1 = norm_P * abs_D3F2 / abs_psi;
+norm_V2 = norm_R * abs_D3F2 / abs_psi;
+norm_V3 = 1/ abs_psi;
 
 block = [ norm_M + norm_V1 + norm_V3, norm_P
     norm_Q+norm_V2, norm_R];

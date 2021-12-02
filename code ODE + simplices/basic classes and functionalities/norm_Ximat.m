@@ -1,6 +1,16 @@
 function norm_mat=norm_Ximat(B,xBar_size_scal, xBar_size_vector, xBar_nodes_col, xBar_nodes_row)
 % function norm_mat=norm_Ximat(B,xBar)
+global norm_weight
 
+if isempty(norm_weight)
+    norm_weight = ones(x0.size_scalar+x0.size_vector,1);
+elseif length(norm_weight) ~= x0.size_scalar+x0.size_vector
+    if length(norm_weight) == 1
+        norm_weight = norm_weight * ones(x0.size_scalar+x0.size_vector,1);
+    else
+        error('The weight of the norm is incompatible with the size of the problem')
+    end
+end
 
 if nargin == 2
     xBar = xBar_size_scal;
@@ -13,6 +23,8 @@ else
     end
     norm_mat= norm_mat_loc(B,xBar_size_scal, xBar_size_vector,  xBar_nodes_col, xBar_nodes_row);
 end
+
+norm_mat = norm_mat * diag(norm_weight);
 
 return
 
