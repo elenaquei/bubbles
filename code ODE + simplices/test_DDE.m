@@ -109,6 +109,7 @@ if 3 == 1
 end
 n_iter = 6;
 step_size = 10^-4;
+plotting_instructions = 5;
 save_file = 'first_DDE';
 bool_Hopf = 0; % the Hopf blow up is already taken into account
 bool_validated = 1;
@@ -116,7 +117,7 @@ first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
 
 save_file = continuation_simplex(xi, zero_finding_problem,...
-    n_iter, step_size, save_file, bool_Hopf, bool_validated);
+    n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 
 
 

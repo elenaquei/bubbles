@@ -1,12 +1,20 @@
 function [save_file] = continuation_simplex(x0, F,...
-    n_iter, step_size, save_file, bool_Hopf, bool_validated)
+    n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions)
 % function list_of_simplices = continuation_simplex(x0, F, n_iter, h, save_file, bool_Hopf)
+%
+% plotting_instructions = n > 0 (DEFAULT  = 10) plots the new simplices every
+% n iterations
+% plotting_instructions = - n < 0 plots ALL simplices every
+% n iterations
 
 global use_intlab
 global talkative
 use_intlab = 0;
 if nargin< 7 || isempty(bool_validated)
     bool_validated = 1;
+end
+if nargin < 8 || isempty(plotting_instructions)
+    plotting_instructions = 10;
 end
 
 Interval = zeros(2,6);
@@ -60,10 +68,11 @@ plot(list_of_simplices, list_of_nodes);
 if bool_validated
 save_file = continuation_simplex_core(save_file, list_of_simplices,list_of_nodes,...
     n_iter, step_size, bool_Hopf, bool_validated, list_of_frontal_nodes, ...
-    Interval,Z0_iter, Z1_iter, Z2_iter, Y_iter);
+    plotting_instructions, Interval,Z0_iter, Z1_iter, Z2_iter, Y_iter);
 else
     save_file = continuation_simplex_core(save_file, list_of_simplices,list_of_nodes,...
-    n_iter, step_size, bool_Hopf, bool_validated, list_of_frontal_nodes);
+    n_iter, step_size, bool_Hopf, bool_validated, list_of_frontal_nodes,...
+    plotting_instructions);
     
 end
 

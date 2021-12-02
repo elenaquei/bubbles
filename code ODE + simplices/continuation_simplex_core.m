@@ -1,6 +1,6 @@
 function save_file = continuation_simplex_core(save_file, list_of_simplices,list_of_nodes,...
     n_iter, step_size, bool_Hopf, bool_validated, list_of_frontal_nodes, ...
-    Interval_old,Z0_iter_old, Z1_iter_old, Z2_iter_old, Y_iter_old)
+    plotting_instructions, Interval_old,Z0_iter_old, Z1_iter_old, Z2_iter_old, Y_iter_old)
 global use_intlab
 global talkative
 
@@ -76,10 +76,14 @@ while i < n_iter
         end
     end
     
-    if mod(node_number,10)==0
+    if any(mod(i:i+length(index_new_simplices),plotting_instructions)==0)
         hold on
-        plot_index = union(plot_index,index_new_simplices);
-        plot(list_of_simplices, list_of_nodes,plot_index);
+        if plotting_instructions >0
+            plot_index = union(plot_index,index_new_simplices);
+            plot(list_of_simplices, list_of_nodes,plot_index);
+        else
+            plot(list_of_simplices, list_of_nodes)
+        end
         drawnow
         plot_index = [];
         if bool_validated
