@@ -36,7 +36,6 @@ Z2 = Z22 + Z21;
 end
 
 function DpsiDF = dpsiDF(alpha, x, Rmax)
-% MOSTLY DONE
 global nu
 
 modes = x.nodes;
@@ -127,9 +126,9 @@ for i=1:alpha.vector_field.n_equations % equation
             if delay_loc(k) == 0
                 continue
             end
-            delay_term5 = sum(Kv_norm .* delay_loc./v_norm.');
+            delay_term5 = sum(Kv_norm .* abs(delay_loc)./v_norm.');
             
-            delay_term4 = delay_term4 + 1/ v_norm(k) * (power_loc(1)/x_norm(1) + Lemma_bound * delay_loc(k) + delay_term5);
+            delay_term4 = delay_term4 + 1/ v_norm(k) * (power_loc(1)/x_norm(1) + Lemma_bound * abs(delay_loc(k)) + delay_term5);
         end
         DpsiDF_ij = const * X * V_delay * ( delay_term1 + delay_term2 + delay_term3 + delay_term4 + non_delay_term);
         DpsiDF_i = DpsiDF_i + DpsiDF_ij;
@@ -182,12 +181,15 @@ lambda_norm = x_norm(1:x.size_scalar);
 v_norm = x_norm(x.size_scalar+1:end);
 I = eye(M+N);
 DDF = intval(zeros(length(x_norm),1));
-
+ 
 for i=1:alpha.vector_field.n_equations % equation
     DDF_i = 0;
     for j=1:alpha.vector_field.n_terms(i) % element of the equation
         power_loc=[alpha.vector_field.power_scalar{i}(:,j).', alpha.vector_field.power_vector{i}{j}.'];
         const=abs(alpha.vector_field.value{i}(j));
+        if any(alpha.vector_field.dot{i}{j})
+            const = const * (modes+1);
+        end
         abs_delay_loc = abs(alpha.vector_field.delay{i}{j}).';
         n_delays = length(find(abs_delay_loc));
         X = prod(x_norm.^power_loc);
@@ -210,7 +212,7 @@ for i=1:alpha.vector_field.n_equations % equation
         DDF_ij = const * X * V_delay * ( delay_term1 + delay_term2 + delay_term3 + no_delay_term);
         DDF_i = DDF_i + DDF_ij;
     end
-    DDF(i+x.size_scalar) = DDF_i;
+    DDF(i+x.size_scalar) = DDF_i/(modes+1); 
 end
 
 % second derivative of G(x) = 0
@@ -221,7 +223,7 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
     DDF_i = 0;
     for j=1:alpha.scalar_equations.polynomial_equations.n_terms(i) % element of the equation
         power_loc=[alpha.scalar_equations.polynomial_equations.power_scalar{i}(:,j).', alpha.scalar_equations.polynomial_equations.power_vector{i}{j}.'];
-        const=alpha.scalar_equations.polynomial_equations.value{i}(j);
+        const=abs(alpha.scalar_equations.polynomial_equations.value{i}(j));
         
         X = prod(x_norm.^power_loc);
         
@@ -262,18 +264,21 @@ size_scalar = x.size_scalar;
 size_vector = x.size_vector;
 nodes = x.nodes;
 
-abs_psi = norm_weight(1) * abs(psi);
-abs_D3F2 = diag(norm_weight(1:size_scalar)) * abs(D3F2);
-norm_P = diag(norm_weight(size_scalar+1:end)) * norm_C_to_ell1(P, nodes, size_scalar, size_vector);
-norm_Q = diag(norm_weight(1:size_scalar)) * norm_ell1_to_C(Q, nodes, size_scalar, size_vector);
-norm_M = diag(norm_weight(size_scalar+1:end)) * norm_ell1_to_ell1(M, nodes, size_vector);
-norm_R = diag(norm_weight(1:size_scalar)) * abs(R);
+scalar_weights = diag(norm_weight(1:size_scalar));
+vector_weights = diag(norm_weight(size_scalar+1:end));
+
+abs_psi = norm_weight(1) * abs(psi) / norm_weight(1);
+abs_D3F2 = scalar_weights * abs(D3F2) * vector_weights.^-1;
+norm_P = vector_weights * norm_C_to_ell1(P, nodes, size_scalar, size_vector) * scalar_weights^-1;
+norm_Q = scalar_weights * norm_ell1_to_C(Q, nodes, size_scalar, size_vector)* vector_weights^-1;
+norm_M = vector_weights * norm_ell1_to_ell1(M, nodes, size_vector) * vector_weights.^-1;
+norm_R = scalar_weights * abs(R) * scalar_weights.^-1;
 norm_V1 = norm_P * abs_D3F2 / abs_psi;
 norm_V2 = norm_R * abs_D3F2 / abs_psi;
 norm_V3 = 1/ abs_psi;
 
-block = [ norm_M + norm_V1 + norm_V3, norm_P
-    norm_Q+norm_V2, norm_R];
+block = [norm_R, norm_Q+norm_V2;
+    norm_P, norm_M + norm_V1 + norm_V3];
 end
 
 function n = norm_C_to_ell1(P, nodes, size_scalar, size_vector)

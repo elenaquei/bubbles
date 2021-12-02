@@ -342,18 +342,21 @@ size_scalar = x.size_scalar;
 size_vector = x.size_vector;
 nodes = x.nodes;
 
-abs_psi = norm_weight(1) * abs(psi);
-abs_D3F2 = diag(norm_weight(1:size_scalar)) * abs(D3F2);
-norm_P = diag(norm_weight(size_scalar+1:end)) * norm_C_to_ell1(P, nodes, size_scalar, size_vector);
-norm_Q = diag(norm_weight(1:size_scalar)) * norm_ell1_to_C(Q, nodes, size_scalar, size_vector);
-norm_M = diag(norm_weight(size_scalar+1:end)) * norm_ell1_to_ell1(M, nodes, size_vector);
-norm_R = diag(norm_weight(1:size_scalar)) * abs(R);
+scalar_weights = diag(norm_weight(1:size_scalar));
+vector_weights = diag(norm_weight(size_scalar+1:end));
+
+abs_psi = norm_weight(1) * abs(psi) / norm_weight(1);
+abs_D3F2 = scalar_weights * abs(D3F2) * vector_weights.^-1;
+norm_P = vector_weights * norm_C_to_ell1(P, nodes, size_scalar, size_vector) * scalar_weights^-1;
+norm_Q = scalar_weights * norm_ell1_to_C(Q, nodes, size_scalar, size_vector)* vector_weights^-1;
+norm_M = vector_weights * norm_ell1_to_ell1(M, nodes, size_vector) * vector_weights.^-1;
+norm_R = scalar_weights * abs(R) * scalar_weights.^-1;
 norm_V1 = norm_P * abs_D3F2 / abs_psi;
 norm_V2 = norm_R * abs_D3F2 / abs_psi;
 norm_V3 = 1/ abs_psi;
 
-block = [ norm_M + norm_V1 + norm_V3, norm_P
-    norm_Q+norm_V2, norm_R];
+block = [norm_R, norm_Q+norm_V2;
+    norm_P, norm_M + norm_V1 + norm_V3];
 end
 
 function n = norm_C_to_ell1(P, nodes, size_scalar, size_vector)

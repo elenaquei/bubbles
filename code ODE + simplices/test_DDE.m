@@ -4,11 +4,17 @@ global use_intlab
 global nu
 global talkative
 global norm_weight
-norm_weight = [1,1,1,1,1,1,1,1,0.5,0.1,0.1].';
+norm_weight = [1,1,1,1,1,1,1,1,0.1,0.1,0.1].';
 talkative = 2;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
+n_modes = 20;
+n_iter = 6;
+step_size = 10^-4;
+plotting_instructions = 5;
+bool_Hopf = 0; % the Hopf blow up is already taken into account
+bool_validated = 1;
 
 load('./Kevins_code/point_candidate.mat')
 save_file = 'DDE_example';
@@ -28,7 +34,7 @@ eta2 = X_ref(7);
 mu = R0*exp(-p*x0);
 
 xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
-xi = reshape(xi, 10);
+xi = reshape(xi, n_modes);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
 n_nodes = xi.nodes;
