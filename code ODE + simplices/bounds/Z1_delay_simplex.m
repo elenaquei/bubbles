@@ -12,7 +12,9 @@ elseif length(norm_weight) ~= x0.size_scalar+x0.size_vector
         error('The weight of the norm is incompatible with the size of the problem')
     end
 end
-norm_weight_long = [norm_weight(x0.size_scalar+1:end); norm_weight(1:x0.size_scalar); norm_weight(x0.size_scalar+1:end)];
+weight_scalar = norm_weight(1:x0.size_scalar);
+weight_vector = norm_weight(x0.size_scalar+1:end);
+norm_weight_long = [weight_vector; weight_scalar; weight_vector];
 
 use_intlab = 1;
 
@@ -45,13 +47,9 @@ bool_long = 1;
 alpha_int = interpolation(alpha0, alpha1, alpha2);
 DF = derivative(alpha_int, x_int, bool_long);
 
-
-scalar_weights = diag(norm_weight(1:size_scalar));
-vector_weights = diag(norm_weight(size_scalar+1:end));
-
-norm_D3F2 =scalar_weights * intval(sup(abs(D3F2_int))) * vector_weights.^-1;
-norm_P =  vector_weights * intval(norm_C_to_ell1(P_int, size_scalar, size_vector)) * scalar_weights^-1;
-norm_R = scalar_weights * abs(R_int) * scalar_weights.^-1;
+norm_D3F2 =diag(weight_scalar) * intval(sup(abs(D3F2_int))) * diag(weight_vector.^-1);
+norm_P = diag(weight_vector) * intval(norm_C_to_ell1(P_int, size_scalar, size_vector)) * diag(weight_scalar.^-1);
+norm_R = diag(weight_scalar) * abs(R_int) * diag(weight_scalar.^-1);
 % norm_M = intval(norm_ell1_to_ell1(M_int, size_vector));
 % norm_Q = intval(norm_ell1_to_C(Q_int, size_scalar, size_vector));
 % first term: A_s * Pi_M ( D_z Pi_infty F)
@@ -121,7 +119,7 @@ end
 % clear delay_mat delay_term_ij convolution_term_ij
 norm_A_STAR1 = diag(norm_weight_long) * [norm_ell1_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1, size_vector)
     norm_ell1_to_C(R_int * kron(D3F2_int,ones(1,1+2*nodes_each_section)) * STAR1,size_scalar, size_vector)
-    norm_STAR1] * diag(norm_weight_long.^-1);
+    norm_STAR1] * diag(weight_vector.^-1);
 
 % STAR2
 % Pi_infty_indices = ...
@@ -148,7 +146,7 @@ end
 
 norm_A_STAR2 = diag(norm_weight_long) * [norm_C_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2, size_scalar, size_vector)
     abs(R_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2)
-    abs(phi_int)^-1 * norm_Kinv_STAR2] * diag(norm_weight_long).^-1;
+    abs(phi_int)^-1 * norm_Kinv_STAR2] * diag(weight_scalar.^-1);
 %[norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
 %    norm_R.' * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
 %    abs(phi_int)^-1 * norm_Kinv_STAR2];
@@ -156,7 +154,7 @@ norm_A_STAR2 = diag(norm_weight_long) * [norm_C_to_ell1(P_int * kron(D3F2_int,on
 % STAR 3
 norm_A_STAR3 = diag(norm_weight_long) * [norm_ell1_to_ell1(M_int * STAR3, size_vector)
     norm_ell1_to_C(Q_int * STAR3, size_scalar, size_vector)
-    zeros(size_vector,size_vector)] * diag(norm_weight_long).^-1;
+    zeros(size_vector,size_vector)] * diag(weight_vector.^-1);
 
 
 % STAR4
@@ -178,7 +176,7 @@ for i =1:N
     end
 end
 norm_Kinv_STAR4 = 1/intval(n_nodes+1) * ...
-    diag(norm_weight(size_scalar+1:end)) * norm_STAR4 *  diag(norm_weight(size_scalar+1:end)).^-1;
+    diag(weight_vector) * norm_STAR4 *  diag(weight_vector.^-1);
 
 norm_A_STAR4 = [norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR4
     norm_R * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR4

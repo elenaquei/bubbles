@@ -4,7 +4,7 @@ global use_intlab
 global nu
 global talkative
 global norm_weight
-norm_weight = [1,1,1,1,1,1,1,1,0.1,0.1,0.1].';
+norm_weight = [1,1,1,1,1,1,1,1,1,1,1].';
 talkative = 2;
 nu = 1.001;
 use_intlab = 0;
@@ -110,21 +110,23 @@ if 3 == 1
     
     Z1 = Z1_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
     
-    % Z2 = Z2_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
+    Z2 = Z2_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
     use_intlab = 0;
 end
-n_iter = 6;
-step_size = 10^-4;
-plotting_instructions = 5;
-save_file = 'first_DDE';
-bool_Hopf = 0; % the Hopf blow up is already taken into account
-bool_validated = 1;
+
 first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
 
+bool_validated = 0;
+% only numerical run, then we can select the simplices we are interested in
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 
+load(save_file)
+
+[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+    list_of_nodes, [], bool_Hopf);
 
 
 function [F, dxF, dxF_mat, dxxF_norm] = noncomputable_eqs_for_DDE(xi)

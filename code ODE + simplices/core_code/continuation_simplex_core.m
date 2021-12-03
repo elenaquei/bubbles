@@ -119,6 +119,10 @@ else
     'list_of_frontal_nodes');
 end
 
+if talkative>0
+    fprintf('The growth is completed\n')
+end
+
 end
 
 function priority_node = select_growing_node(list_of_simplices, list_of_nodes, list_of_frontal_nodes, F)
