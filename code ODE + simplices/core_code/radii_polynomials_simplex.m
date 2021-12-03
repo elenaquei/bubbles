@@ -227,9 +227,9 @@ if any(size(Imin)<1) || min(Imin,Imax)<0
 end
 
 % adapttive stepsize
-new_step = ideal_stepsize(Imin, Imax, Ys, Z0s, Z1s, Z2s);
+% new_step = ideal_stepsize(Imin, Imax, Ys, Z0s, Z1s, Z2s);
 
-simplex.verification_coeff = new_step;
+% simplex.verification_coeff = new_step;
 
 % plot
 if Display
