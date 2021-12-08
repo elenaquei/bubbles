@@ -4,12 +4,12 @@ global use_intlab
 global nu
 global talkative
 global norm_weight
-norm_weight = [1,1,1,1,1,1,1,1,1,1,1].';
+norm_weight = [1,1,1,1,1,1,1,1,1,0.8,1.2].';
 talkative = 2;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
-n_modes = 20;
+n_modes = 55;
 n_iter = 6;
 step_size = 10^-4;
 plotting_instructions = 5;
