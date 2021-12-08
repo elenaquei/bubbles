@@ -261,7 +261,7 @@ DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) = ...
     DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) + DD_user_norm;
 end
 
-function block = block_norm(M, P, Q, R, D3F2, psi, x)
+function block = block_norm_unused(M, P, Q, R, D3F2, psi, x)
 global norm_weight
 
 if isempty(norm_weight)
