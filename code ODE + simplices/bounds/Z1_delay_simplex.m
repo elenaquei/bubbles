@@ -1,4 +1,4 @@
-function Z1 = Z1_delay_simplex(alpha0, alpha1, alpha2, x0, x1, x2)
+function Z1 = Z1_delay_simplex(alpha0, alpha1, alpha2, x0, x1, x2, A0_struct, A1_struct, A2_struct)
 global use_intlab
 global nu
 global norm_weight
@@ -28,9 +28,25 @@ n_nodes_long = n_nodes*degree;
 
 x_int = interpolation(x0, x1, x2);
 
-[A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
-[A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
-[A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
+
+    function [A, M, P, Q, R, phi, D3F2] = extract_from_struct(A_struct)
+        A = A_struct.A;
+        M = A_struct.M;
+        P = A_struct.P;
+        Q = A_struct.Q;
+        R = A_struct.R;
+        phi = A_struct.phi;
+        D3F2 = A_struct.D3F2;
+    end
+
+[A_small0, M0, P0, Q0, R0, phi0, D3F20] = extract_from_struct(A0_struct);
+[A_small1, M1, P1, Q1, R1, phi1, D3F21] = extract_from_struct(A1_struct);
+[A_small2, M2, P2, Q2, R2, phi2, D3F22] = extract_from_struct(A2_struct);
+    
+
+% [A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
+% [A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
+% [A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
 
 A_small_int = interpolation(A_small0, A_small1, A_small2);
 

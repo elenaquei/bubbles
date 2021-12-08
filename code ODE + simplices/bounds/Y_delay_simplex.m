@@ -1,4 +1,4 @@
-function Y = Y_delay_simplex(alpha0, alpha1, alpha2, x0, x1, x2)
+function Y = Y_delay_simplex(alpha0, alpha1, alpha2, x0, x1, x2, A0_struct, A1_struct, A2_struct)
 global use_intlab
 
 if use_intlab
@@ -13,9 +13,19 @@ x_int = interpolation(x0, x1, x2);
 bool_long = 1;
 Fx_0 = apply(alpha, x0, bool_long);
 
-[A0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);
-[A1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
-[A2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
+    function [A, M, P, Q, R, phi, D3F2] = extract_from_struct(A_struct)
+        A = A_struct.A;
+        M = A_struct.M;
+        P = A_struct.P;
+        Q = A_struct.Q;
+        R = A_struct.R;
+        phi = A_struct.phi;
+        D3F2 = A_struct.D3F2;
+    end
+
+[A0, M0, P0, Q0, R0, phi0, D3F20] = extract_from_struct(A0_struct);
+[A1, M1, P1, Q1, R1, phi1, D3F21] = extract_from_struct(A1_struct);
+[A2, M2, P2, Q2, R2, phi2, D3F22] = extract_from_struct(A2_struct);
 big_A0 = create_A_of_size(A0, M0, P0, Q0, R0, phi0, D3F20, n_nodes_long);
 big_A1 = create_A_of_size(A1, M1, P1, Q1, R1, phi1, D3F21, n_nodes_long);
 big_A2 = create_A_of_size(A2, M2, P2, Q2, R2, phi2, D3F22, n_nodes_long);
@@ -342,15 +352,15 @@ size_scalar = x.size_scalar;
 size_vector = x.size_vector;
 nodes = x.nodes;
 
-scalar_weights = diag(norm_weight(1:size_scalar));
-vector_weights = diag(norm_weight(size_scalar+1:end));
+scalar_weights = norm_weight(1:size_scalar);
+vector_weights = norm_weight(size_scalar+1:end);
 
 abs_psi = norm_weight(1) * abs(psi) / norm_weight(1);
-abs_D3F2 = scalar_weights * abs(D3F2) * vector_weights.^-1;
-norm_P = vector_weights * norm_C_to_ell1(P, nodes, size_scalar, size_vector) * scalar_weights^-1;
-norm_Q = scalar_weights * norm_ell1_to_C(Q, nodes, size_scalar, size_vector)* vector_weights^-1;
-norm_M = vector_weights * norm_ell1_to_ell1(M, nodes, size_vector) * vector_weights.^-1;
-norm_R = scalar_weights * abs(R) * scalar_weights.^-1;
+abs_D3F2 = diag(scalar_weights) * abs(D3F2) * diag(vector_weights.^-1);
+norm_P = diag(vector_weights) * norm_C_to_ell1(P, nodes, size_scalar, size_vector) * diag(scalar_weights.^-1);
+norm_Q = diag(scalar_weights) * norm_ell1_to_C(Q, nodes, size_scalar, size_vector)* diag(vector_weights.^-1);
+norm_M = diag(vector_weights) * norm_ell1_to_ell1(M, nodes, size_vector) * diag(vector_weights.^-1);
+norm_R = diag(scalar_weights) * abs(R) * diag(scalar_weights.^-1);
 norm_V1 = norm_P * abs_D3F2 / abs_psi;
 norm_V2 = norm_R * abs_D3F2 / abs_psi;
 norm_V3 = 1/ abs_psi;

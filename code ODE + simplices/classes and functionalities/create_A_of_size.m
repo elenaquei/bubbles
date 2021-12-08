@@ -1,11 +1,29 @@
 function A = create_A_of_size(alpha, x, final_n_nodes, Q, R, phi, D3F2, f_n_nodes)
-% can be called eitehr with
+% can be called either with
 %       function A = create_A_of_size(alpha, x, final_n_nodes)
 % or with 
-%       function A = create_A_of_size(A_small, M, P,, Q, R, phi, D3F2, final_n_nodes)
-%
+%       function A = create_A_of_size(A_small, M, P, Q, R, phi, D3F2, final_n_nodes)
+% or with
+%       function A = create_A_of_size(A_struct, final_n_nodes)
+% where A_struct is a strcture with properties A, M, P, Q, R, phi, D3F2
 
-if nargin ==3
+if nargin ==2
+    A_struct = alpha;
+    final_n_nodes = x;
+    A_small = A_struct.A;
+    M = A_struct.M;
+    P = A_struct.P;
+    Q = A_struct.Q;
+    R = A_struct.R;
+    phi = A_struct.phi;
+    D3F2 = A_struct.D3F2;
+    size_scalar = size(R,1);
+    size_vector = size(D3F2,2);
+    nodes = (size(M,1)/size_vector - 1)/2;
+    if final_n_nodes < x.nodes
+        error('Cannot have a matrix A of size smaller than the initial vector')
+    end
+elseif nargin ==3
     if final_n_nodes < x.nodes
         error('Cannot have a matrix A of size smaller than the initial vector')
     end
