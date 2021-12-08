@@ -182,9 +182,14 @@ norm_A_STAR4 = [norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR4
     norm_R * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR4
     abs(phi_int)^-1 * norm_Kinv_STAR4];
 
+Z1_mat = [norm_A_STAR1, norm_A_STAR2, norm_A_STAR3 + norm_A_STAR4];
+Z1_finite_vector = Z1_mat(1:size_vector,1:size_vector) + Z1_mat(size_vector+size_scalar+1:end, 1:size_vector);
+Z1_infinite_vector = Z1_mat(1:size_vector,size_vector+size_scalar+1:end) + Z1_mat(size_vector+size_scalar+1:end,size_vector+size_scalar+1:end);
+Z1_vector = sum(max(Z1_finite_vector,Z1_infinite_vector),2);
+
 Z1_components = sum([norm_A_STAR1, norm_A_STAR2, norm_A_STAR3 + norm_A_STAR4],2);
 Z1_scalar = Z1_components(size_vector+(1:size_scalar));
-Z1_vector = Z1_components(1:size_vector) + Z1_components(size_vector+size_scalar+1:end);
+%Z1_vector = Z1_components(1:size_vector) + Z1_components(size_vector+size_scalar+1:end);
 Z1 = [Z1_scalar;Z1_vector];
 end
 
