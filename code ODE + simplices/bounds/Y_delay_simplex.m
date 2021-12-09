@@ -139,12 +139,9 @@ end
 
 
 
-
-
-
 function DDF = DDF(alpha, x)
-% MOSTLY DONE
 global nu
+global norm_weight
 
 modes = x.nodes;
 if nu^(2*modes+2) < exp(1)
@@ -332,6 +329,8 @@ end
 index_non_comp = alpha.scalar_equations.num_equations - alpha.scalar_equations.number_equations_non_computable +1 : alpha.scalar_equations.num_equations;
 DDF(index_non_comp) = ...
     DDF(index_non_comp) + sum(DD_user,2);
+
+DDF = DDF .* norm_weight;
 end
 
 

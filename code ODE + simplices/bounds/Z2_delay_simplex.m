@@ -40,17 +40,18 @@ block_norm_A = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(modes+1), phi_in
 
 upper_bound_psi_DF = dpsiDF(alpha0, x_int, Rmax);
 
-Z22 = block_norm_A * upper_bound_psi_DF;
+Z21 = block_norm_A * upper_bound_psi_DF;
 
 block_norm_AM = block_norm((modes+1)*M_int, P_int, (modes+1)*Q_int, R_int, D3F2_int, phi_int, x0);
 DDF_without_dpsi = upper_bound_DDF_without_psi(alpha0, x_int, Rmax);
-Z21 = block_norm_AM * DDF_without_dpsi;
+Z22 = block_norm_AM * DDF_without_dpsi;
 
 Z2 = Z22 + Z21;
 end
 
 function DpsiDF = dpsiDF(alpha, x, Rmax)
 global nu
+global norm_weight
 
 modes = x.nodes;
 if nu^(2*modes+2) < exp(1)
@@ -60,20 +61,20 @@ else
 end
 
 K = -x.nodes:x.nodes;
-x_norm = norm(x).' + Rmax;
+x_norm = ((norm(x) + Rmax ).* (norm_weight.^-1)).';
 lambda_norm = x_norm(1:x.size_scalar);
 v_norm = x_norm(x.size_scalar+1:end);
 Kx = x;
 for j = 1:x.size_vector
     Kx.vector(j,:) = K.*x.vector(j,:);
 end
-Kx_norm = norm(Kx)+Rmax;
+Kx_norm = (norm(Kx) + Rmax) .* (norm_weight.^-1);
 Kv_norm = Kx_norm(x.size_scalar+1:end);
 KKx = x;
 for j = 1:x.size_vector
     KKx.vector(j,:) = K.*Kx.vector(j,:);
 end
-KKx_norm = norm(KKx)+Rmax;
+KKx_norm = (norm(KKx) + Rmax) .* (norm_weight.^-1);
 KKv_norm = KKx_norm(x.size_scalar+1:end);
 
 DpsiDF = intval(zeros(length(x_norm),1));
@@ -159,7 +160,6 @@ for i=1:alpha.scalar_equations.number_equations_pol % equation
     for j=1:alpha.scalar_equations.polynomial_equations.n_terms(i) % element of the equation
         d=[alpha.scalar_equations.polynomial_equations.power_scalar{i}(:,j).', alpha.scalar_equations.polynomial_equations.power_vector{i}{j}.'];
         const=alpha.scalar_equations.polynomial_equations.value{i}(j);
-        N=length(d);
         
         X = prod(x_norm.^power_loc.');
         
@@ -178,10 +178,13 @@ end
 DD_user_norm = DD_user(:,1);
 DpsiDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) = ...
     DpsiDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) + DD_user_norm;
+DpsiDF = DpsiDF .* norm_weight;
 end
 
 function DDF = upper_bound_DDF_without_psi(alpha, x, Rmax)
 global nu
+global norm_weight
+
 modes = x.nodes;
 if nu^(2*modes+2) < exp(1)
     Lemma_bound = nu^(2*modes+2)/ (exp(1) * log(nu^(2*modes+2)));
@@ -190,7 +193,7 @@ else
 end
 M = x.size_scalar;
 N = x.size_vector;
-x_norm = norm(x).' + Rmax;
+x_norm = ((norm(x) + Rmax) .* (norm_weight.^-1)).';
 lambda_norm = x_norm(1:x.size_scalar);
 v_norm = x_norm(x.size_scalar+1:end);
 I = eye(M+N);
@@ -259,6 +262,8 @@ end
 DD_user_norm = sum(DD_user(:,2:end),2);
 DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) = ...
     DDF(end-alpha.scalar_equations.number_equations_non_computable+1:end) + DD_user_norm;
+
+DDF = DDF .* norm_weight;
 end
 
 function block = block_norm_unused(M, P, Q, R, D3F2, psi, x)
