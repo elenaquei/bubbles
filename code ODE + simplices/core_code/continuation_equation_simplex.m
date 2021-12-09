@@ -93,14 +93,8 @@ for i = 2:size(coefs,2)
     rotated_coefs(:,i) = rotated_x_vec;
 end
 
-
-% 
-% 
-% 
-% 
 % A = [imag(x), real(x), imag(y), real(y), zeros(x0.size_scalar,4);
 %     zeros(x0.size_scalar,4),imag(x), real(x), imag(y), real(y)];
-% 
 % 
 % f = @(c) [A*c;
 %     dot(c(1)+1i*c(2),c(1)+1i*c(2)) + dot(c(3)+1i*c(4),c(3)+1i*c(4)) - 1
@@ -152,8 +146,7 @@ apply_theta_rotation_flipped = @(theta) [sin(theta) cos(theta); cos(theta) -sin(
 theta_best = 0;
 norm_best = norm(old_coefs - apply_theta_rotation(theta_best));
 flipped = 0;
-for theta = 0:0.2:2*pi
-    
+for theta = 0:0.02:2*pi
     norm_rotated = norm(old_coefs - apply_theta_rotation(theta));
     if norm_rotated < norm_best
         flipped = 0;
@@ -175,5 +168,6 @@ else
     rotated_coefs = apply_theta_rotation(theta_best).';
 end
 
+rotated_coefs = old_coefs.';
 
 end
