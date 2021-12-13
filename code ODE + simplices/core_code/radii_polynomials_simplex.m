@@ -151,7 +151,7 @@ end
 
 % Y BOUND
 if has_delay(alpha0)
-    Yvector = Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct);
+    Yvector = 0.1;%Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct);
 else
     if ~isempty(previous_iter0) && ~isempty(previous_iter0.Y)
         [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,...
@@ -220,6 +220,12 @@ if ~has_delay(alpha0)
         'Z0_extrema',Z0s(:,end),'Y_extrema',Ys(:,end),'Z2',Z2vector);
     list_of_nodes{indeces(3)}.previous_validation = new_iter;
 end
+
+upper_bound = (intval(Z1vector)+intval(Z0vector)-1).^2./(4*Z2vector);
+Yvector = Y_delay_refinement(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct, upper_bound);
+
+
+
 % computation of the radius
 try
     [bool,Imin,Imax]=find_negative(Z2vector,Z1vector,Z0vector,Yvector);
