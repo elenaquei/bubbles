@@ -145,12 +145,18 @@ classdef derivative
                 DxF = DxF+kron( 1i*A.derivative_Fx_diagonal, Diag);
             else
                 %DxG = [DGx_v;kron(A.derivative_G_hat,One)];
-                sup_A = kron(sup(1i*A.derivative_Fx_diagonal),Diag);
-                inf_A = kron(inf(1i*A.derivative_Fx_diagonal),Diag);
-                int_A = infsup(inf_A,sup_A);
-                clear inf_A sup_A;
+                sup_A_real = kron(sup((1i*A.derivative_Fx_diagonal)),Diag);
+                sup_A_imag = kron(sup(imag(1i*A.derivative_Fx_diagonal)),Diag);
+                inf_A_real = kron(inf(real(1i*A.derivative_Fx_diagonal)),Diag);
+                inf_A_imag = kron(inf(imag(1i*A.derivative_Fx_diagonal)),Diag);
+                min_A_real = min(inf_A_real, sup_A_real);
+                max_A_real = min(inf_A_real, sup_A_real);
+                min_A_imag = min(inf_A_imag, sup_A_imag);
+                max_A_imag = min(inf_A_imag, sup_A_imag);
+                int_A = infsup(min_A_real,max_A_real) + 1i*infsup(min_A_imag,max_A_imag);
+                clear inf_A_real sup_A_real inf_A_imag sup_A_imag
                 DxF = DxF+int_A;
-                clear int_A;
+                clear int_A
             end
             
             

@@ -18,6 +18,19 @@ norm_weight_long = [weight_vector; weight_scalar; weight_vector];
 
 use_intlab = 1;
 
+
+% reshape all inputs
+new_nodes = 5*x0.nodes;
+[A_small0, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
+[A_small1, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
+[A_small2, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);
+x0 = reshape(x0, new_nodes);
+x1 = reshape(x1, new_nodes);
+x2 = reshape(x2, new_nodes);
+alpha0 = reshape(alpha0, new_nodes);
+alpha1 = reshape(alpha1, new_nodes);
+alpha2 = reshape(alpha2, new_nodes);
+
 degree = alpha0.vector_field.deg_vector;
 n_nodes = x0.nodes;
 size_vector = x0.size_vector;
@@ -39,9 +52,9 @@ x_int = interpolation(x0, x1, x2);
         D3F2 = A_struct.D3F2;
     end
 
-[A_small0, M0, P0, Q0, R0, phi0, D3F20] = extract_from_struct(A0_struct);
-[A_small1, M1, P1, Q1, R1, phi1, D3F21] = extract_from_struct(A1_struct);
-[A_small2, M2, P2, Q2, R2, phi2, D3F22] = extract_from_struct(A2_struct);
+% [A_small0, M0, P0, Q0, R0, phi0, D3F20] = extract_from_struct(A0_struct);
+% [A_small1, M1, P1, Q1, R1, phi1, D3F21] = extract_from_struct(A1_struct);
+% [A_small2, M2, P2, Q2, R2, phi2, D3F22] = extract_from_struct(A2_struct);
     
 
 % [A_small0, M0, P0, Q0, R0, phi0, D3F20] = A_delay_symplex(alpha0, x0);

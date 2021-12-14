@@ -1,4 +1,4 @@
-function A = create_A_of_size(alpha, x, final_n_nodes, Q, R, phi, D3F2, f_n_nodes)
+function [A,M,P,Q,R,phi, D3F2] = create_A_of_size(alpha, x, final_n_nodes, Q, R, phi, D3F2, f_n_nodes)
 % can be called either with
 %       function A = create_A_of_size(alpha, x, final_n_nodes)
 % or with 
@@ -6,7 +6,8 @@ function A = create_A_of_size(alpha, x, final_n_nodes, Q, R, phi, D3F2, f_n_node
 % or with
 %       function A = create_A_of_size(A_struct, final_n_nodes)
 % where A_struct is a strcture with properties A, M, P, Q, R, phi, D3F2
-
+%
+% returns A, M, P, Q, R, phi, D3F2
 if nargin ==2
     A_struct = alpha;
     final_n_nodes = x;
@@ -20,7 +21,8 @@ if nargin ==2
     size_scalar = size(R,1);
     size_vector = size(D3F2,2);
     nodes = (size(M,1)/size_vector - 1)/2;
-    if final_n_nodes < x.nodes
+    small_length = size(A_small,1);
+    if final_n_nodes < nodes
         error('Cannot have a matrix A of size smaller than the initial vector')
     end
 elseif nargin ==3
@@ -77,5 +79,18 @@ for j = 1: size_vector
 end
 right_indices_nodes(1:size_scalar) = 1:size_scalar;
 A = A_wrong_indeces(right_indices_nodes,right_indices_nodes);
+
+if nargout <2
+    return
+end
+
+index_scalar = 1:size_scalar;
+index_vector = size_scalar+1:size(A,1);
+
+M = A(index_vector,index_vector);
+P = A(index_vector,index_scalar);
+Q = A(index_scalar, index_vector);
+R = A(index_scalar, index_scalar);
+
 
 

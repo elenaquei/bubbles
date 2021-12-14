@@ -224,8 +224,6 @@ end
 upper_bound = (intval(Z1vector)+intval(Z0vector)-1).^2./(4*Z2vector);
 Yvector = Y_delay_refinement(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct, upper_bound);
 
-
-
 % computation of the radius
 try
     [bool,Imin,Imax]=find_negative(Z2vector,Z1vector,Z0vector,Yvector);

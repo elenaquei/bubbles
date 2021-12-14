@@ -31,19 +31,19 @@ A01_struct = mean_struct(A0_struct, A1_struct);
 A02_struct = mean_struct(A0_struct, A2_struct);
 A12_struct = mean_struct(A2_struct, A1_struct);
 
-Y0 = compute_Y(alpha0, alpha01, alpha02, x0, x01, x02, A0_struct, A01_struct, A02_struct);
+Y0 = Y_delay_simplex(alpha0, alpha01, alpha02, x0, x01, x02, A0_struct, A01_struct, A02_struct);
 if any(Y0>upper_bound)
     Y0 = refine(alpha0, alpha01, alpha02, x0, x01, x02, A0_struct, A01_struct, A02_struct, upper_bound, depth+1);
 end
-Y1 = compute_Y(alpha01, alpha1, alpha12, x01, x1, x12, A01_struct, A1_struct, A12_struct);
+Y1 = Y_delay_simplex(alpha01, alpha1, alpha12, x01, x1, x12, A01_struct, A1_struct, A12_struct);
 if any(Y1>upper_bound)
     Y1 = refine(alpha01, alpha1, alpha12, x01, x1, x12, A01_struct, A1_struct, A12_struct, upper_bound, depth+1);
 end
-Y2 = compute_Y(alpha02, alpha12, alpha2, x02, x12, x2, A02_struct, A12_struct, A2_struct);
+Y2 = Y_delay_simplex(alpha02, alpha12, alpha2, x02, x12, x2, A02_struct, A12_struct, A2_struct);
 if any(Y2>upper_bound)
     Y2 = refine(alpha02, alpha12, alpha2, x02, x12, x2, A02_struct, A12_struct, A2_struct, upper_bound, depth+1);
 end
-Y3 = compute_Y(alpha02, alpha12, alpha01, x02, x12, x01, A02_struct, A12_struct, A01_struct);
+Y3 = Y_delay_simplex(alpha02, alpha12, alpha01, x02, x12, x01, A02_struct, A12_struct, A01_struct);
 if any(Y3>upper_bound)
     Y3 = refine(alpha02, alpha12, alpha01, x02, x12, x01, A02_struct, A12_struct, A01_struct, upper_bound, depth+1);
 end
