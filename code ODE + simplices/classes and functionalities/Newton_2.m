@@ -35,7 +35,7 @@ if ~exist('maxiter','var') || isempty(maxiter)
     maxiter=10;
 end
 if ~exist('min_res','var') || isempty(min_res)
-    min_res=10^-12;
+    min_res=10^-10;
 end
 
 if use_intlab

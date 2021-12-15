@@ -205,7 +205,7 @@ for i=1:alpha.vector_field.n_equations % equation
         power_loc=[alpha.vector_field.power_scalar{i}(:,j).', alpha.vector_field.power_vector{i}{j}.'];
         const=abs(alpha.vector_field.value{i}(j));
         if any(alpha.vector_field.dot{i}{j})
-            const = const * (modes+1);
+            const = const * (modes+1); % instead of K, we directly multiply by (modes + 1)
         end
         abs_delay_loc = abs(alpha.vector_field.delay{i}{j}).';
         n_delays = length(find(abs_delay_loc));

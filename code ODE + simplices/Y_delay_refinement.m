@@ -9,9 +9,11 @@ end
 
 
 function Y = refine(alpha0, alpha1, alpha2, x0, x1, x2, A0_struct, A1_struct, A2_struct, upper_bound, depth)
-if depth > 4
-    disp(depth)
-    %error('Too many refinements')
+if depth > 1
+    fprintf('We need %i refinements\n',depth)
+    if depth > 6
+        error('Too many refinements')
+    end
 end
 x01 = 0.5 * (x0 + x1);
 x02 = 0.5 * (x0 + x2);

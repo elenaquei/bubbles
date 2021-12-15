@@ -149,26 +149,6 @@ if use_intlab
     end
 end
 
-% Y BOUND
-if has_delay(alpha0)
-    Yvector = 0.1;%Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct);
-else
-    if ~isempty(previous_iter0) && ~isempty(previous_iter0.Y)
-        [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,...
-            alpha0,alpha1,alpha2,previous_iter0.Y,previous_iter1.Y);
-    else
-        [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0,alpha1,alpha2);
-    end
-end
-
-if talkative>1
-    fprintf('\nComputed Y, time %s\n\n',datestr(now,13));
-end
-
-if any(Yvector>1)
-    return
-end
-
 % Z0 BOUND
 if has_delay(alpha0)
     Z0vector = Z0_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct, DH0, DH1, DH2);
@@ -221,8 +201,30 @@ if ~has_delay(alpha0)
     list_of_nodes{indeces(3)}.previous_validation = new_iter;
 end
 
-upper_bound = (intval(Z1vector)+intval(Z0vector)-1).^2./(4*Z2vector);
-Yvector = Y_delay_refinement(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct, upper_bound);
+
+% Y BOUND
+if has_delay(alpha0)
+    % Yvector = Y_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct);
+    upper_bound = (intval(Z1vector)+intval(Z0vector)-1).^2./(4*Z2vector);
+    Yvector = Y_delay_refinement(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct, upper_bound);
+else
+    if ~isempty(previous_iter0) && ~isempty(previous_iter0.Y)
+        [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,...
+            alpha0,alpha1,alpha2,previous_iter0.Y,previous_iter1.Y);
+    else
+        [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,alpha0,alpha1,alpha2);
+    end
+end
+
+if talkative>1
+    fprintf('\nComputed Y, time %s\n\n',datestr(now,13));
+end
+
+if any(Yvector>1)
+    return
+end
+
+
 
 % computation of the radius
 try

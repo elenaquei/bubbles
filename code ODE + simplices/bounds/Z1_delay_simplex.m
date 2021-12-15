@@ -20,7 +20,7 @@ use_intlab = 1;
 
 
 % reshape all inputs
-new_nodes = 5*x0.nodes;
+new_nodes = 120;%5*x0.nodes;
 [A_small0, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
 [A_small1, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
 [A_small2, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);

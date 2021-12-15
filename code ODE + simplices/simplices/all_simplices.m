@@ -36,9 +36,6 @@ classdef all_simplices
             end
             alpha 0.5
             set(gca,'FontSize',18)
-            xlabel('$I$','Interpreter','Latex', 'FontSize', 20);
-            ylabel('$\epsilon$','Interpreter','Latex', 'FontSize', 20);
-            zlabel('amplitude','Interpreter','Latex', 'FontSize', 20);
             hold off
         end
         

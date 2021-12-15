@@ -5,15 +5,15 @@ global nu
 global talkative
 global norm_weight
 norm_weight = [1,1,1,1,1,1,1,1,1,0.8,1.2].';
-talkative = 2;
+talkative = 0;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
 n_modes = 20; % TOO BIG AND IT'S a problem for Y, too small and it's a problem for Z1
-n_iter = 6;
-step_size = 10^-5;
+n_iter = 600;
+step_size = 10^-3;
 plotting_instructions = 5;
-bool_Hopf = 0; % the Hopf blow up is already taken into account
+bool_Hopf = 1; % the Hopf blow up is already taken into account
 bool_validated = 1;
 
 load('./Kevins_code/point_candidate.mat')
@@ -119,10 +119,78 @@ simplices_set_up(first_node, zero_finding_problem, step_size);
 
 bool_validated = 0;
 % only numerical run, then we can select the simplices we are interested in
+% save_file = continuation_simplex(xi, zero_finding_problem,...
+%     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
+% 
+% load(save_file)
+
+smallest_amplitude = abs(xi.scalar(3));
+while smallest_amplitude > 10^-4
+    step_size_local = smallest_amplitude;
+    n_iter_around = 20;
+    xi = best_node.solution;
+    disp(xi.scalar(3))
+    
+    save_file = continuation_simplex(xi, zero_finding_problem,...
+        n_iter_around, step_size_local, save_file, bool_Hopf, bool_validated, plotting_instructions);
+    load(save_file)
+    amplitude_vec = 0 * [1:length(list_of_nodes)];
+    for i=1:length(list_of_nodes)
+        node_i = list_of_nodes{i};
+        amplitude_vec(i) = node_i.solution.scalar(3);
+    end
+    [smallest_amplitude, best_node_index] = min(abs(amplitude_vec));
+    best_node = list_of_nodes{best_node_index};
+end
+
+
+while smallest_amplitude > 3*10^-6
+    step_size_local = 0.7*smallest_amplitude;
+    n_iter_closing = 10;
+    xi = best_node.solution;
+    disp(xi.scalar(3))
+    
+    save_file = continuation_simplex(xi, zero_finding_problem,...
+        n_iter_closing, step_size_local, save_file, bool_Hopf, bool_validated, plotting_instructions);
+    load(save_file)
+    amplitude_vec = 0 * [1:length(list_of_nodes)];
+    for i=1:length(list_of_nodes)
+        node_i = list_of_nodes{i};
+        amplitude_vec(i) = node_i.solution.scalar(3);
+    end
+    [smallest_amplitude, best_node_index] = min(abs(amplitude_vec));
+    best_node = list_of_nodes{best_node_index};
+end
+
+
+for i = 1:50
+    step_size_local = 0.7*smallest_amplitude;
+    n_iter_closing = 10;
+    xi = best_node.solution;
+    disp(xi.scalar(2))
+    
+    save_file = continuation_simplex(xi, zero_finding_problem,...
+        n_iter_closing, 10^-2, save_file, bool_Hopf, bool_validated, plotting_instructions);
+    load(save_file)
+    mu_vec = 0 * [1:length(list_of_nodes)];
+    for i=1:length(list_of_nodes)
+        node_i = list_of_nodes{i};
+        mu_vec(i) = node_i.solution.scalar(2);
+    end
+    [smallest_amplitude, best_node_index] = min(abs(mu_vec));
+    best_node = list_of_nodes{best_node_index};
+end
+
+
+xi = best_node.solution;
+
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
-
 load(save_file)
+
+xlabel('$x$','Interpreter','Latex', 'FontSize', 20);
+ylabel('amplitude','Interpreter','Latex', 'FontSize', 20);
+zlabel('$\mu$','Interpreter','Latex', 'FontSize', 20);
 
 [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
     Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
