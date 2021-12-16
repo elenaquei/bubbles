@@ -96,8 +96,8 @@ temp_intlab=use_intlab;
 use_intlab=1;
 
 %%
-    function Y2 = Adelta_dxF_xDelta(A0, A1, xBarDelta, xBar0, alphaS, xBarS_short)
-        DH_xs2 = derivative_to_matrix(derivative(alphaS,xBarS_short));
+    function Y2 = Adelta_dxF_xDelta(A0, A1, xBarDelta, xBar0)
+        
         new_nodes = ((size(DH_xs2,1)-xBar0.size_scalar)/xBar0.size_vector - 1)/2;
         xBarDelta_long = reshape_Xi(xBarDelta,new_nodes);
         
@@ -110,28 +110,18 @@ use_intlab=1;
         Y2=vec2Xi_vec(Adiff*full_DH_xs,...
             xBarDelta_long.size_scalar,xBarDelta_long.size_vector,xBarDelta_long.nodes);
     end
-
-Y2_d1d1 = Adelta_dxF_xDelta(A0, A1, xBarDelta1, xBar0, alphaS, xBarS_short);
-Y2_d2d2 = Adelta_dxF_xDelta(A0, A2, xBarDelta2, xBar0, alphaS, xBarS_short);
+DH_xs2 = derivative_to_matrix(derivative(alphaS,xBarS_short));
+Y2_d1d1 = Adelta_dxF_xDelta(A0, A1, xBarDelta1, xBar0);
+Y2_d2d2 = Adelta_dxF_xDelta(A0, A2, xBarDelta2, xBar0);
 % order doesn't matter, as long as we coer all options
-Y2_d1d2 = Adelta_dxF_xDelta(A0, A1, xBarDelta2, xBar0, alphaS, xBarS_short); 
-Y2_d2d1 = Adelta_dxF_xDelta(A0, A2, xBarDelta1, xBar0, alphaS, xBarS_short);
+Y2_d1d2 = Adelta_dxF_xDelta(A0, A1, xBarDelta2, xBar0); 
+Y2_d2d1 = Adelta_dxF_xDelta(A0, A2, xBarDelta1, xBar0);
 
-Y2 = 2*cnorm_Xi_vector(max(max(Y2_d1d1,Y2_d2d2),max(Y2_d1d2,Y2_d2d1)),nu);
+% Y2 = 2*cnorm_Xi_vector(max(max(Y2_d1d1,Y2_d2d2),max(Y2_d1d2,Y2_d2d1)),nu);
 
 %%
 
-if isintval(A0)
-    As = infsup (   ...
-    min(min(inf(real(A0)),inf(real(A1))),inf(real(A2))), ...
-    max( max(sup(real(A0)),sup(imag(A1))), sup(real(A2))))+...
-        1i*infsup (   ...
-    min(min(inf(imag(A0)),inf(imag(A1))),inf(imag(A2))), ...
-    max( max(sup(imag(A0)),sup(imag(A1))), sup(imag(A2))));
-else
-    As = infsup( min(min(real(A0),real(A1)), real(A2)),max(max(real(A0),real(A1)),real(A2)) )+...
-        1i*infsup( min(min(imag(A0),imag(A1)), imag(A2)),max(max(imag(A0),imag(A1)),imag(A2)));
-end
+As = interpolation(A0, A1, A2);
 % 4 options for DDH_xdeltai_xDeltaj
 DDH_xD1_xD1 = Function_directional_second_derivative(alpha1,xBarS_short,xBarDelta1_short,xBarDelta1_short);
 DDH_xD1_xD2 = Function_directional_second_derivative(alpha1,xBarS_short,xBarDelta1_short,xBarDelta2_short);
@@ -150,9 +140,9 @@ Y3_d2d1 = Y3_d1d2;
 Y3_d2d2 = vec2Xi_vec(As_big*Xi_vec2vec(DDH_xD2_xD2),...
     xBarDelta1.size_scalar,xBarDelta1.size_vector,nodes_new);
 
-Y3_vec = max(sup(abs(Y3_d1d1)), max(abs(Y3_d1d2), abs(Y3_d2d2)));
+% Y3_vec = max(sup(abs(Y3_d1d1)), max(abs(Y3_d1d2), abs(Y3_d2d2)));
 
-Y3=cnorm_Xi_vector(Y3_vec,nu);
+% Y3=cnorm_Xi_vector(Y3_vec,nu);
 
 %%
 
@@ -187,7 +177,6 @@ end
 Adiff1_small = A1-A0;
 Adiff2_small = A2-A0;
 
-
 Y4_d1d1 = vec2Xi_vec(Adiff1_small*Hdiff1_xs,...
     xBar0.size_scalar,xBar0.size_vector,xBar0.nodes);
 Y4_d1d2 = vec2Xi_vec(Adiff1_small*Hdiff2_xs,...
@@ -197,13 +186,12 @@ Y4_d2d1 = vec2Xi_vec(Adiff2_small*Hdiff1_xs,...
 Y4_d2d2 = vec2Xi_vec(Adiff2_small*Hdiff2_xs,...
     xBar0.size_scalar,xBar0.size_vector,xBar0.nodes);
 
-
 Y4_d1d1 = reshape_Xi(Y4_d1d1,Y2_d1d1.nodes);
 Y4_d1d2 = reshape_Xi(Y4_d1d2,Y2_d1d1.nodes);
 Y4_d2d1 = reshape_Xi(Y4_d2d1,Y2_d1d1.nodes);
 Y4_d2d2 = reshape_Xi(Y4_d2d2,Y2_d1d1.nodes);
 
-Y4 = 2* cnorm_Xi_vector(max(max(abs(Y4_d1d1),abs(Y4_d1d2)),max(abs(Y4_d2d1),abs(Y4_d2d2))),nu);
+%Y4 = 2* cnorm_Xi_vector(max(max(abs(Y4_d1d1),abs(Y4_d1d2)),max(abs(Y4_d2d1),abs(Y4_d2d2))),nu);
 
 Y5_d1d1 = vec2Xi_vec(As*DxHdiff1_xsxD1,...
     xBar0.size_scalar,xBar0.size_vector,xBar0.nodes);
@@ -219,14 +207,10 @@ Y5_d1d2 = reshape_Xi(Y5_d1d2,Y2_d1d1.nodes);
 Y5_d2d1 = reshape_Xi(Y5_d2d1,Y2_d1d1.nodes);
 Y5_d2d2 = reshape_Xi(Y5_d2d2,Y2_d1d1.nodes);
 
-
-Y5 = cnorm_Xi_vector(max(max(abs(Y5_d1d1),abs(Y5_d1d2)),max(abs(Y5_d2d1),abs(Y5_d2d2))),nu);
-
+% Y5 = cnorm_Xi_vector(max(max(abs(Y5_d1d1),abs(Y5_d1d2)),max(abs(Y5_d2d1),abs(Y5_d2d2))),nu);
 
 
-%%
-
-% ideally - but sizes are different
+% merging
 Ys_d1d1 = Y2_d1d1 + Y3_d1d1 + 2*Y4_d1d1 + 2*Y5_d1d1;
 Ys_d1d2 = Y2_d1d2 + Y3_d1d2 + 2*Y4_d1d2 + 2*Y5_d1d2;
 Ys_d2d1 = Y2_d2d1 + Y3_d2d1 + 2*Y4_d2d1 + 2*Y5_d2d1;

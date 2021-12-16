@@ -1,5 +1,5 @@
-function alpha = fancy_scalar_condition(xi_vec, alpha, n_eq)
-% function alpha = fancy_scalar_condition(x_Xivec, alpha, n_eq)
+function alpha_out = fancy_scalar_condition(xi_vec, alpha, n_eq)
+% function alpha_out = fancy_scalar_condition(x_Xivec, alpha, n_eq)
 %
 % create an istance of scalar_eq with the fancy scalar condition 
 %     int_[0,2pi] x(t) dot x'(t) dt = 0
@@ -11,7 +11,7 @@ function alpha = fancy_scalar_condition(xi_vec, alpha, n_eq)
 % alpha      scalar_eq where to append the new scalar eq.(DEFAULT empty)
 % n_eq       int, which equation to overwright (DEFAULT 1)
 % OUTPUT
-% alpha      istance of scalar_eq containing the linear coefficients referring to the
+% alpha_out      istance of scalar_eq containing the linear coefficients referring to the
 %            fancy scalar condition
 %                  \int_[0,2pi] x(t) dot x'(t) dt = 0
 %
@@ -40,8 +40,8 @@ lin_coef{3} = 0;
 if nargin<2 || isempty(alpha)
     polynomial = polynomial_coefs(n_scalar, n_vector, 0, ...
         [], [],[],[]);
-    alpha = scalar_eq(n_eqs, n_eq_vec, n_scalar, n_vector, lin_coef, polynomial);
+    alpha_out = scalar_eq(n_eqs, n_eq_vec, n_scalar, n_vector, lin_coef, polynomial);
 else
-    alpha = change_lin_coef(alpha,lin_coef,n_eq);
+    alpha_out = change_lin_coef(alpha,lin_coef,n_eq);
 end
 

@@ -42,61 +42,15 @@ xBarDelta_short=xBar0-xBar1;
 %
 % (!) requires use_intlab anyway (!)
 
-
-coefs_linear1 = alpha1.scalar_equations.linear_coef;
-coefs_linear0 = alpha0.scalar_equations.linear_coef;
-xBarS_short=interval_Xi(xBar0,xBar1);
-if ~isintval(coefs_linear1{1})
-    min_coef1=min(real(coefs_linear1{1}),real(coefs_linear0{1}))+...
-        1i*min(imag(coefs_linear1{1}),imag(coefs_linear0{1}));
-    max_coef1=max(real(coefs_linear1{1}),real(coefs_linear0{1}))+...
-        1i*max(imag(coefs_linear1{1}),imag(coefs_linear0{1}));
-    min_coef2=min(real(coefs_linear1{2}),real(coefs_linear0{2}))+...
-        1i*min(imag(coefs_linear1{2}),imag(coefs_linear0{2}));
-    max_coef2=max(real(coefs_linear1{2}),real(coefs_linear0{2}))+...
-        1i*max(imag(coefs_linear1{2}),imag(coefs_linear0{2}));
-    min_coef3=min(real(coefs_linear1{3}),real(coefs_linear0{3}))+...
-        1i*min(imag(coefs_linear1{3}),imag(coefs_linear0{3}));
-    max_coef3=max(real(coefs_linear1{3}),real(coefs_linear0{3}))+...
-        1i*max(imag(coefs_linear1{3}),imag(coefs_linear0{3}));
-else
-    min_coef1=min(inf(real(coefs_linear1{1})),inf(real(coefs_linear0{1})))+...
-        1i*min(inf(imag(coefs_linear1{1})),inf(imag(coefs_linear0{1})));
-    max_coef1=max(sup(real(coefs_linear1{1})),sup(real(coefs_linear0{1})))+...
-        1i*max(sup(imag(coefs_linear1{1})),sup(imag(coefs_linear0{1})));
-    
-    min_coef2=min(inf(real(coefs_linear1{2})),inf(real(coefs_linear0{2})))+...
-        1i*min(inf(imag(coefs_linear1{2})),inf(imag(coefs_linear0{2})));
-    max_coef2=max(sup(real(coefs_linear1{2})),sup(real(coefs_linear0{2})))+...
-        1i*max(sup(imag(coefs_linear1{2})),sup(imag(coefs_linear0{2})));
-    
-    min_coef3=min(inf(real(coefs_linear1{3})),inf(real(coefs_linear0{3})))+...
-        1i*min(inf(imag(coefs_linear1{3})),inf(imag(coefs_linear0{3})));
-    max_coef3=max(sup(real(coefs_linear1{3})),sup(real(coefs_linear0{3})))+...
-        1i*max(sup(imag(coefs_linear1{3})),sup(imag(coefs_linear0{3})));
-end
-coefs_linearS{1}=infsup(min_coef1,max_coef1);
-coefs_linearS{1}(end)=0;
-coefs_linearS{2}=infsup(min_coef2,max_coef2);
-coefs_linearS{2}(end,:,:)=0;
-coefs_linearS{3}=infsup(min_coef3,max_coef3);
-coefs_linearS{3}(end)=0;
+xBarS_short=interpolation(xBar0,xBar1);
 
 xBarS= reshape_Xi(xBarS_short,xBarS_short.nodes*(alpha0.vector_field.deg_vector-1));
 xBarDelta=reshape_Xi(xBarDelta_short,xBarS.nodes);
-if alpha0.vector_field.deg_vector>2
-    pad=zeros(size(coefs_linearS{2},1),size(coefs_linearS{2},2),xBar0.nodes*(alpha0.vector_field.deg_vector-2));
-    pad = intval(pad);
-    coefs_linearS{2}=intvalCAT(3,pad,intvalCAT(3,coefs_linearS{2},pad));
-    
-end
-
-alphaS = alpha1;
-alphaS.scalar_equations.linear_coef = coefs_linearS;
+alphaS = interpolation(alpha0, alpha1);
 
 temp_intlab=use_intlab;
 use_intlab=1;
-%alphaS = reshape(alphaS, xBarS.nodes);
+alphaS = reshape(alphaS, xBarS.nodes);
 DH_xs2 = derivative_to_matrix(derivative(alphaS,xBarS_short)); 
 new_nodes = ((size(DH_xs2,1)-xBar0.size_scalar)/xBar0.size_vector - 1)/2;
 xBarDelta_long = reshape_Xi(xBarDelta,new_nodes);
@@ -114,14 +68,7 @@ Y2=2*cnorm_Xi_vector(vec2Xi_vec(Adiff*full_DH_xs,...
     xBarDelta_long.size_scalar,xBarDelta_long.size_vector,xBarDelta_long.nodes),nu);
 
 
-
-if isintval(A0)
-    As = infsup (   min(inf(real(A0)),inf(real(A1))), max(sup(real(A0)),sup(real(A1))) )+...
-        1i*infsup (   min(inf(imag(A0)),inf(imag(A1))), max(sup(imag(A0)),sup(imag(A1))) );
-else
-    As = infsup( min(real(A0),real(A1)),max(real(A0),real(A1)) )+...
-        1i*infsup( min(imag(A0),imag(A1)),max(imag(A0),imag(A1)) );
-end
+As = interpolation(A0, A1);
 
 DDH_xs = Function_directional_second_derivative(alpha1,xBarS_short,xBarDelta_short,xBarDelta_short);
 Hdiff_xs = intval(0*Xi_vec2vec(xBar0));
