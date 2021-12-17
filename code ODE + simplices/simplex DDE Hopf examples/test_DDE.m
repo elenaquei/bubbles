@@ -128,7 +128,6 @@ smallest_amplitude = abs(xi.scalar(3));
 while smallest_amplitude > 10^-4
     step_size_local = smallest_amplitude;
     n_iter_around = 20;
-    xi = best_node.solution;
     disp(xi.scalar(3))
     
     save_file = continuation_simplex(xi, zero_finding_problem,...
@@ -141,6 +140,7 @@ while smallest_amplitude > 10^-4
     end
     [smallest_amplitude, best_node_index] = min(abs(amplitude_vec));
     best_node = list_of_nodes{best_node_index};
+    xi = best_node.solution;
 end
 
 

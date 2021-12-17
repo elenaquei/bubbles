@@ -6,6 +6,8 @@ global nu
 global use_intlab
 global talkative
 global RAD_MAX
+global norm_weight
+norm_weight = [];
 nu = 1.1;
 talkative = 1;
 nu = 1.1;
@@ -17,7 +19,7 @@ catch
     startintlab;
 end
 
-bool_validated = 1;
+bool_validated = 0;
 if ~bool_validated
     % some elements useful for the computation and the validation
     n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
@@ -42,7 +44,9 @@ epsilon = 0.8;
 % l3 beta
 
 string_Church = 'dot x - beta x + y +x^3+xy^2+xz^2+alpha^2x \n dot y - x - beta y + yx^2+y^3+epsilon yz^2+alpha^2y\n dot z + z^5 - 3z^3 + 0.01 z - 0.1 alpha';
-string_Church_vars = strrep(string_Church, 'epsilon' , num2str(epsilon));
+string_Church_weird = 'dot x - beta x + y +x^3+xy^2+xz^2+alpha^2x \n dot y - x - beta y + yx^2+y^3+epsilon yz^2+alpha^2y\n dot z + z^5 - 3z^3 + 0.01 z - 0.1 alpha-0.01x^2-0.01y^2';
+
+string_Church_vars = strrep(string_Church_weird, 'epsilon' , num2str(epsilon));
 
 vectorfield = strrep(string_Church_vars, 'l1' , '');
 vectorfield = strrep(vectorfield, 'alpha' , 'l1');
@@ -76,7 +80,26 @@ sol_N_better = Newton_2(sol_N,F_square);
 
 bool_Hopf = 1;
 
+% save_file = continuation_simplex(sol_N_better, big_Hopf,...
+%     n_iter, step_size, save_file, bool_Hopf, bool_validated);
+% new_name_file = 'ChurchODE_2_validated';
+% new_name_file = start_were_we_left_off(save_file, n_iter,new_name_file);
+
+save_file = 'ChurchODE_num';
+bool_validated = 0;
 save_file = continuation_simplex(sol_N_better, big_Hopf,...
-    n_iter, step_size, save_file, bool_Hopf, bool_validated);
-new_name_file = 'ChurchODE_2_validated';
-new_name_file = start_were_we_left_off(save_file, n_iter,new_name_file);
+    2*n_iter, step_size, save_file, bool_Hopf, bool_validated);
+load(save_file)
+
+xlabel('$\lambda_2$','Interpreter','Latex', 'FontSize', 20);
+ylabel('amplitude','Interpreter','Latex', 'FontSize', 20);
+zlabel('$\lambda_3$','Interpreter','Latex', 'FontSize', 20);
+
+[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+    list_of_nodes, [], bool_Hopf);
+
+save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+    'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+    'list_of_frontal_nodes');
+

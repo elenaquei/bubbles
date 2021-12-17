@@ -195,11 +195,6 @@ end
 if talkative>1
     fprintf('\nComputed Z2, time %s\n\n',datestr(now,13));
 end
-if ~has_delay(alpha0)
-    new_iter=struct('Y',new_iter_Y,'Z1',new_iter_Z1,'Z1_extrema',Z1s(:,end),...
-        'Z0_extrema',Z0s(:,end),'Y_extrema',Ys(:,end),'Z2',Z2vector);
-    list_of_nodes{indeces(3)}.previous_validation = new_iter;
-end
 
 
 % Y BOUND
@@ -224,6 +219,11 @@ if any(Yvector>1)
     return
 end
 
+if ~has_delay(alpha0)
+    new_iter=struct('Y',new_iter_Y,'Z1',new_iter_Z1,'Z1_extrema',Z1s(:,end),...
+        'Z0_extrema',Z0s(:,end),'Y_extrema',Ys(:,end),'Z2',Z2vector);
+    list_of_nodes{indeces(3)}.previous_validation = new_iter;
+end
 
 
 % computation of the radius
