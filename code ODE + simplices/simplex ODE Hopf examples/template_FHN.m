@@ -3,6 +3,8 @@ global use_intlab
 global talkative
 global RAD_MAX
 global Display
+global norm_weight
+norm_weight = [];
 Display = 0;
 talkative = 1;
 use_intlab = 0;
@@ -20,7 +22,7 @@ end
 nu = 1.05;
 n_nodes = 7;
 step_size = 10^-3;
-n_iter = 300;
+n_iter = 3000;
 save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
 
 % starting parameters
@@ -109,5 +111,25 @@ big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 % launch the validation
 bool_Hopf = 1;
 use_intlab = 0;
-[list_of_simplices,list_of_nodes] = continuation_simplex(sol_N, big_Hopf,...
-    n_iter, step_size, save_file, bool_Hopf);
+%[list_of_simplices,list_of_nodes] = continuation_simplex(sol_N, big_Hopf,...
+%    n_iter, step_size, save_file, bool_Hopf);
+
+bool_validated = 0;
+save_file = 'saved elements/FHN_simplex_num';
+save_file = continuation_simplex(sol_N, big_Hopf,...
+    n_iter, step_size, save_file, bool_Hopf, bool_validated);
+load(save_file)
+
+xlabel('$\lambda_2$','Interpreter','Latex', 'FontSize', 20);
+ylabel('amplitude','Interpreter','Latex', 'FontSize', 20);
+zlabel('$\lambda_3$','Interpreter','Latex', 'FontSize', 20);
+
+[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+    list_of_nodes, [], bool_Hopf);
+
+save_file = 'saved elements/FHN_simplex_validation';
+save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+    'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+    'list_of_frontal_nodes');
+

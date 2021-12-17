@@ -7,7 +7,7 @@
 % F = 2
 % T parameter, starts at 0.0568
 %
-% dX = - Y^2 - ^2 - alpha X + alpha F - gamma U^2
+% dX = - Y^2 - Z^2 - alpha X + alpha F - gamma U^2
 % dY = XY - beta XZ - Y+G
 % dZ = beta XY + XZ -Z
 % dU = delta U + gamma UX +T
@@ -16,6 +16,8 @@ global nu
 global use_intlab
 global talkative
 global RAD_MAX
+global norm_weight
+norm_weight = [];
 nu = 1.1;
 talkative = 0;
 nu = 1.1;
@@ -33,10 +35,10 @@ end
 
 % some elements useful for the computation and the validation
 n_nodes = 7; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 500;
-step_size = 5*10^-3; % initial step size (then adapted along the validation
-save_file = 'Hopf_lorenz84_not_validated'; % where the solutions are stored
-bool_validated = 0;
+n_iter = 2000;
+step_size = 0.9*10^-2; % initial step size (then adapted along the validation
+save_file = 'Hopf_lorenz84_not_val_bigger'; % where the solutions are stored
+bool_validated = 1;
 
 f = @fn_Lorenz84; % We choose a map.
 df = @derivatives_Lorenz84;
@@ -141,7 +143,7 @@ polynomial = from_string_to_polynomial_coef(vectorfield2);
 big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 
 % big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
-load('Hopf_lorenz84_numerical.mat')
+load('stored_lorenz84.mat')
 sol_N = list_of_nodes{5}.solution;
 big_Hopf = list_of_nodes{5}.problem;
 % big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,6);
@@ -163,12 +165,22 @@ save_file = continuation_simplex(sol_N, big_Hopf,...
 load(save_file)
 plot(list_of_simplices,list_of_nodes)
 
-new_name_file = 'new_Hopf_lorenz84_not_validated';
-new_name_file = start_were_we_left_off(save_file, n_iter,new_name_file);
+save_file = start_were_we_left_off(save_file, n_iter,new_name_file);
 
 load(new_name_file)
 plot(list_of_simplices,list_of_nodes)
 
-new_name_file2 = 'new2_Hopf_lorenz84_not_validated';
-new_name_file = start_were_we_left_off(new_name_file, n_iter, new_name_file2);
 
+save_file = start_were_we_left_off(save_file, n_iter, new_name_file2);
+
+load(save_file)
+plot(list_of_simplices,list_of_nodes)
+
+bool_validated = 1;
+[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+    list_of_nodes, [], bool_Hopf);
+
+save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+    'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+    'list_of_frontal_nodes');

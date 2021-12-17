@@ -19,7 +19,7 @@ catch
     startintlab;
 end
 
-bool_validated = 0;
+bool_validated = 1;
 if ~bool_validated
     % some elements useful for the computation and the validation
     n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
@@ -86,20 +86,21 @@ bool_Hopf = 1;
 % new_name_file = start_were_we_left_off(save_file, n_iter,new_name_file);
 
 save_file = 'ChurchODE_num';
-bool_validated = 0;
-save_file = continuation_simplex(sol_N_better, big_Hopf,...
-    2*n_iter, step_size, save_file, bool_Hopf, bool_validated);
-load(save_file)
 
+save_file = continuation_simplex(sol_N_better, big_Hopf,...
+    3*n_iter, step_size, save_file, bool_Hopf, 0);
 xlabel('$\lambda_2$','Interpreter','Latex', 'FontSize', 20);
 ylabel('amplitude','Interpreter','Latex', 'FontSize', 20);
 zlabel('$\lambda_3$','Interpreter','Latex', 'FontSize', 20);
 
-[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-    list_of_nodes, [], bool_Hopf);
-
-save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-    'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-    'list_of_frontal_nodes');
-
+if bool_validated
+    
+    load(save_file)
+    [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+        list_of_nodes, [], bool_Hopf);
+    
+    save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+        'list_of_frontal_nodes');
+end

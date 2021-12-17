@@ -18,9 +18,8 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 5*10^-4;
-n_iter = 3000;
-save_file = 'saved elements/close_FHN2_validated'; % path where the validation will be saved
+n_iter = 800;
+save_file = 'saved elements/close_FHN2_notvalidated'; % path where the validation will be saved
 bool_Hopf = 1;
 bool_validated = 1;
 plotting_instructions = 5;
@@ -61,7 +60,9 @@ string_FHN_vars = strrep(string_FHN_vars, 'I' , 'l1');
 string_FHN_vars = strrep(string_FHN_vars, 'epsilon' , 'l2');
 
 
-load('./saved elements/getting_close_FHN5.mat')
+load('./saved elements/stored_FHN.mat')
+step_size = 10^-3;
+bool_validated = 1;
 
 epsilon_vec = 0 * [1:length(list_of_nodes)];
 for i=1:length(list_of_nodes)
@@ -94,3 +95,5 @@ big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 use_intlab = 1;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
+
+%save_file = start_were_we_left_off(save_file, n_niter, save_file)
