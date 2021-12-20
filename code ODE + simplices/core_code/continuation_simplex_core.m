@@ -66,6 +66,7 @@ while i < n_iter
                 fprintf('The validation of the %i-th simplex succeeded\n', j)
             end
             simplex_jj.verified = 1;
+            simplex_jj.validation_interval = [Imin, Imax];
             list_of_simplices.simplex{j} = simplex_jj;
             %storage
             Interval(:,j)  = [Imin,Imax]';

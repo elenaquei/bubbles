@@ -35,10 +35,10 @@ end
 
 % some elements useful for the computation and the validation
 n_nodes = 7; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 2000;
+n_iter = 6000;
 step_size = 0.9*10^-2; % initial step size (then adapted along the validation
 save_file = 'Hopf_lorenz84_not_val_bigger'; % where the solutions are stored
-bool_validated = 1;
+bool_validated = 0;
 
 f = @fn_Lorenz84; % We choose a map.
 df = @derivatives_Lorenz84;
@@ -162,25 +162,27 @@ use_intlab = 0;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated);
 
-load(save_file)
-plot(list_of_simplices,list_of_nodes)
+% load(save_file)
+% plot(list_of_simplices,list_of_nodes)
+% 
+% save_file = start_were_we_left_off(save_file, n_iter,new_name_file);
+% 
+% load(new_name_file)
+% plot(list_of_simplices,list_of_nodes)
+% 
+% 
+% save_file = start_were_we_left_off(save_file, n_iter, new_name_file2);
+% 
+% load(save_file)
+% plot(list_of_simplices,list_of_nodes)
 
-save_file = start_were_we_left_off(save_file, n_iter,new_name_file);
-
-load(new_name_file)
-plot(list_of_simplices,list_of_nodes)
-
-
-save_file = start_were_we_left_off(save_file, n_iter, new_name_file2);
-
-load(save_file)
-plot(list_of_simplices,list_of_nodes)
-
-bool_validated = 1;
-[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-    list_of_nodes, [], bool_Hopf);
-
-save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-    'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-    'list_of_frontal_nodes');
+if ~bool_validated
+    bool_validated = 1;
+    [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+        list_of_nodes, [], bool_Hopf);
+    
+    save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+        'list_of_frontal_nodes');
+end

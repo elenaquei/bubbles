@@ -29,11 +29,12 @@ if ~bool_validated
     save_file = 'ChurchODE'; % where the solutions are stored
 else
     n_nodes = 20; 
-    n_iter = 500;
+    n_iter = 5;
     % step size
-    step_size = 10^-4; 
+    step_size = 10^-2; 
     save_file = 'ChurchODE_validated'; % where the solutions are stored
 end
+save_file = 'ChurchODE_test';
 
 N = 3;
 DIM= N;
@@ -84,8 +85,6 @@ bool_Hopf = 1;
 %     n_iter, step_size, save_file, bool_Hopf, bool_validated);
 % new_name_file = 'ChurchODE_2_validated';
 % new_name_file = start_were_we_left_off(save_file, n_iter,new_name_file);
-
-save_file = 'ChurchODE_num';
 
 save_file = continuation_simplex(sol_N_better, big_Hopf,...
     3*n_iter, step_size, save_file, bool_Hopf, 0);

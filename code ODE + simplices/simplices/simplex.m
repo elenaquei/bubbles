@@ -6,21 +6,25 @@ classdef simplex
         verified
         frontal
         verification_coeff
+        validation_interval
     end
     methods
-        function simplex_x = simplex(nodes_number, number, verified, frontal)
+        function simplex_x = simplex(nodes_number, number, verified, frontal, validation_interval)
             if nargin <3 || isempty(verified)
                 verified = 0;
             end
             if nargin<4 || isempty(frontal)
                 frontal = 1;
             end
+            if nargin < 5 || verified == 0
+                validation_interval = [NaN, NaN];
+            end
             simplex_x.number = number;
             simplex_x.verified = verified;
             simplex_x.frontal = frontal;
             simplex_x.nodes_number = nodes_number;
             simplex_x.verification_coeff = 0; % for later, "how easy it was to verify"
-            
+            simplex_x.validation_interval = validation_interval;
         end
         
         function loc_node = node(simplex, list_of_nodes, i)

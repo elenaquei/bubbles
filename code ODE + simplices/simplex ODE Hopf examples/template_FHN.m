@@ -21,7 +21,7 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 10^-3;
+step_size = 10^-1.5;
 n_iter = 3000;
 save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
 

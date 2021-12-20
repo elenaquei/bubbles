@@ -3,6 +3,8 @@ global use_intlab
 global talkative
 global RAD_MAX
 global Display
+global norm_weight
+norm_weight = [];
 Display = 0;
 talkative = 1;
 use_intlab = 0;
@@ -18,8 +20,10 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-n_iter = 800;
-save_file = 'saved elements/close_FHN2_notvalidated'; % path where the validation will be saved
+n_iter = 10;
+save_file = 'saved elements/FHN_validated'; % path where the validation will be saved
+load('./saved elements/stored_FHN.mat')
+step_size = 0.7*10^-2;
 bool_Hopf = 1;
 bool_validated = 1;
 plotting_instructions = 5;
@@ -58,11 +62,6 @@ string_FHN_fix = strrep(string_FHN_fix, 'epsilon' , num2str(epsilon_fix));
 string_FHN_vars = strrep(string_FHN_vars, 'l1' , ''); 
 string_FHN_vars = strrep(string_FHN_vars, 'I' , 'l1'); 
 string_FHN_vars = strrep(string_FHN_vars, 'epsilon' , 'l2');
-
-
-load('./saved elements/stored_FHN.mat')
-step_size = 10^-3;
-bool_validated = 1;
 
 epsilon_vec = 0 * [1:length(list_of_nodes)];
 for i=1:length(list_of_nodes)
