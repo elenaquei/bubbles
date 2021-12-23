@@ -1,4 +1,13 @@
 function Y = Y_delay_refinement(alpha0, alpha1, alpha2, x0, x1, x2, A0_struct, A1_struct, A2_struct, upper_bound)
+% pre-check: if Y at the nodes is too big, there is no hope
+Y0 = Y_nodes(alpha0, x0, A0_struct);
+Y1 = Y_nodes(alpha1, x1, A1_struct);
+Y2 = Y_nodes(alpha2, x2, A2_struct);
+Y_edge = intval(max(Y0, max(Y1,Y2)));
+if Y_edge > upper_bound
+    error('Y cannot get small enough')
+end
+
 Y = compute_Y(alpha0, alpha1, alpha2, x0, x1, x2, A0_struct, A1_struct, A2_struct);
 depth = 1;
 if any(Y > upper_bound)
@@ -108,4 +117,41 @@ big_A_int = interpolation(big_A0, big_A1, big_A2);
 
 
 Y = brute_force_Y(big_A_int, alpha, x_int);
+end
+
+
+
+function Y_node = Y_nodes(alpha0, x0, A0_struct)
+global use_intlab
+
+if use_intlab
+    [alpha0, x0] = everything_intval(alpha0, x0);
+end
+
+n_nodes_long = alpha0.vector_field.deg_vector*x0.nodes;
+
+
+bool_long = 1;
+
+    function [A, M, P, Q, R, phi, D3F2] = extract_from_struct(A_struct)
+        A = A_struct.A;
+        M = A_struct.M;
+        P = A_struct.P;
+        Q = A_struct.Q;
+        R = A_struct.R;
+        phi = A_struct.phi;
+        D3F2 = A_struct.D3F2;
+    end
+
+[A0, M0, P0, Q0, R0, phi0, D3F20] = extract_from_struct(A0_struct);
+big_A0 = create_A_of_size(A0, M0, P0, Q0, R0, phi0, D3F20, n_nodes_long);
+    
+    
+    function Y_0 = non_cont_Y(A, alpha, x)
+        F = Xi_vec2vec(apply(alpha, x, bool_long));
+        Y_0 = norm(vec2Xi_vec(A*F, x.size_scalar, x.size_vector));
+    end
+
+
+Y_node = non_cont_Y(big_A0, alpha0, x0);
 end

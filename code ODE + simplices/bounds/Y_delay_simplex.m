@@ -41,7 +41,7 @@ Y0 = non_cont_Y(big_A0, alpha0, x0);
 Y1 = non_cont_Y(big_A1, alpha1, x1);
 Y2 = non_cont_Y(big_A2, alpha2, x2);
 
-Y_edge = intval(min(Y0, min(Y1,Y2)));
+Y_edge = intval(max(Y0, max(Y1,Y2)));
 
 % first term Taylor series
 % first der w.r.t. s
