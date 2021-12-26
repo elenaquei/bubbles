@@ -5,7 +5,7 @@ global nu
 global talkative
 global norm_weight
 norm_weight = [1,1,1,1,1,1,1,1,1,0.8,1.2].';
-talkative = 0;
+talkative = 3;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
@@ -99,21 +99,6 @@ f = @(x)Xi_vec2vec(apply(full_zero_finding_problem,vec2Xi_vec(x,xi)));
 
 xi = Newton_2(xi,full_zero_finding_problem);
 
-xi_0 = xi;
-xi_1 = xi;
-xi_2 = xi;
-if 3 == 1
-    use_intlab = 1;
-    % Y = Y_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
-    
-    % Z0 = Z0_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
-    
-    Z1 = Z1_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2);
-    
-    Z2 = Z2_delay_simplex(full_zero_finding_problem,full_zero_finding_problem,full_zero_finding_problem, xi_0, xi_1, xi_2, Rmax);
-    use_intlab = 0;
-end
-
 first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
 
@@ -183,18 +168,25 @@ end
 
 
 xi = best_node.solution;
-step_size = 10^-3;
+step_size = 10^-5;
+n_iter = 10;
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, 0, plotting_instructions);
 load(save_file)
 
-xlabel('$x$','Interpreter','Latex', 'FontSize', 20);
-ylabel('amplitude','Interpreter','Latex', 'FontSize', 20);
-zlabel('$\mu$','Interpreter','Latex', 'FontSize', 20);
-
+profile -memory on
 [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
     Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-    list_of_nodes, [], bool_Hopf);
+    list_of_nodes, [1], bool_Hopf,save_file);
+%[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+%    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+%    list_of_nodes, [], bool_Hopf,save_file);
+
+profile viewer % check what uses memory
+
+save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+    'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+    'list_of_frontal_nodes');
 
 
 function [F, dxF, dxF_mat, dxxF_norm] = noncomputable_eqs_for_DDE(xi)
@@ -315,20 +307,26 @@ if nargin <3 || isempty(index_simplices)
     index_simplices = 1:length(list_simplex);
 end
 
-
 for index = 1: length(index_simplices)
     i = index_simplices(index);
-    plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{:});
+    if length(index_simplices)>10
+        plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{1},'LineStyle','none',varargin{2:end});
+    else
+        plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{:});
+    end
     hold on
 end
 alpha 0.5
 set(gca,'FontSize',18)
 hold off
+xlabel('$x$','Interpreter','Latex', 'FontSize', 20);
+ylabel('amplitude','Interpreter','Latex', 'FontSize', 20);
+zlabel('$\mu$','Interpreter','Latex', 'FontSize', 20);
 end
 
-function plot_simplex(simplex, list_of_nodes, color)
+function plot_simplex(simplex, list_of_nodes, color, varargin)
 % function plot_simplex(simplex, color)
-if nargin<3
+if nargin<3 || isempty(color)
     if simplex.verified
         color = 'b';
     elseif simplex.frontal
@@ -347,11 +345,11 @@ for i = 1:3
     a_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(3);
     label{i} = 'x'+string(simplex.nodes_number(i));
 end
-label_simplex = 'S' +string(simplex.number);
-center_x = mean(p_coord);
-center_y = mean(R0_coord);
-center_z = mean(a_coord);
-fill3(p_coord,R0_coord,a_coord,color)
+% label_simplex = 'S' +string(simplex.number);
+% center_x = mean(p_coord);
+% center_y = mean(R0_coord);
+% center_z = mean(a_coord);
+fill3(p_coord,R0_coord,a_coord,color, varargin{:})
 
 %text(x_coord,y_coord,z_coord,label,'VerticalAlignment','bottom','HorizontalAlignment','right')
 %text(center_x,center_y,center_z,label_simplex,'VerticalAlignment','bottom','HorizontalAlignment','right')
