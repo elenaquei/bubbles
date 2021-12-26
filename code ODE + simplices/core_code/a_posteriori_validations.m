@@ -1,6 +1,6 @@
 function [list_of_simplices, index_failed_validation, Interval, Z0_iter, ...
     Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-    list_of_nodes, index_to_validate_simplices, bool_Hopf, max_refinements)
+    list_of_nodes, index_to_validate_simplices, bool_Hopf, max_refinements, save_file)
 global talkative
 
 if talkative>1
@@ -19,6 +19,9 @@ end
 if nargin < 5 || isempty(max_refinements)
     max_refinements = 5;
 end
+if nargin < 6
+    save_file = 'validation_results';
+end
 
 ref = 0;
 index_failed_validation = [];
@@ -27,14 +30,16 @@ Z0_iter = [];
 Z1_iter = []; 
 Z2_iter = []; 
 Y_iter= [];
+temp_save_file = append('temp_', save_file);
 
 while ~isempty(index_to_validate_simplices)
     
     [list_of_simplices, index_failed_validation, Interval, Z0_iter, ...
         Z1_iter, Z2_iter, Y_iter] = iteration_validation(list_of_simplices,...
-        list_of_nodes, index_to_validate_simplices, bool_Hopf);
+        list_of_nodes, index_to_validate_simplices, bool_Hopf, temp_save_file);
     ref = ref + 1;
-    
+    save(save_file,'list_of_simplices','list_of_nodes','Interval',...
+            'Z0_iter','Z1_iter','Z2_iter','Y_iter','bool_Hopf');
     if ref > max_refinements
         break
     end
@@ -50,7 +55,7 @@ end
 
 function [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
     Z1_iter, Z2_iter, Y_iter] = iteration_validation(list_of_simplices,...
-    list_of_nodes, index_validation_simplices, bool_Hopf)
+    list_of_nodes, index_validation_simplices, bool_Hopf, save_file)
 global use_intlab
 global talkative
 
@@ -86,6 +91,9 @@ for index_j = 1:length(index_validation_simplices)
 
     if flag < 1
         index_non_validated(end+1) = j;
+        if talkative > 1
+            fprintf('The validation of the %i-th simplex failed\n', j)
+        end
     elseif talkative>0
         fprintf('The validation of the %i-th simplex succeeded\n', j)
     end
@@ -103,6 +111,11 @@ for index_j = 1:length(index_validation_simplices)
     catch 
         use_intlab = 0;
         index_non_validated(end+1) = j;
+    end
+
+    if any(mod(index_j,5)==0)
+        save(save_file,'list_of_simplices','list_of_nodes','Interval',...
+            'Z0_iter','Z1_iter','Z2_iter','Y_iter','bool_Hopf');
     end
 end
 end

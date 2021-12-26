@@ -26,10 +26,21 @@ Fx_0 = apply(alpha, x0, bool_long);
 [A0, M0, P0, Q0, R0, phi0, D3F20] = extract_from_struct(A0_struct);
 [A1, M1, P1, Q1, R1, phi1, D3F21] = extract_from_struct(A1_struct);
 [A2, M2, P2, Q2, R2, phi2, D3F22] = extract_from_struct(A2_struct);
+clear A0_struct A1_struct A2_struct
 big_A0 = create_A_of_size(A0, M0, P0, Q0, R0, phi0, D3F20, n_nodes_long);
 big_A1 = create_A_of_size(A1, M1, P1, Q1, R1, phi1, D3F21, n_nodes_long);
 big_A2 = create_A_of_size(A2, M2, P2, Q2, R2, phi2, D3F22, n_nodes_long);
-    
+
+A_int = interpolation(A0, A1, A2);
+M_int = interpolation(M0, M1, M2);
+P_int = interpolation(P0, P1, P2);
+Q_int = interpolation(Q0, Q1, Q2);
+R_int = interpolation(R0, R1, R2);
+phi_int = interpolation(phi0, phi1, phi2);
+D3F2_int = interpolation(D3F20, D3F21, D3F22);
+clear A0 A1 A2 M0 M1 M2 P0 P1 P2 Q0 Q1 Q2 R0 R1 R2
+normA = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(x0.nodes+1), phi_int, x0); % weighted
+clear M_int P_int Q_int R_int
     
     function Y_0 = non_cont_Y(A, alpha, x)
         F = Xi_vec2vec(apply(alpha, x, bool_long));
@@ -40,6 +51,8 @@ big_A2 = create_A_of_size(A2, M2, P2, Q2, R2, phi2, D3F22, n_nodes_long);
 Y0 = non_cont_Y(big_A0, alpha0, x0);
 Y1 = non_cont_Y(big_A1, alpha1, x1);
 Y2 = non_cont_Y(big_A2, alpha2, x2);
+big_A_int = interpolation(big_A0, big_A1, big_A2);
+clear big_A0 big_A1 big_A2
 
 Y_edge = intval(max(Y0, max(Y1,Y2)));
 
@@ -68,12 +81,12 @@ first_s_der.scalar(1:alpha1.scalar_equations.number_equations_lin) = ...
 % first der w.r.t. u
 DF = derivative(alpha0, x0, bool_long);
 DF_mat = derivative_to_matrix(DF, n_nodes_long);
+clear DF
 x_Delta1_long = reshape(x_Delta1, n_nodes_long);
 x_Delta2_long = reshape(x_Delta2, n_nodes_long);
 first_u_der = vec2Xi_vec(interpolation(DF_mat*Xi_vec2vec(x_Delta1_long),...
     DF_mat*Xi_vec2vec(x_Delta2_long)), x0.size_scalar, x0.size_vector, n_nodes_long);
-
-big_A_int = interpolation(big_A0, big_A1, big_A2);
+clear DF_mat
 
 Y_der = big_A_int * Xi_vec2vec(first_s_der + first_u_der);
 
@@ -91,16 +104,6 @@ mixed_second_der = sup(abs(mixed_second_der));
 norm_x_Delta = max( sup(norm(x_Delta1)), sup(norm(x_Delta2)));
 
 bound_second_der = DDF(alpha, x_int); 
-% TODO: should this be weighted? the norm of XDelta is already weighted...
-
-A_int = interpolation(A0, A1, A2);
-M_int = interpolation(M0, M1, M2);
-P_int = interpolation(P0, P1, P2);
-Q_int = interpolation(Q0, Q1, Q2);
-R_int = interpolation(R0, R1, R2);
-phi_int = interpolation(phi0, phi1, phi2);
-D3F2_int = interpolation(D3F20, D3F21, D3F22);
-normA = block_norm(M_int, P_int, Q_int, R_int, D3F2_int/(x0.nodes+1), phi_int, x0); % weighted
 
 norm_AdxdsF = norm(vec2Xi_vec(A_int * mixed_second_der,x0));
 

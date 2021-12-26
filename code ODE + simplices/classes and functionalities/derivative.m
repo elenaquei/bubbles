@@ -10,15 +10,15 @@ classdef derivative
         derivative_Flambda   % M x N x (2*nodes+1)*deg
         derivative_Fx_diagonal % N x N
         derivative_Fx_toeplix  % N x N x (2*nodes+1)*deg
-        derivative_Fx_delay   % N x N cell - each cell with as many cells 
-                                    % as terms, each term with two elements: 
-                                    % convolution and exp_coef
+        derivative_Fx_delay   % N x N cell - each cell with as many cells
+        % as terms, each term with two elements:
+        % convolution and exp_coef
     end
     methods
         % DERIVATIVE
         function DF = derivative(alpha, x, bool)
             % function DF = derivative(alpha, x, bool)
-            % 
+            %
             % INPUT
             % alpha     full_problem
             % x         Xi_vector
@@ -36,7 +36,7 @@ classdef derivative
             end
             if alpha.scalar_equations.number_of_nodes ~= x.nodes
                 if talkative>1
-                disp('In the computation of the derivative,nodes of inputs differ, the linear coefficients are padded or truncated to fit')
+                    disp('In the computation of the derivative,nodes of inputs differ, the linear coefficients are padded or truncated to fit')
                 end
             end
             if nargin<3
@@ -54,12 +54,12 @@ classdef derivative
             
             [scalar_der_F ,diagonal_der_F, toeplix_der_F, delay_der_F] = ...
                 compute_derivative(alpha.vector_field,x);
-%             DF.derivative_Flambda = 0*scalar_der_F; % SIZE xi_vec.size_scalar,a.n_equations,xi_vec.nodes*2*a.deg_vector+1
-%             for i =1:DF.size_scalar
-%                 for j = 1:alpha.vector_field.n_equations
-%                     DF.derivative_Flambda(i,j,:) =  verifyfft_in(squeeze(scalar_der_F(i,j,:)),1);
-%                 end
-%             end
+            %             DF.derivative_Flambda = 0*scalar_der_F; % SIZE xi_vec.size_scalar,a.n_equations,xi_vec.nodes*2*a.deg_vector+1
+            %             for i =1:DF.size_scalar
+            %                 for j = 1:alpha.vector_field.n_equations
+            %                     DF.derivative_Flambda(i,j,:) =  verifyfft_in(squeeze(scalar_der_F(i,j,:)),1);
+            %                 end
+            %             end
             DF.derivative_Flambda = scalar_der_F;
             
             DF.derivative_Fx_diagonal = diagonal_der_F;
@@ -72,7 +72,7 @@ classdef derivative
                 end
             end
             
-            if bool ==0 
+            if bool ==0
                 DF = reshape(DF, x.nodes);
             else
                 DF = reshape(DF, x.nodes*(alpha.vector_field.deg_vector));
@@ -103,7 +103,7 @@ classdef derivative
             DGx_v = reshape(permute(A.derivative_Gx_v,[1,3,2]),[],N*(A.nodes*2+1));
             
             if ~isintval(A.derivative_G_hat)
-                DxG = [DGx_v;kron(A.derivative_G_hat,One)]; 
+                DxG = [DGx_v;kron(A.derivative_G_hat,One)];
             else
                 %DxG = [DGx_v;kron(A.derivative_G_hat,One)];
                 sup_A = kron(sup(A.derivative_G_hat),One);
@@ -117,28 +117,33 @@ classdef derivative
                 DxF = intval(DxF);
             end
             index = 1:(2*A.nodes+1);
+            
             for i =1:N
-                for j = 1:N
-                    DxF((i-1)*length(index)+index,(j-1)*length(index) +index) = ...
-                        toeplitz(...
-                        [squeeze(A.derivative_Fx_toeplix(j,i,A.nodes+1:end));zeros(A.nodes,1)],...
-                        [squeeze(A.derivative_Fx_toeplix(j,i,A.nodes+1:-1:1));zeros(A.nodes,1)]...
-                        );
-                    delay_part = zeros(size(Diag,1));
-                    for term = 1:size(A.derivative_Fx_delay{i,j})
-                        if ~isempty(A.derivative_Fx_delay{i,j}{term})
-                        conv = A.derivative_Fx_delay{i,j}{term}.convolution;
-                        exp_coef = A.derivative_Fx_delay{i,j}{term}.exp_coef;
-                        conv_mat = toeplitz(...
-                        [conv(A.nodes+1:end);zeros(A.nodes,1)],...
-                        [conv(A.nodes+1:-1:1);zeros(A.nodes,1)]...
-                        );
-                        exp_mat_delay = diag(exp(exp_coef*(-A.nodes:A.nodes)));
-                        delay_part = delay_part + conv_mat*exp_mat_delay;
+                if isintval(DxF)
+                    DxF = for_loop_allocation(i, DxF, A, index, N, Diag);
+                else
+                    for j = 1:N
+                        DxF((i-1)*length(index)+index,(j-1)*length(index) +index) = ...
+                            toeplitz(...
+                            [squeeze(A.derivative_Fx_toeplix(j,i,A.nodes+1:end));zeros(A.nodes,1)],...
+                            [squeeze(A.derivative_Fx_toeplix(j,i,A.nodes+1:-1:1));zeros(A.nodes,1)]...
+                            );
+                        delay_part = zeros(size(Diag,1));
+                        for term = 1:size(A.derivative_Fx_delay{i,j})
+                            if ~isempty(A.derivative_Fx_delay{i,j}{term})
+                                conv = A.derivative_Fx_delay{i,j}{term}.convolution;
+                                exp_coef = A.derivative_Fx_delay{i,j}{term}.exp_coef;
+                                conv_mat = toeplitz(...
+                                    [conv(A.nodes+1:end);zeros(A.nodes,1)],...
+                                    [conv(A.nodes+1:-1:1);zeros(A.nodes,1)]...
+                                    );
+                                exp_mat_delay = diag(exp(exp_coef*(-A.nodes:A.nodes)));
+                                delay_part = delay_part + conv_mat*exp_mat_delay;
+                            end
                         end
+                        DxF((i-1)*length(index)+index,(j-1)*length(index) +index) =...
+                            DxF((i-1)*length(index)+index,(j-1)*length(index) +index) + delay_part;
                     end
-                    DxF((i-1)*length(index)+index,(j-1)*length(index) +index) =...
-                        DxF((i-1)*length(index)+index,(j-1)*length(index) +index) + delay_part;
                 end
             end
             if ~isintval(A.derivative_Fx_diagonal)
@@ -160,7 +165,7 @@ classdef derivative
             end
             
             
-            A_mat = [A.derivative_Glambda , DxG 
+            A_mat = [A.derivative_Glambda , DxG
                 DlF, DxF];
             
             if size(A_mat,1)~=size(A_mat,2)
@@ -226,7 +231,7 @@ classdef derivative
                         if ~isempty(A.derivative_Fx_delay{i,j}{k})
                             if length(A.derivative_Fx_delay{i,j}{k}.convolution)>2*n_node +1
                                 center_node =floor(length(A.derivative_Fx_delay{i,j}{k}.convolution)/2)+1;
-                                B.derivative_Fx_delay{i,j}{k}.convolution = B.derivative_Fx_delay{i,j}{k}.convolution(center_node+used_nodes); 
+                                B.derivative_Fx_delay{i,j}{k}.convolution = B.derivative_Fx_delay{i,j}{k}.convolution(center_node+used_nodes);
                             end
                         end
                     end
@@ -303,7 +308,7 @@ classdef derivative
                                 center_node =floor(length(A.derivative_Fx_delay{i,j}{k})/2)+1;
                                 padding = -center_node + 1 + n_node;
                                 if ~isintval(B.derivative_Fx_toeplix)
-                                    B.derivative_Fx_delay{i,j}{k} = padarray(B.derivative_Fx_delay{i,j}{k},[0,0,padding]); 
+                                    B.derivative_Fx_delay{i,j}{k} = padarray(B.derivative_Fx_delay{i,j}{k},[0,0,padding]);
                                 else
                                     inf_pad = padarray(inf(B.derivative_Fx_delay{i,j}{k}),[0,0,padding]);
                                     sup_pad = padarray(sup(B.derivative_Fx_delay{i,j}{k}),[0,0,padding]);
@@ -328,4 +333,30 @@ classdef derivative
         
         
     end
+end
+
+function DF = for_loop_allocation(i, DF, A, index,N, Diag)
+
+for j = 1:N
+    DF((i-1)*length(index)+index,(j-1)*length(index) +index) = ...
+        toeplitz(...
+        [squeeze(A.derivative_Fx_toeplix(j,i,A.nodes+1:end));zeros(A.nodes,1)],...
+        [squeeze(A.derivative_Fx_toeplix(j,i,A.nodes+1:-1:1));zeros(A.nodes,1)]...
+        );
+    delay_part = zeros(size(Diag,1));
+    for term = 1:size(A.derivative_Fx_delay{i,j})
+        if ~isempty(A.derivative_Fx_delay{i,j}{term})
+            conv = A.derivative_Fx_delay{i,j}{term}.convolution;
+            exp_coef = A.derivative_Fx_delay{i,j}{term}.exp_coef;
+            conv_mat = toeplitz(...
+                [conv(A.nodes+1:end);zeros(A.nodes,1)],...
+                [conv(A.nodes+1:-1:1);zeros(A.nodes,1)]...
+                );
+            exp_mat_delay = diag(exp(exp_coef*(-A.nodes:A.nodes)));
+            delay_part = delay_part + conv_mat*exp_mat_delay;
+        end
+    end
+    DF((i-1)*length(index)+index,(j-1)*length(index) +index) =...
+        DF((i-1)*length(index)+index,(j-1)*length(index) +index) + delay_part;
+end
 end

@@ -149,6 +149,10 @@ if use_intlab
     end
 end
 
+if talkative>1
+    fprintf('\nComputed validation set up, time %s\n',datestr(now,13));
+end
+
 % Z0 BOUND
 if has_delay(alpha0)
     Z0vector = Z0_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct, DH0, DH1, DH2);
@@ -157,7 +161,7 @@ else
 end
 
 if talkative>1
-    fprintf('\nComputed Z0, time %s\n\n',datestr(now,13));
+    fprintf('\nComputed Z0, time %s\n',datestr(now,13));
 end
 if any(Z0vector>1)
     return
@@ -177,7 +181,7 @@ else
 end
 
 if talkative>1
-    fprintf('\nComputed Z1, time %s\n\n',datestr(now,13));
+    fprintf('\nComputed Z1, time %s\n',datestr(now,13));
 end
 
 if any(Z1vector>1)
@@ -193,7 +197,7 @@ end
 
 
 if talkative>1
-    fprintf('\nComputed Z2, time %s\n\n',datestr(now,13));
+    fprintf('\nComputed Z2, time %s\n',datestr(now,13));
 end
 
 
@@ -212,7 +216,7 @@ else
 end
 
 if talkative>1
-    fprintf('\nComputed Y, time %s\n\n',datestr(now,13));
+    fprintf('\nComputed Y, time %s\n',datestr(now,13));
 end
 
 if any(Yvector>1)
