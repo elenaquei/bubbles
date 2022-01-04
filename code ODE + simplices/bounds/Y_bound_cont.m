@@ -43,6 +43,7 @@ xBarDelta_short=xBar0-xBar1;
 % (!) requires use_intlab anyway (!)
 
 xBarS_short=interpolation(xBar0,xBar1);
+xBarS_short = symmetrise(xBarS_short);
 
 xBarS= reshape_Xi(xBarS_short,xBarS_short.nodes*(alpha0.vector_field.deg_vector-1));
 xBarDelta=reshape_Xi(xBarDelta_short,xBarS.nodes);

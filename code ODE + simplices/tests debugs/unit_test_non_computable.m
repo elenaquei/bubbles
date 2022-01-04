@@ -9,6 +9,7 @@ l1 = -2;
 l2 = 1.2;
 x = Xi_vector([l1,l2], [x1;x2;x3]);
 one_vec = [0,0,1,0,0];
+K = -2:2;
 mat_K = diag(-2:2);
 mat_bigK = diag(-4:4);
 mat_verybigK = diag(-6:6);
@@ -47,8 +48,13 @@ dot_der = kron([1,0,0; 0,1,0;0,0,1], mat_verybigK * 1i);
 mat_conv = [ 0*conv_mat_big(conv(Delay(x1,3.14),one_vec_big)), conv_mat_big(conv(2*conv(x2,x3),one_vec)) , conv_mat_big(conv(conv(x2,x2),one_vec))
     conv_mat_big(conv(-one_vec_big,one_vec)), conv_mat_big(conv(0*one_vec_big,one_vec)) , l2*conv_mat_big(conv(conv(Delay(x2,3),Delay(x1,2)),one_vec))
     conv_mat_big(conv(one_vec_big,one_vec)) , conv_mat_big(conv(0*one_vec_big,one_vec)) , conv_mat_big(conv(one_vec_big*0,one_vec)) ];
-d_lambda = [conv(one_vec,conv(Delay(x1,3.14), Delay(x2,4))), 0*conv(one_vec_big, x2), conv(one_vec_big, 0*one_vec);
+d11_lambda = conv(one_vec,conv(Delay(x1,3.14), Delay(x2,4))) + l1 * conv(1i *K*3.14.*Delay(x1,3.14),conv(Delay(x2,4),one_vec)) + ...
+    + l1 * conv(Delay(x1,3.14),conv(1i *K*4.*Delay(x2,4),one_vec));
+d12_lambda = l2 * conv(1i *K*3.*Delay(x2,3),conv(Delay(x1,2),x3)) + l2 * conv(Delay(x2,3),conv(1i *K*2.*Delay(x1,2),x3));
+d_lambda = [d11_lambda, d12_lambda, conv(one_vec_big, 0*one_vec);
     0*conv(one_vec,conv(Delay(x2,4), Delay(x1,3.14))), conv(x3, conv(Delay(x2,3), Delay(x1,2))), conv(one_vec_big, 0*one_vec)].';
+
+
 
 delay_mat11 = conv_mat_big(l1*conv(Delay(x2,4),one_vec_big)) *  expm(1i*3.14*l1 * mat_verybigK);
 delay_mat12 = conv_mat_big(l1*conv(Delay(x1,3.14),one_vec_big)) *  expm(1i*4*l1 * mat_verybigK);

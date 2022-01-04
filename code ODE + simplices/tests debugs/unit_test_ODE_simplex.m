@@ -19,7 +19,7 @@ global RAD_MAX
 global norm_weight
 norm_weight = [];
 nu = 1.1;
-talkative = 0;
+talkative = 2;
 nu = 1.1;
 RAD_MAX = 10^-4;
 
@@ -35,10 +35,10 @@ end
 
 % some elements useful for the computation and the validation
 n_nodes = 7; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 6000;
+n_iter = 8;
+bool_Hopf = 1;
 step_size = 0.9*10^-2; % initial step size (then adapted along the validation
-save_file = 'Hopf_lorenz84_not_val_bigger'; % where the solutions are stored
-bool_validated = 0;
+save_file = 'unit_test_ODE_simplex'; % where the solutions are stored
 
 f = @fn_Lorenz84; % We choose a map.
 df = @derivatives_Lorenz84;
@@ -64,22 +64,6 @@ X1 = [0.044235923390488
     0.435591195800222
     0.972046133308465]; % gives mu = 0.010900890394664
 
-X2 =[0.991380908070511
-    0.536571300769029
-    0.018000000000000
-    0.297367818824924
-    0.075579005137251
-    0.731181693699346
-    0.574541608287545
-    0.591657184180207
-    0.568456879079416
-    0.372376120925458
-    0.703809586107104
-    0.862916874311999
-    0.436074392210215
-    0.265907261089055]; % gives mu = -0.010901127516006
-
-
 F = 2;
 alpha = 0.25;
 beta =1 ;
@@ -101,8 +85,6 @@ string_lorenz84_cont2 = strrep(string_lorenz84_cont1, 'beta' , 'l3');
 
 lor_rhs = @(x,T,beta)[(-x(2)^2-x(3)^2-alpha*x(1) + alpha*F- gamma *x(4)^2) ; (+ x(1) *x(2) - beta *x(1)* x(3) - x(2) + G);(+ beta *x(1) *x(2) + x(1)* x(3) - x(3)) ;(- delta *x(4) + gamma *x(1) *x(4) + T)];
 
-
-
 vectorfield = strrep(string_lorenz84_cont1, 'l1' , '');%'-dot x1 - x2 + l1 x1 - x1 ^ 3 - x1  x2 ^ 2\n- dot x2 + x1 + l1 x2 - x1 ^ 2 x2 - x2 ^ 3';
 vectorfield = strrep(vectorfield, 'l2' , 'l1');
 vectorfield = strrep(vectorfield, 'beta' , num2str(beta));
@@ -116,22 +98,6 @@ f_lor = from_string_to_polynomial_coef(vectorfield);
 
 [x0,lambda0,eigenvec,eigenval, stability] = ...
     algebraic_hopf(f,df,ddf,dddf,N,X1,phi);
-numerical_Hopfs = cell(2,1);
-numerical_Hopfs{1}.x = x0;
-numerical_Hopfs{1}.par_alpha = lambda0;
-numerical_Hopfs{1}.par_beta = beta;
-numerical_Hopfs{1}.eigenvec = eigenvec;
-numerical_Hopfs{1}.eigenval = eigenval;
-
-% numerically find the other Hopf solution! - I'm so glad I had the data!
-% so so glad
-[x1,lambda1,eigenvec1,eigenval1] = ...
-    algebraic_hopf(f,df,ddf,dddf,N,X2,phi);
-numerical_Hopfs{2}.x = x1;
-numerical_Hopfs{2}.par_alpha = lambda1;
-numerical_Hopfs{2}.par_beta = beta;
-numerical_Hopfs{2}.eigenvec = eigenvec1;
-numerical_Hopfs{2}.eigenval = eigenval1;
 
 use_intlab = 0;
 sol_Xi = Hopf_system_setup(lambda0, x0, f_lor, n_nodes,...
@@ -142,47 +108,23 @@ sol = Xi_vector([sol_Xi.scalar(1),lambda0, beta, sol_Xi.scalar(3:end)], sol_Xi.v
 polynomial = from_string_to_polynomial_coef(vectorfield2);
 big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 
-% big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
 load('stored_lorenz84.mat')
 sol_N = list_of_nodes{5}.solution;
 big_Hopf = list_of_nodes{5}.problem;
-% big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,6);
-% big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,5);
 
-
-% test_Hopf = big_Hopf;
-% test_Hopf = F_update_Hopf(test_Hopf,sol);
-% test_Hopf = continuation_equation_simplex(test_Hopf,sol);
-% sol_N = Newton_2(sol,test_Hopf,30,10^-9);
-% 
 big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
-bool_Hopf = 1;
 use_intlab = 0;
+bool_validated = 1;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated);
 
-% load(save_file)
-% plot(list_of_simplices,list_of_nodes)
-% 
-% save_file = continue_simplex_growth(save_file, n_iter,new_name_file);
-% 
-% load(new_name_file)
-% plot(list_of_simplices,list_of_nodes)
-% 
-% 
-% save_file = continue_simplex_growth(save_file, n_iter, new_name_file2);
-% 
-% load(save_file)
-% plot(list_of_simplices,list_of_nodes)
+bool_validated = 0;
+save_file = continuation_simplex(sol_N, big_Hopf,...
+    n_iter, step_size, save_file, bool_Hopf, bool_validated);
 
-if ~bool_validated
-    bool_validated = 1;
-    [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-        list_of_nodes, [], bool_Hopf);
-    
-    save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-        'list_of_frontal_nodes');
-end
+load(save_file)
+bool_validated = 1;
+[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+    list_of_nodes, [1], bool_Hopf);

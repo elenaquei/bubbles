@@ -15,6 +15,8 @@ global RAD_MAX
 global Display
 global use_intlab
 global talkative
+global norm_weight
+norm_weight = [];
 use_intlab = 0;
 Display = 0;
 RAD_MAX = 10^-5;

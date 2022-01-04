@@ -16,6 +16,8 @@ global nu
 global use_intlab 
 global talkative 
 global RAD_MAX
+global norm_weight
+norm_weight = [];
 nu = 1.1;
 talkative = 0;
 use_intlab = 1;

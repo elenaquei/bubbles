@@ -95,4 +95,4 @@ use_intlab = 1;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 
-%save_file = start_were_we_left_off(save_file, n_niter, save_file)
+%save_file = continue_simplex_growth(save_file, n_niter, save_file)

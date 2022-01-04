@@ -20,16 +20,18 @@ use_intlab = 1;
 
 
 % reshape all inputs
-new_nodes = 120;%5*x0.nodes;
-[A_small0, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
-[A_small1, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
-[A_small2, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);
-x0 = reshape(x0, new_nodes);
-x1 = reshape(x1, new_nodes);
-x2 = reshape(x2, new_nodes);
-alpha0 = reshape(alpha0, new_nodes);
-alpha1 = reshape(alpha1, new_nodes);
-alpha2 = reshape(alpha2, new_nodes);
+if x0.nodes<64
+    new_nodes = 64;
+    [A_small0, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
+    [A_small1, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
+    [A_small2, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);
+    x0 = reshape(x0, new_nodes);
+    x1 = reshape(x1, new_nodes);
+    x2 = reshape(x2, new_nodes);
+    alpha0 = reshape(alpha0, new_nodes);
+    alpha1 = reshape(alpha1, new_nodes);
+    alpha2 = reshape(alpha2, new_nodes);
+end
 
 degree = alpha0.vector_field.deg_vector;
 n_nodes = x0.nodes;
@@ -219,7 +221,7 @@ Z1_vector = sum(max(Z1_finite_vector,Z1_infinite_vector),2);
 Z1_components = sum([norm_A_STAR1, norm_A_STAR2, norm_A_STAR3 + norm_A_STAR4],2);
 Z1_scalar = Z1_components(size_vector+(1:size_scalar));
 %Z1_vector = Z1_components(1:size_vector) + Z1_components(size_vector+size_scalar+1:end);
-Z1 = [Z1_scalar;Z1_vector];
+Z1 = sup([Z1_scalar;Z1_vector]);
 end
 
 function n = norm_C_to_ell1(P, size_scalar, size_vector)

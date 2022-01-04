@@ -9,7 +9,7 @@ global RAD_MAX
 global Display
 global norm_weight
 norm_weight = [];
-Display = 1;
+Display = 0;
 talkative = 1;
 use_intlab = 0;
 RAD_MAX = 10^-2;
@@ -29,8 +29,8 @@ step_size = 10^-4;
 sigma = 10;
 beta = 8/3;
 pho = 28;
-n_iter =5;
-s = 'saved elements/lorenz_continuation'; % path where the validation will be saved
+n_iter = 2;
+s = 'unit_test_ODE_cont'; % path where the validation will be saved
 
 % construct the numerical solution with forward integration from known
 % initial conditions

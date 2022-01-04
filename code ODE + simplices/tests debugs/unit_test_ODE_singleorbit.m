@@ -17,7 +17,7 @@ global use_intlab
 global norm_weight
 norm_weight = [];
 use_intlab = 0;
-Display = 1;
+Display = 0;
 RAD_MAX = 10^-8;
 
 %if isempty(first_run)

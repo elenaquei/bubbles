@@ -16,15 +16,25 @@ classdef polynomial_coefs
         % 
         % EXAMPLE
         %
-        % x_dot_dot(t-tau) [x(t-2)]^2x_dot^3 y(t-1)
+        % x1_dot_dot(t-tau) [x1(t-2)]^2 x1_dot^3 x2(t-1)
+        % consider it as the product of three monomials, in each monomial
+        % x1 and x2 appear only once. 
+        % First monomial   x1_dot_dot(t-tau) x2(t-1)
         % 
-        %  delay{n_equation, 1}{term} = [tau,2,0]
-        %  power{n_equation, 1}{term} = [1,2,3]
-        %  dot  {n_equation, 1}{term} = [2,0,1]
+        %  delay{n_equation, 1}{term} = [tau,1]
+        %  power{n_equation, 1}{term} = [1, 1]
+        %  dot  {n_equation, 1}{term} = [2,0]
         %  
-        %  delay{n_equation, 2}{term} = 1
-        %  power{n_equation, 2}{term} = 1
-        %  dot  {n_equation, 2}{term} = 0
+        % Second monomial  [x1(t-2)]^2
+        %  delay{n_equation, 2}{term} = [2, 0]
+        %  power{n_equation, 2}{term} = [2, 0]
+        %  dot  {n_equation, 2}{term} = [0, 0]
+        %
+        % Third monomial    x1_dot^3
+        %  delay{n_equation, 2}{term} = [0, 0]
+        %  power{n_equation, 2}{term} = [3, 0]
+        %  dot  {n_equation, 2}{term} = [1, 0]
+        
     end
     methods
         % contructor POLYNOMIAL_COEFS
@@ -425,7 +435,7 @@ classdef polynomial_coefs
                         if any(a.delay{i}{j}(:,k)~=0)
                             [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
                             delay_x = xi_vec.delay(a.delay{i}{j}(:,k));
-                            delay_x= set_ifft(delay_x,a.deg_vector);
+                            delay_x= set_ifft(delay_x,a.deg_vector); % THIS TAKES A LOT OF MEMORY IF X IS INTVAL
                             [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
                             term = term .* ifft_prod .* ifft_prod_delay;
                         else
@@ -548,7 +558,7 @@ classdef polynomial_coefs
                     Dlambda(i,j,:) =  verifyfft_in(squeeze(Dlambda(i,j,:)),1);
                     degree = 0;
                     for k = 1:a.n_terms(j)
-                        degree = max(sum(a.power_vector{j}{k}),degree);
+                        degree = max(sum(a.power_vector{j}{k})+nnz(a.delay{j}{k}),degree);
                     end
                     Dlambda(i,j,:) = impose_zeros(Dlambda(i,j,:),degree, xi_vec.nodes);
                 end
@@ -643,12 +653,12 @@ classdef polynomial_coefs
                         continue
                     end
                     index_non_zero = find(a.power_scalar{i}(:,j));
-                        if isempty(index_non_zero)
-                            term = a.value{i}(j);
-                        else
-                            term =a.value{i}(j)* prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
-                        end
-                    if term == 0
+                    if isempty(index_non_zero)
+                        scal_coef = a.value{i}(j);
+                    else
+                        scal_coef = a.value{i}(j)* prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
+                    end
+                    if scal_coef == 0
                         continue
                     end
                     for k = 1:a.monomial_per_term{i}(j)
@@ -656,19 +666,22 @@ classdef polynomial_coefs
                         if any(a.dot{i}{j}(:,k)>0)
                             if a.monomial_per_term{i}(j)==1 && sum(a.dot{i}{j}(:,k))==1
                                 index = find(a.dot{i}{j}(:,k));
-                                term = term * (verifyfft_in((1i*K).^a.dot{i}{j}(index,k).*help_xi_vec.vector(index,1:(end-1)),-1).');
+                                term = scal_coef * (verifyfft_in((1i*K).^a.dot{i}{j}(index,k).*help_xi_vec.vector(index,1:(end-1)),-1).');
                             else
-                                warning('General DERIVATIVES not implemented here')
+                                error('General DERIVATIVES not implemented here')
                             end
+                        else
+                            term = scal_coef;
                         end
-                        
                         
                         [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
                         term = term .* ifft_prod;
                         indices_delay = find(a.delay{i}{j}(:,k));
                         term_loc = 0;
-                        for index_delay = indices_delay
+                        
+                        for ii = 1: length(indices_delay)
                             delay_x = xi_vec.delay(a.delay{i}{j}(:,k));
+                            index_delay = indices_delay(ii);
                             delay_der = 1i * a.delay{i}{j}(index_delay,k) * (-delay_x.nodes:delay_x.nodes);
                             delay_x.vector(index_delay,:) = delay_der .* delay_x.vector(index_delay,:);
                             delay_x = set_ifft(delay_x,a.deg_vector);
@@ -963,7 +976,7 @@ if zero_nodes<=0
     return
 end
 vector_padded(1:zero_nodes+extras-1) = 0*vector_padded(1:zero_nodes+extras-1);
-vector_padded(end-zero_nodes+1:end) = 0*vector_padded(end-zero_nodes+1:end);
+vector_padded(end-zero_nodes+2:end) = 0*vector_padded(end-zero_nodes+2:end);
 end
 
     

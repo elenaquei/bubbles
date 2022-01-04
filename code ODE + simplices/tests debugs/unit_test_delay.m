@@ -375,7 +375,6 @@ auto_sol = apply(vector_field, x);
 for i=1:3
     auto_sol(i,:) = verifyfft_in(auto_sol(i,:), 1).';
 end
-% STILL RETURNS THE IFFT - but I don't seem to be able to update this... whyyyyy??
 
 K = (-2:2);
 big_K = -6:6;
@@ -467,7 +466,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(exp(1i*K*l1*3.14).*x1,x1));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(exp(1i*K*l1*3.14).*x1,x1)...
+    - l1 * conv(1i*K*3.14.*exp(1i*K*l1*3.14).*x1,x1));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - 1);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' - l1 * conv(Delay(x1,3.14),one_vec));
 if ~isempty(auto_der.derivative_Fx_delay{1}{1})
@@ -476,7 +476,6 @@ elseif isempty(auto_der.derivative_Fx_delay{1}{2})
     error('wrong size delay derivative')
 end
 max_error(4) = norm(auto_der.derivative_Fx_delay{1}{2}.convolution - l1*conv(x1,one_vec).');
-
 
 max_error = norm(max_error);
 if max_error > 10^-10
@@ -498,7 +497,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(Delay(x1,3.14),conv(x1,x1)));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(Delay(x1,3.14),conv(x1,x1))...
+    - l1 * conv((1i*K*3.14).*Delay(x1,3.14),conv(x1,x1)) );
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - 0);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' - l1 * 2 * conv(conv(Delay(x1,3.14),x1),one_vec));
 if isempty(auto_der.derivative_Fx_delay{1}{1})
@@ -522,7 +522,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(Delay(x1,3.14),conv(x1,x1)));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(Delay(x1,3.14),conv(x1,x1))...
+    - l1 * conv((1i*K*3.14).*Delay(x1,3.14),conv(x1,x1)));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - 1);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' - l1 * 2 * conv(conv(Delay(x1,3.14),x1),one_vec));
 if ~isempty(auto_der.derivative_Fx_delay{1}{1})
@@ -553,7 +554,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 auto_der = derivative(full_zero_finding_problem, x);
 
 max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - ...
-    1i*conv(K.*x1, conv(one_vec,one_vec)) - conv(Delay(x1,3.34),conv(x1,x1)) -  2 * conv(x1, conv(one_vec,one_vec)));
+    1i*conv(K.*x1, conv(one_vec,one_vec)) - conv(Delay(x1,3.34),conv(x1,x1)) -  2 * conv(x1, conv(one_vec,one_vec))...
+    - l1 * conv((1i*K*3.34).*Delay(x1,3.34),conv(x1,x1)));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - l1);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' - ...
     l1 * 2 * conv(conv(Delay(x1,3.34),x1),one_vec) - 2 * l1 * conv(one_vec, conv(one_vec,one_vec)));
@@ -658,7 +660,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(Delay(x1,3.14),x2));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(Delay(x1,3.14),x2)...
+    - l1 * conv((1i*K*3.14).*Delay(x1,3.14),x2));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - [1;0;0]);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix(1,:,:)).' - 0) +...
     norm(squeeze(auto_der.derivative_Fx_toeplix(2,:,:)).' - l1*conv(Delay(x1,3.14),one_vec)) + ...
@@ -687,7 +690,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(conv(Delay(x1,3.14),x2),x3));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(conv(Delay(x1,3.14),x2),x3)...
+    - l1 * conv((1i*K*3.14).*Delay(x1,3.14),conv(x2,x3)));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - [0;0;0]);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix(1,:,:)).' - 0) +...
     norm(squeeze(auto_der.derivative_Fx_toeplix(2,:,:)).' - l1*conv(conv(Delay(x1,3.14),x3),one_vec)) + ...
@@ -712,7 +716,9 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - 1i*conv(conv(K.*x1, one_vec),one_vec) - conv(conv(Delay(x1,3.74),x2),x2));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' ...
+    - 1i*conv(conv(K.*x1, one_vec),one_vec) - conv(conv(Delay(x1,3.74),x2),x2)...
+    - l1 * conv((1i*K*3.74).*Delay(x1,3.74),conv(x2,x2)));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - [l1;0;0]);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix(1,:,:)).' - 0) +...
     norm(squeeze(auto_der.derivative_Fx_toeplix(2,:,:)).' - 2*l1*conv(conv(Delay(x1,3.74),x2),one_vec)) + ...
@@ -740,7 +746,9 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(conv(Delay(x1,3.14), x1),x2) - 2*conv(conv(x1,one_vec),one_vec));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' ...
+    - conv(conv(Delay(x1,3.14), x1),x2) - 2*conv(conv(x1,one_vec),one_vec)...
+    - l1 * conv((1i*K*3.14).*Delay(x1,3.14),conv(x1,x2)));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - [1;0;0]);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix(1,:,:)).' - l1*conv(conv(Delay(x1,3.14), one_vec),x2) - 2*l1*conv(conv(one_vec,one_vec),one_vec)) +...
     norm(squeeze(auto_der.derivative_Fx_toeplix(2,:,:)).' - l1*conv(conv(Delay(x1,3.14), one_vec),x1)) + ...
@@ -924,9 +932,10 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), x1),one_vec))+...
-    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' - 0)+...
-    norm(squeeze(auto_der.derivative_Flambda(:,3,:)).' - conv(conv(1i*K.*x3, one_vec),one_vec));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), x1),one_vec)- l1*conv((1i*K*3.14).*Delay(x1,3.14),conv(x1,one_vec)))+...
+    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' - conv((1i*K*3).*Delay(x2,3),conv(x1,x1)))+...
+    norm(squeeze(auto_der.derivative_Flambda(:,3,:)).' - conv(conv(1i*K.*x3, one_vec),one_vec)...
+    );
 
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - [1,0,0;0,1,0;0,0,l1]);
 
@@ -975,7 +984,9 @@ if max(max_error) > 10^-10
     error('Test 3 delay derivative - 3D to 3D')
 end
 
-
+% dot x1 + l1 * Delay(x1,3.14) * Delay(x2,4) + x2^2 * x3
+% dot x2 + Delay(x2,3) * Delay(x1,2) * x3 - x1 
+% dot x3 + x1
 string_vector_field = 'dot x1 + l1 * Delay(x1,3.14) * Delay(x2,4) + x2^2 * x3 \n dot x2 + Delay(x2,3) * Delay(x1,2) *x3 - x1 \n dot x3 + x1';
 
 vector_field = from_string_to_polynomial_coef(string_vector_field,1,3);
@@ -984,9 +995,14 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), Delay(x2,4)),one_vec))+...
-    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' - 0)+...
-    norm(squeeze(auto_der.derivative_Flambda(:,3,:)).' - 0);
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda(1,1,:)).' ...
+    - conv(conv(Delay(x1,3.14), Delay(x2,4)),one_vec) ...
+    - l1 * conv((1i*K*3.14).*Delay(x1,3.14),conv(Delay(x2,4),one_vec))...
+    - l1 * conv(Delay(x1,3.14),conv((1i*K*4).*Delay(x2,4),one_vec)))+...
+    norm(squeeze(auto_der.derivative_Flambda(1,2,:)).'...
+    - conv((1i*K*2).*Delay(x1,2),conv(Delay(x2,3),x3))...
+    - conv(Delay(x1,2),conv((1i*K*3).*Delay(x2,3),x3)) )+...
+    norm(squeeze(auto_der.derivative_Flambda(1,3,:)).' - 0);
 
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - [1,0,0;0,1,0;0,0,1]);
 
@@ -1115,7 +1131,7 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - 0);
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - 1i * K * 3.14 .* Delay(x1,3.14));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - 0);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' - 0);
 max_error(4) = norm(auto_der.derivative_Fx_delay{1}{1}.convolution - one_vec.');
@@ -1126,7 +1142,7 @@ auto_mat_der = derivative_to_matrix(auto_der);
 scal_coefs = squeeze(scalar_equation.linear_coef{2}).';
 delay_mat = expm(1i*3.14*l1 * mat_K);
 hand_solution = [0, scal_coefs;
-    0*one_vec.', delay_mat];
+    (1i * K * 3.14 .* Delay(x1,3.14)).', delay_mat];
 
 max_error = norm(hand_solution - auto_mat_der);
 
@@ -1149,7 +1165,7 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(Delay(x1,3.14),x1));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(Delay(x1,3.14),x1) - l1 * conv(1i *K * 3.14 .*Delay(x1,3.14),x1));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - 0);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' - l1 * conv(Delay(x1,3.14),one_vec));
 if isempty(auto_der.derivative_Fx_delay{1}{1})
@@ -1164,8 +1180,10 @@ scal_coefs = squeeze(scalar_equation.linear_coef{2}).';
 delay_mat = conv_mat_big(l1*conv(x1,one_vec)) *  expm(1i*3.14*l1 * mat_bigK);
 dot_der = 0;
 mat_conv = conv_mat_big(l1 * conv(Delay(x1,3.14),one_vec));
+
+der_lambda = conv(Delay(x1,3.14),x1) + l1 * conv(1i *K * 3.14 .*Delay(x1,3.14),x1);
 hand_solution = [0, conv(scal_coefs,one_vec);
-    conv(Delay(x1,3.14),x1).', dot_der + delay_mat+mat_conv];
+    der_lambda.', dot_der + delay_mat+mat_conv];
 
 max_error = norm(hand_solution - auto_mat_der);
 
@@ -1190,7 +1208,7 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(one_vec, conv(one_vec, 1i*K.* x1)) + conv(Delay(x1,3.14),conv(x1,x1)));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - 0*conv(one_vec, conv(one_vec, 1i*K.* x1)) + conv(Delay(x1,3.14),conv(x1,x1)) + l1 * conv(1i *K*3.14.*Delay(x1,3.14),conv(x1,x1)));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - 0);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' + l1 * 2 * conv(conv(Delay(x1,3.14),x1),one_vec));
 if isempty(auto_der.derivative_Fx_delay{1}{2})
@@ -1206,7 +1224,7 @@ delay_mat = - conv_mat_big(l1*conv(conv(x1,x1),one_vec)) *  expm(1i*3.14*l1 * ma
 dot_der = 0*mat_verybigK * 1i * l1;
 mat_conv = - conv_mat_big(l1 * 2 * conv(conv(Delay(x1,3.14),x1),one_vec));
 
-d_lambda = 0*conv(one_vec, conv(one_vec, 1i*K.* x1)) - conv(Delay(x1,3.14),conv(x1,x1));
+d_lambda = - conv(Delay(x1,3.14),conv(x1,x1)) -  l1 * conv(1i *K*3.14.*Delay(x1,3.14),conv(x1,x1));
 hand_solution = [0, conv(one_vec,conv(scal_coefs,one_vec));
     d_lambda.', dot_der + delay_mat+mat_conv];
 
@@ -1229,7 +1247,7 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(one_vec, conv(one_vec, 1i*K.* x1)) + conv(Delay(x1,3.14),conv(x1,x1)));
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - conv(one_vec, conv(one_vec, 1i*K.* x1)) + conv(Delay(x1,3.14),conv(x1,x1))+ l1 * conv(1i *K*3.14.*Delay(x1,3.14),conv(x1,x1)));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - l1);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' + l1 * 2 * conv(conv(Delay(x1,3.14),x1),one_vec));
 if isempty(auto_der.derivative_Fx_delay{1}{2})
@@ -1245,7 +1263,7 @@ delay_mat = - conv_mat_big(l1*conv(conv(x1,x1),one_vec)) *  expm(1i*3.14*l1 * ma
 dot_der = mat_verybigK * 1i * l1;
 mat_conv = - conv_mat_big(l1 * 2 * conv(conv(Delay(x1,3.14),x1),one_vec));
 
-d_lambda = conv(one_vec, conv(one_vec, 1i*K.* x1)) - conv(Delay(x1,3.14),conv(x1,x1));
+d_lambda = conv(one_vec, conv(one_vec, 1i*K.* x1)) - conv(Delay(x1,3.14),conv(x1,x1))- l1 * conv(1i *K*3.14.*Delay(x1,3.14),conv(x1,x1));
 hand_solution = [0, conv(one_vec,conv(scal_coefs,one_vec));
     d_lambda.', dot_der + delay_mat+mat_conv];
 
@@ -1270,7 +1288,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 auto_der = derivative(full_zero_finding_problem, x);
 
 max_error(1) = norm(squeeze(auto_der.derivative_Flambda).' - ...
-    1i*conv(K.*x1, conv(one_vec,one_vec)) - conv(Delay(x1,3.34),conv(x1,x1)) -  2 * conv(x1, conv(one_vec,one_vec)));
+    1i*conv(K.*x1, conv(one_vec,one_vec)) - conv(Delay(x1,3.34),conv(x1,x1)) -  2 * conv(x1, conv(one_vec,one_vec))...
+    - l1 * conv(1i *K*3.34.*Delay(x1,3.34),conv(x1,x1)));
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - l1);
 max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix).' - ...
     l1 * 2 * conv(conv(Delay(x1,3.34),x1),one_vec) - 2 * l1 * conv(one_vec, conv(one_vec,one_vec)));
@@ -1294,7 +1313,7 @@ delay_mat = conv_mat_big(l1*conv(x1, conv(x1,one_vec))) *  expm(1i*3.34*l1 * mat
 dot_der = mat_verybigK * 1i * l1;
 mat_conv = conv_mat_big(l1 * 2 * conv(conv(Delay(x1,3.34),x1),one_vec) + 2 * l1 * conv(one_vec, conv(one_vec,one_vec)));
 
-d_lambda = 1i*conv(K.*x1, conv(one_vec,one_vec)) + conv(Delay(x1,3.34),conv(x1,x1)) +  2 * conv(x1, conv(one_vec,one_vec));
+d_lambda = 1i*conv(K.*x1, conv(one_vec,one_vec)) + conv(Delay(x1,3.34),conv(x1,x1)) +  2 * conv(x1, conv(one_vec,one_vec))+l1 * conv(1i *K*3.34.*Delay(x1,3.34),conv(x1,x1));
 hand_solution = [0, conv(one_vec,conv(scal_coefs,one_vec));
     d_lambda.', dot_der + delay_mat+mat_conv];
 
@@ -1538,8 +1557,8 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), x1),one_vec))+...
-    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' - 0)+...
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), x1),one_vec) - l1 * conv(1i *K*3.14.*Delay(x1,3.14),conv(x1,one_vec)))+...
+    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' - conv(1i *K*3.*Delay(x2,3),conv(x1,x1)))+...
     norm(squeeze(auto_der.derivative_Flambda(:,3,:)).' - conv(conv(1i*K.*x3, one_vec),one_vec));
 
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - [1,0,0;0,1,0;0,0,l1]);
@@ -1602,7 +1621,9 @@ dot_der = kron([1,0,0; 0,1,0;0,0,l1], mat_verybigK * 1i);
 mat_conv = [ l1*conv_mat_big(conv(Delay(x1,3.14),one_vec_big)), conv_mat_big(conv(2*conv(x2,x3),one_vec)) , conv_mat_big(conv(conv(x2,x2),one_vec)) 
     conv_mat_big(conv(conv(2*Delay(x2,3),x1)-one_vec_big,one_vec)), conv_mat_big(conv(0*one_vec_big,one_vec)) , 0*conv_mat_big(conv(conv(x1,x1),one_vec)) 
     conv_mat_big(conv(one_vec_big,one_vec)) , conv_mat_big(conv(0*one_vec_big,one_vec)) , conv_mat_big(conv(one_vec_big*0,one_vec)) ];
-d_lambda = [conv(one_vec,conv(x1, Delay(x1,3.14))), 0*conv(one_vec_big, x2), conv(one_vec_big, 1i*K.*x3)].';
+
+d_lambda = [conv(conv(Delay(x1,3.14), x1),one_vec) + l1 * conv(1i *K*3.14.*Delay(x1,3.14),conv(x1,one_vec)),...
+    conv(1i *K*3.*Delay(x2,3),conv(x1,x1)), conv(conv(1i*K.*x3, one_vec),one_vec)].';
 
 delay_mat11 = conv_mat_big(l1*conv(x1,one_vec_big)) *  expm(1i*3.14*l1 * mat_verybigK);
 delay_mat22 = conv_mat_big(conv(x1,conv(x1,one_vec))) *  expm(1i*3*l1 * mat_verybigK);
@@ -1621,7 +1642,7 @@ if max(max_error) > 10^-10
 end
 
 
-string_vector_field = 'dot x1 + l1 * Delay(x1,3.14) * Delay(x2,4) + x2^2 * x3 \n dot x2 + Delay(x2,3) * Delay(x1,2) *x3 - x1 \n dot x3 + x1';
+string_vector_field = 'dot x1 + l1 * Delay(x1,3.14) * Delay(x2,4) + x2^2 * x3 \n dot x2 + Delay(x1,2) * Delay(x2,3)* x3 - x1 \n dot x3 + x1';
 
 vector_field = from_string_to_polynomial_coef(string_vector_field,1,3);
 
@@ -1629,8 +1650,12 @@ full_zero_finding_problem = full_problem(scalar_equation,vector_field);
 
 auto_der = derivative(full_zero_finding_problem, x);
 
-max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), Delay(x2,4)),one_vec))+...
-    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' - 0)+...
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), Delay(x2,4)),one_vec) ...
+    - l1*conv(conv(1i *K*3.14.*Delay(x1,3.14), Delay(x2,4)),one_vec)...
+    - l1*conv(conv(Delay(x1,3.14), 1i *K*4.*Delay(x2,4)),one_vec))+...
+    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' ...
+    - conv(conv(1i *K*2.*Delay(x1,2), Delay(x2,3)),x3)...
+    - conv(conv(Delay(x1,2), 1i *K*3.*Delay(x2,3)),x3))+...
     norm(squeeze(auto_der.derivative_Flambda(:,3,:)).' - 0);
 
 max_error(2) = norm(auto_der.derivative_Fx_diagonal - [1,0,0;0,1,0;0,0,1]);
@@ -1696,7 +1721,13 @@ dot_der = kron([1,0,0; 0,1,0;0,0,1], mat_verybigK * 1i);
 mat_conv = [ 0*conv_mat_big(conv(Delay(x1,3.14),one_vec_big)), conv_mat_big(conv(2*conv(x2,x3),one_vec)) , conv_mat_big(conv(conv(x2,x2),one_vec)) 
     conv_mat_big(conv(-one_vec_big,one_vec)), conv_mat_big(conv(0*one_vec_big,one_vec)) , conv_mat_big(conv(conv(Delay(x2,3),Delay(x1,2)),one_vec)) 
     conv_mat_big(conv(one_vec_big,one_vec)) , conv_mat_big(conv(0*one_vec_big,one_vec)) , conv_mat_big(conv(one_vec_big*0,one_vec)) ];
-d_lambda = [conv(one_vec,conv(Delay(x2,4), Delay(x1,3.14))), 0*conv(one_vec_big, x2), conv(one_vec_big, 0*one_vec)].';
+d_lambda = [ conv(conv(Delay(x1,3.14), Delay(x2,4)),one_vec) ...
+    + l1*conv(conv(1i *K*3.14.*Delay(x1,3.14), Delay(x2,4)),one_vec)...
+    + l1*conv(conv(Delay(x1,3.14), 1i *K*4.*Delay(x2,4)),one_vec),...
+    + conv(conv(1i *K*2.*Delay(x1,2), Delay(x2,3)),x3)...
+    + conv(conv(Delay(x1,2), 1i *K*3.*Delay(x2,3)),x3),...
+    0*conv(conv(x1,x1),x1)].';
+
 
 delay_mat11 = conv_mat_big(l1*conv(Delay(x2,4),one_vec_big)) *  expm(1i*3.14*l1 * mat_verybigK);
 delay_mat12 = conv_mat_big(l1*conv(Delay(x1,3.14),one_vec_big)) *  expm(1i*4*l1 * mat_verybigK);

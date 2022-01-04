@@ -1,4 +1,3 @@
-
 function [x, par_alpha, eigenvec, eigenval] = Hopf_numerical(x, par_alpha, parameter, eigenvec, eigenval, rhs, phi)
 % function [x, par_alpha, eigenvec, eigenval] = Hopf_numerical(x, par_alpha, parameter)
 %

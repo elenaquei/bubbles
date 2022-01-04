@@ -171,7 +171,7 @@ classdef Xi_vector
             end
             
             ifft_y = y;
-            if nargout <= 1
+            if nargout >= 1
                 y = verifyfft_in(ifft_y,1);
             else
                 y = NaN;
@@ -313,7 +313,7 @@ classdef Xi_vector
         function y_vec=symmetrise(xi_vec)
             %function y_vec=symmetrised(xi_vec)
             y_vec=xi_vec;
-            y_vec.scalar=(xi_vec.scalar+conj(xi_vec.scalar))/2;
+            y_vec.scalar=real(xi_vec.scalar+conj(xi_vec.scalar))/2;
             %m=xi_vec.nodes;
             for i=1:xi_vec.size_vector
                 %y_vec.vector(i,1:m)=conj(flip(xi_vec.vector(i,m+2:end)));
@@ -395,7 +395,13 @@ classdef Xi_vector
             end
             z_vec.scalar=min_vec.scalar+max_vec.scalar;
             z_vec.vector=min_vec.vector+max_vec.vector;
-            z_vec.bool_ifft = 0;
+            if x_vec.bool_ifft && y_vec.bool_ifft && x_vec.nodes == y_vec.nodes
+                z_vec.bool_ifft = 1;
+                z_vec.ifft_vector = x_vec.ifft_vector + y_vec.ifft_vector;
+            else
+                z_vec.bool_ifft = 0;
+            end
+            
         end
         % SUM_XI_VECTOR
         
@@ -411,7 +417,7 @@ classdef Xi_vector
             if x_vec.nodes~=y_vec.nodes
                 warning('Number of nodes do not coincide, chosen the smallest');
             end
-            z_vec.bool_ifft = 0;
+            % z_vec.bool_ifft = 0;
         end
         % PLUS
         
@@ -470,24 +476,22 @@ classdef Xi_vector
                 flag=1;
             end
             
-            if x_vec.nodes>y_vec.nodes
-                max_vec=equal_Xi(x_vec);
-                min_vec=equal_Xi(y_vec);
+            if flag 
+                n_nodes = min(x_vec.nodes, y_vec.nodes);
             else
-                max_vec=equal_Xi(y_vec);
-                min_vec=equal_Xi(x_vec);
+                n_nodes = max(x_vec.nodes, y_vec.nodes);
             end
-            if flag
-                z_vec=Xi_vector(min_vec);
-                max_vec=reshape_Xi(max_vec,min_vec.nodes);
-            else
-                z_vec=Xi_vector(max_vec);
-                min_vec=reshape_Xi(min_vec,max_vec.nodes);
-            end
+            x_vec_new = reshape(x_vec, n_nodes);
+            y_vec_new = reshape(y_vec, n_nodes);
             
-            z_vec.scalar=min_vec.scalar-max_vec.scalar;
-            z_vec.vector=min_vec.vector-max_vec.vector;
-            z_vec.bool_ifft = 0;
+            z_vec = Xi_vector(x_vec.scalar - y_vec.scalar, x_vec_new.vector - y_vec_new.vector);
+            
+            if x_vec.bool_ifft && y_vec.bool_ifft && x_vec.nodes == y_vec.nodes
+                z_vec.bool_ifft = 1;
+                z_vec.ifft_vector = x_vec.ifft_vector - y_vec.ifft_vector;
+            else
+                z_vec.bool_ifft = 0;
+            end
         end
         % DIF_XI_VECTOR
         
@@ -503,7 +507,7 @@ classdef Xi_vector
             if x_vec.nodes~=y_vec.nodes
                 warning('Number of nodes do not coincide, chosen the smallest');
             end
-            z_vec.bool_ifft = 0;
+            %z_vec.bool_ifft = 0;
         end
         % MINUS
         

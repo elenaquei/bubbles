@@ -46,7 +46,7 @@ block_norm_AM = block_norm((modes+1)*M_int, P_int, (modes+1)*Q_int, R_int, D3F2_
 DDF_without_dpsi = upper_bound_DDF_without_psi(alpha0, x_int, Rmax);
 Z22 = block_norm_AM * DDF_without_dpsi;
 
-Z2 = Z22 + Z21;
+Z2 = sup(Z22 + Z21);
 end
 
 function DpsiDF = dpsiDF(alpha, x, Rmax)

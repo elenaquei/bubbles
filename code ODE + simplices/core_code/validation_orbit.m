@@ -32,16 +32,16 @@ end
 
 use_intlab = 1;
 
-Y_vector = Y_bound_new(A,xXi_vec,Func);
+Y_vector = Y_bound(A,xXi_vec,Func);
 Z0_vector=Z0_bound(DF_mat,A,xXi_vec);
 if any(Z0_vector>1)
     return
 end
-Z1_vector=Z1_bound_new(A,xXi_vec,Func);
+Z1_vector=Z1_bound(A,xXi_vec,Func);
 if any(Z1_vector+Z0_vector>1)
     return
 end
-Z2_vector= Z2_bound_new(A,xXi_vec,Func);
+Z2_vector= Z2_bound(A,xXi_vec,Func);
 [bool,Imin,Imax]=find_negative(Z2_vector,Z1_vector,Z0_vector,Y_vector);
 
 if ~bool
