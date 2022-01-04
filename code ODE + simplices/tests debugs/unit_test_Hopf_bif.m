@@ -77,7 +77,7 @@ string_lorenz84_cont = strrep(string_lorenz84_vars, 'T', 'l2'); % setting pho as
 n_nodes = 5; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
 n_iter = 3; % number of iterations
 step_size = 10^-3; % initial step size (then adapted along the validation
-s = 'unit_test_Hopf_bif'; % where the solutions are stored
+s = 'tests debugs/unit_test_Hopf_bif'; % where the solutions are stored
 
 vectorfield = strrep(string_lorenz84_cont, 'l1' , '');%'-dot x1 - x2 + l1 x1 - x1 ^ 3 - x1  x2 ^ 2\n- dot x2 + x1 + l1 x2 - x1 ^ 2 x2 - x2 ^ 3';
 vectorfield = strrep(vectorfield, 'l2' , 'l1');

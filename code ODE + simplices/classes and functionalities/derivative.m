@@ -360,3 +360,23 @@ for j = 1:N
         DF((i-1)*length(index)+index,(j-1)*length(index) +index) + delay_part;
 end
 end
+
+function B = padarray(A, pad_size)
+if length(size(A)) == 2
+    B = padarray2(A, pad_size);
+elseif length(size(A)) == 3
+    B = padarray3(A, pad_size);
+else
+    error('Number of dimenesions of input too big')
+end
+end
+
+function B = padarray2(A, pad_size)
+B = zeros(size(A)+2*pad_size);
+B(pad_size(1)+(1:size(A,1)), pad_size(2)+(1:size(A,2))) = A;
+end
+
+function B = padarray3(A, pad_size)
+B = zeros(size(A)+2*pad_size);
+B(pad_size(1)+(1:size(A,1)), pad_size(2)+(1:size(A,2)), pad_size(3)+(1:size(A,3))) = A;
+end

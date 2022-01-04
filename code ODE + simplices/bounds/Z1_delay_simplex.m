@@ -19,18 +19,32 @@ norm_weight_long = [weight_vector; weight_scalar; weight_vector];
 use_intlab = 1;
 
 
+% we compute the derivative BEFORE we add nodes, so to have an easier
+% computation
+bool_long = 1;
+% we already have extended x to be long enough, we don't need additional
+% terms
+x_int = interpolation(x0, x1, x2);
+alpha_int = interpolation(alpha0, alpha1, alpha2);
+DF = derivative(alpha_int, x_int, bool_long);
+
 % reshape all inputs
-if x0.nodes<64
-    new_nodes = 64;
-    [A_small0, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
-    [A_small1, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
-    [A_small2, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);
+if x0.nodes<128
+    new_nodes = 128;
+    % [A_small0, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
+    % [A_small1, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
+    % [A_small2, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);
+    
+    [~, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
+    [~, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
+    [~, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);
     x0 = reshape(x0, new_nodes);
-    x1 = reshape(x1, new_nodes);
-    x2 = reshape(x2, new_nodes);
+    % x1 = reshape(x1, new_nodes);
+    % x2 = reshape(x2, new_nodes);
     alpha0 = reshape(alpha0, new_nodes);
-    alpha1 = reshape(alpha1, new_nodes);
-    alpha2 = reshape(alpha2, new_nodes);
+    % alpha1 = reshape(alpha1, new_nodes);
+    % alpha2 = reshape(alpha2, new_nodes);
+    DF = reshape(DF, new_nodes);
 end
 
 degree = alpha0.vector_field.deg_vector;
@@ -38,10 +52,9 @@ n_nodes = x0.nodes;
 size_vector = x0.size_vector;
 size_scalar = x0.size_scalar;
 N = alpha0.vector_field.n_equations;
-n_nodes_long = n_nodes*degree;
+% n_nodes_long = n_nodes*degree;
 
-
-x_int = interpolation(x0, x1, x2);
+% x_int = interpolation(x0, x1, x2);
 
 
     function [A, M, P, Q, R, phi, D3F2] = extract_from_struct(A_struct)
@@ -63,7 +76,7 @@ x_int = interpolation(x0, x1, x2);
 % [A_small1, M1, P1, Q1, R1, phi1, D3F21] = A_delay_symplex(alpha1, x1);
 % [A_small2, M2, P2, Q2, R2, phi2, D3F22] = A_delay_symplex(alpha2, x2);
 
-A_small_int = interpolation(A_small0, A_small1, A_small2);
+% A_small_int = interpolation(A_small0, A_small1, A_small2);
 
 M_int = interpolation(M0, M1, M2);
 P_int = interpolation(P0, P1, P2);
@@ -71,12 +84,6 @@ Q_int = interpolation(Q0, Q1, Q2);
 R_int = interpolation(R0, R1, R2);
 phi_int = interpolation(phi0, phi1, phi2);
 D3F2_int = interpolation(D3F20, D3F21, D3F22);
-
-bool_long = 1; 
-% we already have extended x to be long enough, we don't need additional
-% terms
-alpha_int = interpolation(alpha0, alpha1, alpha2);
-DF = derivative(alpha_int, x_int, bool_long);
 
 norm_D3F2 =diag(weight_scalar) * intval(sup(abs(D3F2_int))) * diag(weight_vector.^-1);
 norm_P = diag(weight_vector) * intval(norm_C_to_ell1(P_int, size_scalar, size_vector)) * diag(weight_scalar.^-1);
@@ -92,7 +99,7 @@ center_indices = nodes_each_section + 1 + (-n_nodes:n_nodes);
 tail_indices = nodes_each_section + 1 + [-nodes_each_section: -n_nodes-1, n_nodes+1:nodes_each_section];
 size_each_section = 2 * nodes_each_section + 1;
 K = -nodes_each_section:nodes_each_section;
-% SLOW OR MEMORY ISSUES? 
+
 STAR1 = intval(sparse( size_each_section*size_vector, ...
     size_each_section*size_vector));
 STAR3 = intval(sparse( (n_nodes*2+1)*size_vector, ...

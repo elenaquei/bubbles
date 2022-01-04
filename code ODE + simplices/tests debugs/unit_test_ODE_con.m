@@ -30,7 +30,7 @@ sigma = 10;
 beta = 8/3;
 pho = 28;
 n_iter = 2;
-s = 'unit_test_ODE_cont'; % path where the validation will be saved
+s = 'tests debugs/unit_test_ODE_cont'; % path where the validation will be saved
 
 % construct the numerical solution with forward integration from known
 % initial conditions

@@ -1,11 +1,9 @@
-% unit tests for scalar_eq with non_computable elements
-% needs to be associated with the file "non_computable_func_unit_test.m"
 global use_intlab
 global nu
 global talkative
 global norm_weight
 norm_weight = [1,1,1,1,1,1,1,1,1,0.8,1.2].';
-talkative = 3;
+talkative = 2;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
@@ -108,12 +106,12 @@ bool_validated = 0;
 %     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 %
 % load(save_file)
-
+disp('Looking for the Hopf curve by decreasing the amplitude')
 smallest_amplitude = abs(xi.scalar(3));
 while smallest_amplitude > 10^-4
     step_size_local = smallest_amplitude;
     n_iter_around = 20;
-    disp(xi.scalar(3))
+    fprintf('Amplitude reached: %f',xi.scalar(3))
     
     save_file = continuation_simplex(xi, zero_finding_problem,...
         n_iter_around, step_size_local, save_file, bool_Hopf, bool_validated, plotting_instructions);
@@ -127,7 +125,7 @@ while smallest_amplitude > 10^-4
     best_node = list_of_nodes{best_node_index};
     xi = best_node.solution;
 end
-
+disp('Hopf curve has been found, now the actual growth starts')
 
 % while smallest_amplitude > 3*10^-6
 %     step_size_local = 0.7*smallest_amplitude;
@@ -169,20 +167,18 @@ end
 
 xi = best_node.solution;
 step_size = 10^-5;
-n_iter = 10;
+n_iter = 100;
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, 0, plotting_instructions);
 load(save_file)
 
-profile -memory on
+plot_(list_of_simplices, list_of_nodes)
 [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
     Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-    list_of_nodes, [1], bool_Hopf,save_file);
+    list_of_nodes, [], bool_Hopf,save_file);
 %[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
 %    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
 %    list_of_nodes, [], bool_Hopf,save_file);
-
-profile viewer % check what uses memory
 
 save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
     'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
@@ -310,7 +306,13 @@ end
 for index = 1: length(index_simplices)
     i = index_simplices(index);
     if length(index_simplices)>10
-        plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{1},'LineStyle','none',varargin{2:end});
+        if length(varargin)>1
+            plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{1},'LineStyle','none',varargin{2:end});
+        elseif length(varargin)==1
+            plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{1},'LineStyle','none');
+        else
+            plot_simplex(list_simplex.simplex{i}, list_of_nodes, 'LineStyle','none');
+        end
     else
         plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{:});
     end

@@ -38,7 +38,7 @@ n_nodes = 7; % number of Fourier nodes used: small, since near the Hopf bifurcat
 n_iter = 8;
 bool_Hopf = 1;
 step_size = 0.9*10^-2; % initial step size (then adapted along the validation
-save_file = 'unit_test_ODE_simplex'; % where the solutions are stored
+save_file = 'tests debugs/unit_test_ODE_simplex'; % where the solutions are stored
 
 f = @fn_Lorenz84; % We choose a map.
 df = @derivatives_Lorenz84;

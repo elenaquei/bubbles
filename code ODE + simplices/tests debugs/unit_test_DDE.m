@@ -17,7 +17,7 @@ bool_Hopf = 1; % the Hopf blow up is already taken into account
 bool_validated = 1;
 
 load('./Kevins_code/point_candidate.mat')
-save_file = 'DDE_example';
+save_file = 'tests debugs/unit_test_DDE';
 
 % extract info from point_candidate
 z0 = X_ref(8:8+2*N);
@@ -102,11 +102,12 @@ xi = Newton_2(xi,full_zero_finding_problem);
 first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
 
-% only numerical run, then we can select the simplices we are interested in
+% run AND validate
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 
-step_size = 10^-5;
+% run and later validate
+step_size = 10^-8;
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, 0, plotting_instructions);
 
