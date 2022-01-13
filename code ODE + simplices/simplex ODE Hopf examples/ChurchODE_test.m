@@ -19,13 +19,13 @@ catch
     startintlab;
 end
 
-bool_validated = 1;
+bool_validated = 0;
 if ~bool_validated
     % some elements useful for the computation and the validation
     n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
     n_iter = 500;
     % step size
-    step_size = 10^-2; 
+    step_size = 0.5*10^-2; 
     save_file = 'ChurchODE'; % where the solutions are stored
 else
     n_nodes = 20; 
@@ -96,8 +96,8 @@ if bool_validated
     
     load(save_file)
     [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-        list_of_nodes, [], bool_Hopf);
+        Z1_iter, Z2_iter, Y_iter] =  a_posteriori_validations(list_of_simplices,...
+        list_of_nodes, [], bool_Hopf, 1, save_file)
     
     save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
         'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...

@@ -34,9 +34,9 @@ end
 %DIM = 1;
 
 % some elements useful for the computation and the validation
-n_nodes = 7; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
+n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
 n_iter = 6000;
-step_size = 0.9*10^-2; % initial step size (then adapted along the validation
+step_size = 0.9*10^-2; % initial step size
 save_file = 'Hopf_lorenz84_not_val_bigger'; % where the solutions are stored
 bool_validated = 0;
 
@@ -161,20 +161,6 @@ bool_Hopf = 1;
 use_intlab = 0;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated);
-
-% load(save_file)
-% plot(list_of_simplices,list_of_nodes)
-% 
-% save_file = continue_simplex_growth(save_file, n_iter,new_name_file);
-% 
-% load(new_name_file)
-% plot(list_of_simplices,list_of_nodes)
-% 
-% 
-% save_file = continue_simplex_growth(save_file, n_iter, new_name_file2);
-% 
-% load(save_file)
-% plot(list_of_simplices,list_of_nodes)
 
 if ~bool_validated
     bool_validated = 1;
