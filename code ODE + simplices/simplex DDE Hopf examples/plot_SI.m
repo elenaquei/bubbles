@@ -42,8 +42,8 @@ R0_coord = zeros(1,3);
 a_coord = zeros(1,3);
 label = cell(3,1);
 for i = 1:3
-    p_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(3);
-    R0_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(1);
+    p_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(2);
+    R0_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(3);
     a_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(4);
     label{i} = 'x'+string(simplex.nodes_number(i));
 end

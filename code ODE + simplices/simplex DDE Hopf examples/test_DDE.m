@@ -1,37 +1,40 @@
+% delay SI model 
+
 global use_intlab
 global nu
 global talkative
 global norm_weight
 norm_weight = [1,1,1,1,1,1,1,1,1,0.8,1.2].';
-talkative = 2;
+talkative = 0;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
 n_modes = 20; % TOO BIG AND IT'S a problem for Y, too small and it's a problem for Z1
-n_iter = 6000;
 step_size = 10^-3;
-plotting_instructions = 5;
+plotting_instructions = 50;
 bool_Hopf = 1; % the Hopf blow up is already taken into account
-bool_validated = 1;
 
-load('./Kevins_code/point_candidate.mat')
+
+
 save_file = 'DDE_example';
 
 % extract info from point_candidate
-z0 = X_ref(8:8+2*N);
-z1 = X_ref(9+2*N:9+4*N);
-z2 = X_ref(10+4*N:end);
-
-x0 = X_ref(1);
-p = X_ref(2);
-R0 = X_ref(3);
-psi = X_ref(4);
-a = X_ref(5);
-eta1 = X_ref(6);
-eta2 = X_ref(7);
-mu = R0*exp(-p*x0);
-
-xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
+%load('./Kevins_code/point_candidate.mat')
+% z0 = X_ref(8:8+2*N);
+% z1 = X_ref(9+2*N:9+4*N);
+% z2 = X_ref(10+4*N:end);
+% 
+% x0 = X_ref(1);
+% p = X_ref(2);
+% R0 = X_ref(3);
+% psi = X_ref(4);
+% a = X_ref(5);
+% eta1 = X_ref(6);
+% eta2 = X_ref(7);
+% mu = R0*exp(-p*x0);
+% 
+% xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
+load('SI_start.mat')
 xi = reshape(xi, n_modes);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
@@ -93,96 +96,35 @@ end
 
 DF_old = derivative_to_matrix(derivative(full_zero_finding_problem, xi,0));
 f = @(x)Xi_vec2vec(apply(full_zero_finding_problem,vec2Xi_vec(x,xi)));
-%DF_num = numerical_der(f, Xi_vec2vec(xi));
 
-xi = Newton_2(xi,full_zero_finding_problem);
+xi = Newton_Xi(xi,full_zero_finding_problem);
 
 first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
 
 bool_validated = 0;
-% only numerical run, then we can select the simplices we are interested in
-% save_file = continuation_simplex(xi, zero_finding_problem,...
-%     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
-%
-% load(save_file)
-disp('Looking for the Hopf curve by decreasing the amplitude')
-smallest_amplitude = abs(xi.scalar(3));
-while smallest_amplitude > 10^-4
-    step_size_local = smallest_amplitude;
-    n_iter_around = 20;
-    fprintf('Amplitude reached: %f',xi.scalar(3))
-    
-    save_file = continuation_simplex(xi, zero_finding_problem,...
-        n_iter_around, step_size_local, save_file, bool_Hopf, bool_validated, plotting_instructions);
-    load(save_file)
-    amplitude_vec = 0 * [1:length(list_of_nodes)];
-    for i=1:length(list_of_nodes)
-        node_i = list_of_nodes{i};
-        amplitude_vec(i) = node_i.solution.scalar(3);
-    end
-    [smallest_amplitude, best_node_index] = min(abs(amplitude_vec));
-    best_node = list_of_nodes{best_node_index};
-    xi = best_node.solution;
-end
-disp('Hopf curve has been found, now the actual growth starts')
 
-% while smallest_amplitude > 3*10^-6
-%     step_size_local = 0.7*smallest_amplitude;
-%     n_iter_closing = 10;
-%     xi = best_node.solution;
-%     disp(xi.scalar(3))
-%
-%     save_file = continuation_simplex(xi, zero_finding_problem,...
-%         n_iter_closing, step_size_local, save_file, bool_Hopf, bool_validated, plotting_instructions);
-%     load(save_file)
-%     amplitude_vec = 0 * [1:length(list_of_nodes)];
-%     for i=1:length(list_of_nodes)
-%         node_i = list_of_nodes{i};
-%         amplitude_vec(i) = node_i.solution.scalar(3);
-%     end
-%     [smallest_amplitude, best_node_index] = min(abs(amplitude_vec));
-%     best_node = list_of_nodes{best_node_index};
-% end
-
-
-% for i = 1:-50
-%     step_size_local = 0.7*smallest_amplitude;
-%     n_iter_closing = 10;
-%     xi = best_node.solution;
-%     disp(xi.scalar(2))
-%
-%     save_file = continuation_simplex(xi, zero_finding_problem,...
-%         n_iter_closing, 10^-2, save_file, bool_Hopf, bool_validated, plotting_instructions);
-%     load(save_file)
-%     mu_vec = 0 * [1:length(list_of_nodes)];
-%     for i=1:length(list_of_nodes)
-%         node_i = list_of_nodes{i};
-%         mu_vec(i) = node_i.solution.scalar(2);
-%     end
-%     [smallest_amplitude, best_node_index] = min(abs(mu_vec));
-%     best_node = list_of_nodes{best_node_index};
-% end
-
-
-xi = best_node.solution;
 step_size = 10^-5;
-n_iter = 100;
+n_iter = 1000;
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, 0, plotting_instructions);
 load(save_file)
 
-plot_(list_of_simplices, list_of_nodes)
-[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-    list_of_nodes, [], bool_Hopf,save_file);
-%[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-%    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-%    list_of_nodes, [], bool_Hopf,save_file);
-
-save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-    'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-    'list_of_frontal_nodes');
+plot_SI(list_of_simplices, list_of_nodes)
+n_simplices = length(list_of_simplices);
+for i = 1:n_simplices
+    [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+        list_of_nodes, i, bool_Hopf,save_file);
+    % [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+    %    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+    %    list_of_nodes, [], bool_Hopf,save_file);
+    
+    save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+        'list_of_frontal_nodes');
+    % guarantees you can stop the computations pretty much any time!
+end
 
 
 function [F, dxF, dxF_mat, dxxF_norm] = noncomputable_eqs_for_DDE(xi)
@@ -298,61 +240,3 @@ dxxF_norm = abs([DpsiDF, DxDF, DaDF, DmuDF, DR0DF, DpDF, DetaDF, DetaDF, Dz0DF, 
 end
 
 
-function plot(list_simplex, list_of_nodes, index_simplices, varargin)
-if nargin <3 || isempty(index_simplices)
-    index_simplices = 1:length(list_simplex);
-end
-
-for index = 1: length(index_simplices)
-    i = index_simplices(index);
-    if length(index_simplices)>10
-        if length(varargin)>1
-            plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{1},'LineStyle','none',varargin{2:end});
-        elseif length(varargin)==1
-            plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{1},'LineStyle','none');
-        else
-            plot_simplex(list_simplex.simplex{i}, list_of_nodes, 'LineStyle','none');
-        end
-    else
-        plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{:});
-    end
-    hold on
-end
-alpha 0.5
-set(gca,'FontSize',18)
-hold off
-xlabel('$x$','Interpreter','Latex', 'FontSize', 20);
-ylabel('amplitude','Interpreter','Latex', 'FontSize', 20);
-zlabel('$\mu$','Interpreter','Latex', 'FontSize', 20);
-end
-
-function plot_simplex(simplex, list_of_nodes, color, varargin)
-% function plot_simplex(simplex, color)
-if nargin<3 || isempty(color)
-    if simplex.verified
-        color = 'b';
-    elseif simplex.frontal
-        color = 'y';
-    else
-        color = 'r';
-    end
-end
-p_coord = zeros(1,3);
-R0_coord = zeros(1,3);
-a_coord = zeros(1,3);
-label = cell(3,1);
-for i = 1:3
-    p_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(6);
-    R0_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(5);
-    a_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(3);
-    label{i} = 'x'+string(simplex.nodes_number(i));
-end
-% label_simplex = 'S' +string(simplex.number);
-% center_x = mean(p_coord);
-% center_y = mean(R0_coord);
-% center_z = mean(a_coord);
-fill3(p_coord,R0_coord,a_coord,color, varargin{:})
-
-%text(x_coord,y_coord,z_coord,label,'VerticalAlignment','bottom','HorizontalAlignment','right')
-%text(center_x,center_y,center_z,label_simplex,'VerticalAlignment','bottom','HorizontalAlignment','right')
-end

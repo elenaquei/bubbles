@@ -19,7 +19,7 @@ global RAD_MAX
 global norm_weight
 norm_weight = [];
 nu = 1.1;
-talkative = 0;
+talkative = 1;
 nu = 1.1;
 RAD_MAX = 10^-4;
 
@@ -35,10 +35,10 @@ end
 
 % some elements useful for the computation and the validation
 n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 6000;
-step_size = 0.9*10^-2; % initial step size
-save_file = 'Hopf_lorenz84_not_val_bigger'; % where the solutions are stored
-bool_validated = 0;
+n_iter = 2000;
+step_size = 0.02; % initial step size % 0.9*10^-2; for validation pruposes
+save_file = 'Hopf_lorenz84_val_bigstep'; % where the solutions are stored
+bool_validated = 1;
 
 f = @fn_Lorenz84; % We choose a map.
 df = @derivatives_Lorenz84;
@@ -144,8 +144,8 @@ big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 
 % big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
 load('stored_lorenz84.mat')
-sol_N = list_of_nodes{5}.solution;
-big_Hopf = list_of_nodes{5}.problem;
+sol_N = xi;%list_of_nodes{5}.solution;
+big_Hopf = problem_xi;%list_of_nodes{5}.problem;
 % big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,6);
 % big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,5);
 
@@ -161,6 +161,7 @@ bool_Hopf = 1;
 use_intlab = 0;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated);
+save_file = continue_simplex_growth(save_file, n_niter, save_file, step_size/0.75);
 
 if ~bool_validated
     bool_validated = 1;

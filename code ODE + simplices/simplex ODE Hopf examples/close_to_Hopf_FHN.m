@@ -20,9 +20,9 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-n_iter = 10;
-save_file = 'saved elements/FHN_validated'; % path where the validation will be saved
-load('./saved elements/stored_FHN.mat')
+n_iter = 6000;
+save_file = 'FHN_3000'; % path where the validation will be saved
+
 step_size = 0.7*10^-2;
 bool_Hopf = 1;
 bool_validated = 1;
@@ -63,19 +63,21 @@ string_FHN_vars = strrep(string_FHN_vars, 'l1' , '');
 string_FHN_vars = strrep(string_FHN_vars, 'I' , 'l1'); 
 string_FHN_vars = strrep(string_FHN_vars, 'epsilon' , 'l2');
 
-epsilon_vec = 0 * [1:length(list_of_nodes)];
-for i=1:length(list_of_nodes)
-    node = list_of_nodes{i};
-    epsilon_vec(i) = node.solution.scalar(3);
-    if node.solution.scalar(4)<0
-        epsilon_vec(i) =0;
-    end
-end
-[~, best_node_index] = max(epsilon_vec);
-best_node = list_of_nodes{best_node_index};
+% epsilon_vec = 0 * [1:length(list_of_nodes)];
+% for i=1:length(list_of_nodes)
+%     node = list_of_nodes{i};
+%     epsilon_vec(i) = node.solution.scalar(3);
+%     if node.solution.scalar(4)<0
+%         epsilon_vec(i) =0;
+%     end
+% end
+% [~, best_node_index] = max(epsilon_vec);
+% best_node = list_of_nodes{best_node_index};
+% 
+% sol = best_node.solution;
 
-sol = best_node.solution;
-
+% load initial solution
+load('stored_FHN_start')
 polynomial = from_string_to_polynomial_coef(string_FHN_vars);
 big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 

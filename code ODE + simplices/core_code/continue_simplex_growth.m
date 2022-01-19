@@ -1,10 +1,14 @@
-function new_name_file = continue_simplex_growth(name_file, new_niter, new_name_file)
+function new_name_file = continue_simplex_growth(name_file, new_niter, new_name_file, new_step_size)
 
 if nargin <3 || isempty(new_name_file)
     new_name_file = ['new_', name_file];
 end
 
 load(name_file)
+
+if nargin>3 || ~isempty(new_step_size)
+    step_size = new_step_size;
+end
 
 if ~exist('plotting_instructions', 'var') || isempty(plotting_instructions) 
     plotting_instructions = 10;
