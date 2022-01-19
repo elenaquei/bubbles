@@ -37,7 +37,7 @@ end
 % add to path the interesting folders
 addpath(append(filepath, bar, 'bounds'))
 addpath(append(filepath, bar, 'classes and functionalities'))
-addpath(append(filepath, bar, 'core_code'))
+addpath(append(filepath, bar, 'continuation'))
 addpath(append(filepath, bar, 'Hopf_and_saddle'))
 addpath(append(filepath, bar, 'simplices'))
 addpath(append(filepath, bar, 'tests debugs'))

@@ -55,7 +55,7 @@ if Imin >RAD_MAX
     bool = 0;
     Imin = [];
     Imax = [];
-    display('RAD_MAX too small')
+    disp('RAD_MAX too small')
     return
 end
 
