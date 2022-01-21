@@ -159,17 +159,35 @@ big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 bool_Hopf = 1;
 use_intlab = 0;
-save_file = continuation_simplex(sol_N, big_Hopf,...
-    n_iter, step_size, save_file, bool_Hopf, bool_validated);
-save_file = continue_simplex_growth(save_file, n_niter, save_file, step_size/0.75);
-
-if ~bool_validated
-    bool_validated = 1;
-    [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-        list_of_nodes, [], bool_Hopf);
-    
-    save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-        'list_of_frontal_nodes');
+try
+    save_file = continuation_simplex(sol_N, big_Hopf,...
+        n_iter, step_size, save_file, bool_Hopf, bool_validated);
+catch
+    fprintf('The validation failed \n')
+    fprintf('We will continue with a smaller stepsize \n')
 end
+try
+    step_size = step_size*0.9;
+    save_file = continue_simplex_growth(save_file, n_iter, save_file, step_size);
+catch
+    fprintf('The validation failed \n')
+    fprintf('We will continue with a smaller stepsize \n')
+end
+
+try
+    step_size = step_size*0.9;
+    save_file = continue_simplex_growth(save_file, n_iter, save_file, step_size);
+catch
+    fprintf('The validation failed due to a to large step size\n')
+end
+
+% if ~bool_validated
+%     bool_validated = 1;
+%     [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+%         Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+%         list_of_nodes, [], bool_Hopf);
+%     
+%     save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+%         'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+%         'list_of_frontal_nodes');
+% end

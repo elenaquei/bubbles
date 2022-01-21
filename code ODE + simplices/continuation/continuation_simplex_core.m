@@ -22,6 +22,16 @@ end
 use_intlab = 0;
 F = list_of_nodes{end}.problem;
 
+save_file_nodes = append(save_file,'_nodes_temp.mat');
+prompt = sprintf('If it exists, the file %s will be deleted, press 0 to avoid this (program will likely crash)', save_file_nodes);
+bool = input(prompt);
+if isempty(bool) || bool~=0
+    try
+        delete(save_file_nodes)
+    catch
+    end
+end
+
 %% comtinuation proper
 i = 0;
 plot_index = [];
@@ -88,9 +98,9 @@ while i < n_iter
         drawnow
         plot_index = [];
         if bool_validated
-        save(save_file,'list_of_simplices','list_of_nodes','Interval',...
-            'Z0_iter','Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf',...
-            'bool_validated','list_of_frontal_nodes');
+            save(save_file,'list_of_simplices','list_of_nodes','Interval',...
+                'Z0_iter','Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf',...
+                'bool_validated','list_of_frontal_nodes');
         else
             save(save_file,'list_of_simplices','list_of_nodes',...
                 'step_size','bool_Hopf',...
@@ -108,7 +118,67 @@ while i < n_iter
     %    plot(list_of_simplices,list_of_nodes);
     %end
     i = i + length(index_new_simplices);
+    
+    
+    % memory management: if there are many non-frontal modes, store them in
+    % a file and "forget" them
+    if any(mod(i:i+length(index_new_simplices),250)==0)
+        list_of_non_frontal_nodes = setdiff(1:length(list_of_nodes),list_of_frontal_nodes);
+        loc_list_of_nodes = cell(1, length(list_of_non_frontal_nodes));
+        copy_index = list_of_non_frontal_nodes;
+        for delete_i = 1:length(list_of_non_frontal_nodes)
+            index = list_of_non_frontal_nodes(delete_i);
+            if ~isempty(list_of_nodes{index})
+                loc_patch = list_of_nodes{index}.patch;
+                
+                all_neighbours = [];
+                for check_delete_i = 1: length(loc_patch)
+                    simplex_di = list_of_simplices.simplex{loc_patch(check_delete_i)};
+                    all_neighbours = union(all_neighbours, simplex_di.nodes_number);
+                end
+                if ~isempty(intersect(all_neighbours, list_of_frontal_nodes))
+                    bool_delete = 0;
+                else
+                    bool_delete = 1;
+                end
+                if bool_delete
+                    loc_list_of_nodes{index} = list_of_nodes{index};
+                    list_of_nodes{index}=[];
+                else
+                    copy_index = setdiff(copy_index, index);
+                end
+            else
+                copy_index = setdiff(copy_index, index);
+            end
+        end
+        
+        try
+            load(save_file_nodes)
+        catch
+            temp_list_of_nodes = cell(0,0);
+        end
+        % merge loc_list_of_nodes and temp_list_of_nodes
+        temp_list_of_nodes{length(temp_list_of_nodes)+length(copy_index)} = []; % preallocation
+        for merge_i =  1:length(copy_index)
+            temp_list_of_nodes{copy_index(merge_i)} = loc_list_of_nodes{copy_index(merge_i)};
+        end
+        save(save_file_nodes,'temp_list_of_nodes')
+        clear temp_list_of_nodes
+    end
+    
 end
+
+% merge all info on nodes back again
+try
+    load(save_file_nodes)
+catch
+    temp_list_of_nodes = cell(0,0);
+end
+% merge loc_list_of_nodes and temp_list_of_nodes
+for merge_i = 1: length(temp_list_of_nodes)
+    list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+end
+delete save_file_nodes
 
 if bool_validated
 save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...

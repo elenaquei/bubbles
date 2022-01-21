@@ -54,6 +54,7 @@ if bool_validated
             end
         end
         simplex_jj.verified = 1;
+        simplex_jj.validation_interval = [Imin, Imax];
         list_of_simplices.simplex{j} = simplex_jj;
         %storage
         %     Interval(:,j)  = [Imin,Imax]';
@@ -66,6 +67,7 @@ if bool_validated
         Y_iter(:,j)    = vert(Yvector);
     end
 end
+list_of_nodes = update_patches(list_of_nodes,list_of_simplices, [1:6]);
 
 plot(list_of_simplices, list_of_nodes);
 

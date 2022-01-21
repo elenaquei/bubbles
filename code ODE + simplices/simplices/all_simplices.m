@@ -24,15 +24,25 @@ classdef all_simplices
         end
         
         function plot(list_simplex, list_of_nodes, index_simplices, varargin)
+            global talkative
+            
             if nargin <3 || isempty(index_simplices)
                 index_simplices = 1:length(list_simplex);
             end
             
-            
+            fail = 0;
             for index = 1: length(index_simplices)
                 i = index_simplices(index);
+                try
                 plot_simplex(list_simplex.simplex{i}, list_of_nodes, varargin{:});
                 hold on
+                catch
+                    if talkative && fail < 1
+                        disp('The plotting of one or more simplices failed - likely because the nodes are not in memory')
+                        fail = 2;
+                    end
+                end
+                
             end
             alpha 0.5
             set(gca,'FontSize',18)
