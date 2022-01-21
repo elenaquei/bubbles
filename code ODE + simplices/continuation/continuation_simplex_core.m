@@ -23,8 +23,13 @@ use_intlab = 0;
 F = list_of_nodes{end}.problem;
 
 save_file_nodes = append(save_file,'_nodes_temp.mat');
-prompt = sprintf('If it exists, the file %s will be deleted, press 0 to avoid this (program will likely crash)', save_file_nodes);
+prompt = sprintf('If it exists, the file %s will be deleted, press 0 to avoid this, but program will likely crash.\nIf no info is given within 3 seconds, the computation will continue automatically', save_file_nodes);
+t = timer('ExecutionMode', 'singleShot', 'StartDelay', 3, 'TimerFcn', @pressEnter);
+start(t);
 bool = input(prompt);
+stop(t);
+delete(t);
+
 if isempty(bool) || bool~=0
     try
         delete(save_file_nodes)
@@ -233,4 +238,13 @@ list_near_nodes = setdiff( list_near_nodes, n_node);
 if isempty(list_near_nodes)
     list_near_nodes = [];
 end
+end
+
+
+function pressEnter(HObj, event)
+  import java.awt.*;
+  import java.awt.event.*;
+  rob = Robot;
+  rob.keyPress(KeyEvent.VK_ENTER)
+  rob.keyRelease(KeyEvent.VK_ENTER)
 end

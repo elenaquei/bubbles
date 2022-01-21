@@ -35,9 +35,9 @@ end
 
 % some elements useful for the computation and the validation
 n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
-n_iter = 2000;
+n_iter = 3000;
 step_size = 0.02; % initial step size % 0.9*10^-2; for validation pruposes
-save_file = 'Hopf_lorenz84_val_bigstep'; % where the solutions are stored
+save_file = 'Hopf_lorenz84'; % where the solutions are stored
 bool_validated = 1;
 
 f = @fn_Lorenz84; % We choose a map.
@@ -154,31 +154,82 @@ big_Hopf = problem_xi;%list_of_nodes{5}.problem;
 % test_Hopf = F_update_Hopf(test_Hopf,sol);
 % test_Hopf = continuation_equation_simplex(test_Hopf,sol);
 % sol_N = Newton_2(sol,test_Hopf,30,10^-9);
-% 
+%
 big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 bool_Hopf = 1;
 use_intlab = 0;
+save_file_nodes = append(save_file,'_nodes_temp.mat');
 try
     save_file = continuation_simplex(sol_N, big_Hopf,...
         n_iter, step_size, save_file, bool_Hopf, bool_validated);
 catch
-    fprintf('The validation failed \n')
-    fprintf('We will continue with a smaller stepsize \n')
-end
-try
-    step_size = step_size*0.9;
-    save_file = continue_simplex_growth(save_file, n_iter, save_file, step_size);
-catch
+    
+    load(save_file)
+    load(save_file_nodes)
+    for merge_i = 1: length(temp_list_of_nodes)
+        list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+    end
+    delete save_file_nodes
+    if bool_validated
+        save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+            'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+            'list_of_frontal_nodes');
+    else
+        
+        save(save_file,'list_of_simplices','list_of_nodes','step_size',...
+            'bool_Hopf', 'bool_validated',...
+            'list_of_frontal_nodes');
+    end
     fprintf('The validation failed \n')
     fprintf('We will continue with a smaller stepsize \n')
 end
 
-try
+
+for i = 1:2
+    try
+        
+        save_file = continue_simplex_growth(save_file, n_iter, save_file, step_size);
+    catch
+        
+        load(save_file)
+        load(save_file_nodes)
+        for merge_i = 1: length(temp_list_of_nodes)
+            list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+        end
+        delete save_file_nodes
+        if bool_validated
+            save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+                'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+                'list_of_frontal_nodes');
+        else
+            
+            save(save_file,'list_of_simplices','list_of_nodes','step_size',...
+                'bool_Hopf', 'bool_validated',...
+                'list_of_frontal_nodes');
+        end
+        
+        fprintf('The validation failed \n')
+        fprintf('We will continue with a smaller stepsize \n')
+    end
     step_size = step_size*0.9;
-    save_file = continue_simplex_growth(save_file, n_iter, save_file, step_size);
-catch
-    fprintf('The validation failed due to a to large step size\n')
+end
+
+load(save_file)
+load(save_file_nodes)
+for merge_i = 1: length(temp_list_of_nodes)
+    list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+end
+delete save_file_nodes
+if bool_validated
+    save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+        'list_of_frontal_nodes');
+else
+    
+    save(save_file,'list_of_simplices','list_of_nodes','step_size',...
+        'bool_Hopf', 'bool_validated',...
+        'list_of_frontal_nodes');
 end
 
 % if ~bool_validated
@@ -186,7 +237,7 @@ end
 %     [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
 %         Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
 %         list_of_nodes, [], bool_Hopf);
-%     
+%
 %     save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
 %         'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
 %         'list_of_frontal_nodes');
