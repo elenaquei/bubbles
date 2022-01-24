@@ -21,9 +21,9 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 0.2;
+step_size = 0.02;
 n_iter = 1000;
-save_file = 'FHN_1K_num'; % path where the validation will be saved
+save_file = 'FHN_1K'; % path where the validation will be saved
 bool_validated = 0;
 
 % starting parameters
@@ -128,7 +128,7 @@ zlabel('$\lambda_3$','Interpreter','Latex', 'FontSize', 20);
 
 % TOO MUCH memory usage, Matlab close to crashing: need to split the
 % computation and the data into subsections
-subsections = 100;
+subsections = 10;
 size_subsections = floor(n_iter/subsections);
 last_index = 0;
 for i =1:subsections
@@ -139,10 +139,11 @@ for i =1:subsections
     end
     [partial_list_of_simplices, partial_list_of_nodes] = ...
                 subsample(list_of_simplices, indices, list_of_nodes);
+            
+    save_file_iter = append('partial_FHN_simplex_validation',num2str(i));
     [partial_list_of_simplices_validated, index_non_validated, Interval, Z0_iter, ...
         Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(partial_list_of_simplices,...
-        partial_node_list, [], bool_Hopf);
-    save_file = append('partial_FHN_simplex_validation',num2str(i));
-    save(save_file,'partial_list_of_simplices_validated','partial_node_list','Interval','Z0_iter',...
+        partial_list_of_nodes, [], bool_Hopf,[],save_file_iter);
+    save(save_file_iter,'partial_list_of_simplices_validated','partial_node_list','Interval','Z0_iter',...
         'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated');
 end

@@ -171,7 +171,8 @@ end
 if has_delay(alpha0)
     Z1vector = Z1_delay_simplex(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct);
 else
-    if ~isempty(previous_iter0) && ~isempty(previous_iter0.Z1)
+    if ~isempty(previous_iter0) && ~isempty(previous_iter0.Z1) &&...
+            ~isempty(previous_iter1) && ~isempty(previous_iter1.Z1)
         [Z1vector,new_iter_Z1,Z1s]=Z1_bound_simplex(A0,A1,A1,xBar0,xBar1,xBar1,alpha0,...
             alpha1,alpha1,Adagger_delta1,Adagger_delta2,previous_iter0.Z1,previous_iter1.Z1);
     else
@@ -207,7 +208,8 @@ if has_delay(alpha0)
     upper_bound = (intval(Z1vector)+intval(Z0vector)-1).^2./(4*Z2vector);
     Yvector = Y_delay_refinement(alpha0, alpha1, alpha2, xBar0,xBar1,xBar2, A0_struct, A1_struct, A2_struct, upper_bound);
 else
-    if ~isempty(previous_iter0) && ~isempty(previous_iter0.Y)
+    if ~isempty(previous_iter0) && ~isempty(previous_iter0.Y) && ...
+            ~isempty(previous_iter1) && ~isempty(previous_iter1.Y)
         [Yvector,new_iter_Y,Ys]=Y_bound_simplex(A0,A1,A2,xBar0,xBar1,xBar2,...
             alpha0,alpha1,alpha2,previous_iter0.Y,previous_iter1.Y);
     else
