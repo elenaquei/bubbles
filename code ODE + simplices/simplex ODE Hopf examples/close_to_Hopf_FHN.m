@@ -20,13 +20,13 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-n_iter = 6000;
-save_file = 'FHN_3000'; % path where the validation will be saved
+n_iter = 5000;
+save_file = 'FHN_5K'; % path where the validation will be saved
 
-step_size = 0.7*10^-2;
+step_size = 0.025; % 0.7*10^-2
 bool_Hopf = 1;
-bool_validated = 1;
-plotting_instructions = 5;
+bool_validated = 0;
+plotting_instructions = 50;
 
 % starting parameters
 %  (alpha,I,epsilon,gamma) = (0.1, 0.4, 0.2480, 1) 
@@ -97,4 +97,24 @@ use_intlab = 1;
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 
-%save_file = continue_simplex_growth(save_file, n_niter, save_file)
+% TOO MUCH memory usage, Matlab close to crashing: need to split the
+% computation and the data into subsections
+subsections = 10;
+size_subsections = floor(n_iter/subsections);
+last_index = 0;
+for i =1:subsections
+    if i == subsections
+        indices = last_index+1:length(list_of_simplices);
+    else
+        indices = last_index+(1:size_subsections);
+    end
+    load(save_file)
+    [partial_list_of_simplices, partial_list_of_nodes] = ...
+                subsample(list_of_simplices, indices, list_of_nodes);
+    clear list_of_simplices list_of_nodes
+    
+    save_file_iter = append('partial_FHN_simplex_validation',num2str(i));
+    [partial_list_of_simplices_validated, index_non_validated, Interval, Z0_iter, ...
+        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(partial_list_of_simplices,...
+        partial_list_of_nodes, [], bool_Hopf,[],save_file_iter);
+end

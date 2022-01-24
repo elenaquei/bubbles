@@ -21,9 +21,9 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 0.02;
-n_iter = 1000;
-save_file = 'FHN_1K'; % path where the validation will be saved
+step_size = 0.025;
+n_iter = 50;
+save_file = 'FHN'; % path where the validation will be saved
 bool_validated = 0;
 
 % starting parameters
@@ -137,13 +137,13 @@ for i =1:subsections
     else
         indices = last_index+(1:size_subsections);
     end
+    load(save_file)
     [partial_list_of_simplices, partial_list_of_nodes] = ...
                 subsample(list_of_simplices, indices, list_of_nodes);
-            
+    clear list_of_simplices list_of_nodes
+    
     save_file_iter = append('partial_FHN_simplex_validation',num2str(i));
     [partial_list_of_simplices_validated, index_non_validated, Interval, Z0_iter, ...
         Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(partial_list_of_simplices,...
         partial_list_of_nodes, [], bool_Hopf,[],save_file_iter);
-    save(save_file_iter,'partial_list_of_simplices_validated','partial_node_list','Interval','Z0_iter',...
-        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated');
 end
