@@ -14,6 +14,29 @@ classdef all_simplices
             len = length(list_of_simplices.order);
         end
         
+        function [partial_list_of_simplices, partial_list_of_nodes] = ...
+                subsample(list_of_simplices, indices, list_of_nodes)
+            % function [partial_list_of_simplices, partial_list_of_nodes] = ...
+            %    subsample(list_of_simplices, indices, list_of_nodes)
+            % 
+            % with two inputs, returns a list of simplices only including
+            % the simplices with index in indices. With three inputs, it
+            % also returns the minimum list of nodes need for the smaller
+            % list of simplices and renumbers the nodes
+            
+            partial_list_of_simplices = all_simplices();
+            partial_list_of_simplices.simplex = cell(length(indices),1);
+            for j = 1:length(indices)
+                partial_list_of_simplices.order(j) = list_of_simplices.order(indices(j));
+                partial_list_of_simplices.simplex{j} = list_of_simplices.simplex{indices(j)} ;
+            end
+            if nargin>2
+                [partial_list_of_nodes, renumbered_partial_simplices] = ...
+                    subsample_nodes(list_of_nodes, partial_list_of_simplices);
+                partial_list_of_simplices = renumbered_partial_simplices;
+            end
+        end
+        
         function list_of_simplices = append(list_of_simplices, simplex, varargin)
             % append as many simplices as you like, one by one to the list
             list_of_simplices.order(end+1) = simplex.number;

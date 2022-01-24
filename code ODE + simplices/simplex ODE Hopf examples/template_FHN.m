@@ -21,9 +21,10 @@ end
 % problem dependent
 nu = 1.05;
 n_nodes = 7;
-step_size = 10^-1.5;
-n_iter = 3000;
-save_file = 'saved elements/FHN_simplex_validation'; % path where the validation will be saved
+step_size = 0.2;
+n_iter = 1000;
+save_file = 'FHN_1K_num'; % path where the validation will be saved
+bool_validated = 0;
 
 % starting parameters
 %  (alpha,I,epsilon,gamma) = (0.1, 0.4, 0.2480, 1) 
@@ -114,8 +115,8 @@ use_intlab = 0;
 %[list_of_simplices,list_of_nodes] = continuation_simplex(sol_N, big_Hopf,...
 %    n_iter, step_size, save_file, bool_Hopf);
 
-bool_validated = 0;
-save_file = 'saved elements/FHN_simplex_num';
+
+% save_file = 'saved elements/FHN_simplex_num';
 save_file = continuation_simplex(sol_N, big_Hopf,...
     n_iter, step_size, save_file, bool_Hopf, bool_validated);
 load(save_file)
@@ -124,12 +125,24 @@ xlabel('$\lambda_2$','Interpreter','Latex', 'FontSize', 20);
 ylabel('amplitude','Interpreter','Latex', 'FontSize', 20);
 zlabel('$\lambda_3$','Interpreter','Latex', 'FontSize', 20);
 
-[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-    list_of_nodes, [], bool_Hopf);
 
-save_file = 'saved elements/FHN_simplex_validation';
-save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-    'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-    'list_of_frontal_nodes');
-
+% TOO MUCH memory usage, Matlab close to crashing: need to split the
+% computation and the data into subsections
+subsections = 100;
+size_subsections = floor(n_iter/subsections);
+last_index = 0;
+for i =1:subsections
+    if i == subsections
+        indices = last_index+1:length(list_of_simplices);
+    else
+        indices = last_index+(1:size_subsections);
+    end
+    [partial_list_of_simplices, partial_list_of_nodes] = ...
+                subsample(list_of_simplices, indices, list_of_nodes);
+    [partial_list_of_simplices_validated, index_non_validated, Interval, Z0_iter, ...
+        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(partial_list_of_simplices,...
+        partial_node_list, [], bool_Hopf);
+    save_file = append('partial_FHN_simplex_validation',num2str(i));
+    save(save_file,'partial_list_of_simplices_validated','partial_node_list','Interval','Z0_iter',...
+        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated');
+end
