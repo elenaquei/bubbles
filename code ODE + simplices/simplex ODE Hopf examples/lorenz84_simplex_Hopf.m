@@ -170,7 +170,7 @@ catch
     for merge_i = 1: length(temp_list_of_nodes)
         list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
     end
-    delete save_file_nodes
+    
     if bool_validated
         save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
             'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
@@ -181,12 +181,14 @@ catch
             'bool_Hopf', 'bool_validated',...
             'list_of_frontal_nodes');
     end
+    delete save_file_nodes
     fprintf('The validation failed \n')
     fprintf('We will continue with a smaller stepsize \n')
 end
 
 
 for i = 1:2
+    step_size = step_size*0.9;
     try
         
         save_file = continue_simplex_growth(save_file, n_iter, save_file, step_size);
@@ -212,7 +214,6 @@ for i = 1:2
         fprintf('The validation failed \n')
         fprintf('We will continue with a smaller stepsize \n')
     end
-    step_size = step_size*0.9;
 end
 
 load(save_file)
