@@ -148,7 +148,7 @@ while i < n_iter
                 end
                 if bool_delete
                     loc_list_of_nodes{index} = list_of_nodes{index};
-                    list_of_nodes{index}=[];
+                    
                 else
                     copy_index = setdiff(copy_index, index);
                 end
@@ -169,6 +169,11 @@ while i < n_iter
         end
         save(save_file_nodes,'temp_list_of_nodes')
         clear temp_list_of_nodes
+        
+        for delete_i = 1:length(list_of_non_frontal_nodes)
+            index = list_of_non_frontal_nodes(delete_i);
+            list_of_nodes{index}=[];
+        end
     end
     
 end

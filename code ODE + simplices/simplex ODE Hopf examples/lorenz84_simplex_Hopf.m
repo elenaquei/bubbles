@@ -186,12 +186,12 @@ catch
     fprintf('We will continue with a smaller stepsize \n')
 end
 
-
+step_size_loop = step_size;
 for i = 1:2
-    step_size = step_size*0.9;
+    step_size_loop = step_size_loop*0.9;
     try
         
-        save_file = continue_simplex_growth(save_file, n_iter, save_file, step_size);
+        save_file = continue_simplex_growth(save_file, n_iter, save_file, step_size_loop);
     catch
         
         load(save_file)
