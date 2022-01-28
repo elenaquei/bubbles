@@ -42,7 +42,7 @@ end
 Delta = b.^2 - 4*a.*c;
 
 if ( use_intlab == 1 && any(inf(Delta)<0) )||( use_intlab == 0 && any((Delta)<0) )
-    return%error('No interval found');
+    error('VAL:NegDelta','No interval found');
 end
 
 Imin = zeros(length(a),1);

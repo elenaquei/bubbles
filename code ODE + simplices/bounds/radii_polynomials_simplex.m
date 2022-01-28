@@ -235,8 +235,12 @@ end
 % computation of the radius
 try
     [bool,Imin,Imax]=find_negative(Z2vector,Z1vector,Z0vector,Yvector);
-catch
-    return
+catch ME
+    if (strcmp(ME.identifier, 'VAL:NegDelta')
+        return
+    else
+        rethrow(ME)
+    end
 end
 if talkative>1
     fprintf('\n Computed validation interval, time %s\n\n',datestr(now,13));

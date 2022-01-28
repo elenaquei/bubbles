@@ -22,7 +22,9 @@ for i = 1:length(partial_list_of_simplices)
     for k = 1:length(new_nodes)
         new_numbering(k) = find(nodes_numbers==new_nodes(k));
     end
-    partial_list_of_simplices.simplex{i}.nodes_number = new_numbering;
+    renumbered_partial_simplices.simplex{i}.nodes_number = new_numbering;
+    partial_list_of_nodes = update_patches(partial_list_of_nodes,renumbered_partial_simplices, new_numbering);
+
 end
 
     
