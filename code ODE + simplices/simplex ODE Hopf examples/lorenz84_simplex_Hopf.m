@@ -37,8 +37,8 @@ end
 n_nodes = 9; % number of Fourier nodes used: small, since near the Hopf bifurcation is a circle
 n_iter = 3000;
 step_size = 0.02; % initial step size % 0.9*10^-2; for validation pruposes
-save_file = 'Hopf_lorenz84'; % where the solutions are stored
-bool_validated = 1;
+save_file = 'Hopf_lorenz84_Jan28'; % where the solutions are stored
+bool_validated = 0;
 
 f = @fn_Lorenz84; % We choose a map.
 df = @derivatives_Lorenz84;
@@ -163,27 +163,31 @@ save_file_nodes = append(save_file,'_nodes_temp.mat');
 try
     save_file = continuation_simplex(sol_N, big_Hopf,...
         n_iter, step_size, save_file, bool_Hopf, bool_validated);
-catch
-    
-    load(save_file)
-    load(save_file_nodes)
-    for merge_i = 1: length(temp_list_of_nodes)
-        list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
-    end
-    
-    if bool_validated
-        save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-            'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-            'list_of_frontal_nodes');
-    else
+catch ME
+    if (strcmp(ME.identifier, 'VAL:NegDelta'))
         
-        save(save_file,'list_of_simplices','list_of_nodes','step_size',...
-            'bool_Hopf', 'bool_validated',...
-            'list_of_frontal_nodes');
+        load(save_file)
+        load(save_file_nodes)
+        for merge_i = 1: length(temp_list_of_nodes)
+            list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+        end
+        
+        if bool_validated
+            save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+                'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+                'list_of_frontal_nodes');
+        else
+            
+            save(save_file,'list_of_simplices','list_of_nodes','step_size',...
+                'bool_Hopf', 'bool_validated',...
+                'list_of_frontal_nodes');
+        end
+        delete save_file_nodes
+        fprintf('The validation failed \n')
+        fprintf('We will continue with a smaller stepsize \n')
+    else
+        rethrow(ME)
     end
-    delete save_file_nodes
-    fprintf('The validation failed \n')
-    fprintf('We will continue with a smaller stepsize \n')
 end
 
 step_size_loop = step_size;
@@ -200,6 +204,7 @@ for i = 1:2
             for merge_i = 1: length(temp_list_of_nodes)
                 list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
             end
+            
             delete save_file_nodes
             if bool_validated
                 save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
