@@ -236,7 +236,7 @@ end
 try
     [bool,Imin,Imax]=find_negative(Z2vector,Z1vector,Z0vector,Yvector);
 catch ME
-    if (strcmp(ME.identifier, 'VAL:NegDelta')
+    if (strcmp(ME.identifier, 'VAL:NegDelta'))
         return
     else
         rethrow(ME)
