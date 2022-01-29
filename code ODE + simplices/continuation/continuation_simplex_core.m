@@ -191,7 +191,9 @@ catch
 end
 % merge loc_list_of_nodes and temp_list_of_nodes
 for merge_i = 1: length(temp_list_of_nodes)
-    list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+    if ~isempty(temp_list_of_nodes{merge_i})
+        list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+    end
 end
 delete save_file_nodes
 
