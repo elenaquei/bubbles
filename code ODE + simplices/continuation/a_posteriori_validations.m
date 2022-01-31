@@ -33,14 +33,29 @@ Y_iter= [];
 temp_save_file = append('temp_', save_file);
 
 while ~isempty(index_to_validate_simplices)
-    
+    if talkative>=0
+        requested_vals = length(index_to_validate_simplices);
+        fprintf('%i simplices require validation at refinement %i out of %i\n', ...
+            requested_vals, ref, max_refinements)
+    end
     [list_of_simplices, index_failed_validation, Interval, Z0_iter, ...
         Z1_iter, Z2_iter, Y_iter] = iteration_validation(list_of_simplices,...
         list_of_nodes, index_to_validate_simplices, bool_Hopf, temp_save_file);
     ref = ref + 1;
     save(save_file,'list_of_simplices','list_of_nodes','Interval',...
         'Z0_iter','Z1_iter','Z2_iter','Y_iter','bool_Hopf');
+    if talkative>=0
+        requested_vals = length(index_to_validate_simplices);
+        successful_val = length(index_to_validate_simplices) - length(index_failed_validation);
+        fprintf('%i out of %i were validated a posteriori at refinement %i out of %i\n', ...
+            successful_val, requested_vals, ref, max_refinements+1)
+        fprintf('%i simplices need refinement\n', length(index_failed_validation))
+    end
+    
     if ref > max_refinements
+        if ~isempty(index_failed_validation)
+            fprintf('Some simplices could not be validated after %ref refinements\n', ref)
+        end
         break
     end
     if ~isempty(index_failed_validation)
