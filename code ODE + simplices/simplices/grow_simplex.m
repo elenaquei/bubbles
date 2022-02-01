@@ -154,6 +154,9 @@ elseif n_new_simplex == 1   % New simplex is formed by existant nodes.
     list_of_nodes = update_patches(list_of_nodes,list_of_simplices, nodes_number);
     list_of_new_frontal_nodes = -node_loc.number;
     new_simplices = simplex_number;
+    for i = node_loc.patch
+        list_of_simplices.simplex{i}.frontal = 0;
+    end
     list_of_nodes = update_patches(list_of_nodes,list_of_simplices, nodes_number);
     list_of_nodes = update_patches(list_of_nodes,list_of_simplices, node_loc.number);
 else
@@ -178,22 +181,6 @@ else
     end
     % Refine predictors with Gauss-Newton
     for j=1:n_new_simplex-1
-        %        x_init = x_fan(:,j);
-        %        h_local = xc_h;
-        %        delta = inf;
-        %        while delta>tol*(1+norm(x_init,2))
-        %            if norm(x_init - x_fan(:,j))>div_tol   % Diverging.
-        %                x_fan(:,j) = xc + y_fan(:,j)/norm(y_fan(:,j),2)*h_local;
-        %                x_init = x_fan(:,j);
-        %                h_local = h_local/tau;
-        %            end
-        %            x_fan(:,j) = GN(x_init,@(z)F(z),@(z)DF(z),node_loc.solution);
-        %            delta = norm(x_fan(:,j)-x_init,2);
-        %            x_init = x_fan(:,j);
-        %            if delta>1
-        %                all_is_not_well=1;
-        %            end
-        %        end
         x_Xi =vec2Xi_vec(x_fan(:,j),node_loc.solution);
         F_new = continuation_equation_simplex(problem, x_Xi);
         x_converged = Newton_2(x_Xi,F_new);
