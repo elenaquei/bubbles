@@ -202,7 +202,9 @@ for i = 1:2
             load(save_file)
             load(save_file_nodes)
             for merge_i = 1: length(temp_list_of_nodes)
-                list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+                if ~isempty(temp_list_of_nodes{merge_i})
+                    list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+                end
             end
             
             delete save_file_nodes
@@ -228,7 +230,9 @@ end
 load(save_file)
 load(save_file_nodes)
 for merge_i = 1: length(temp_list_of_nodes)
-    list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+    if ~isempty(temp_list_of_nodes{merge_i})
+        list_of_nodes{merge_i} = temp_list_of_nodes{merge_i};
+    end
 end
 delete save_file_nodes
 if bool_validated
