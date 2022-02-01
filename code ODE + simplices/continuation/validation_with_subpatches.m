@@ -23,7 +23,7 @@ for i = 1:subsections
         indices = last_index+(1:size_subsections);
     end
     if talkative
-        fprintf("Validation of patch %i out of %i started \n ", i,subsections)
+        fprintf("      Validation of patch %i out of %i started \n ", i,subsections)
     end
     talkative = talkative-1;
     last_index = last_index + size_subsections;
@@ -36,7 +36,7 @@ for i = 1:subsections
         partial_list_of_nodes, [], bool_Hopf,[],save_file_iteri);
     talkative = talkative+1;
     if talkative 
-        fprintf("Validation of patch %i finished \n", i)
+        fprintf("      Validation of patch %i finished \n", i)
     end
 end
 
