@@ -94,9 +94,16 @@ big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 % launch the validation
 use_intlab = 0;
-save_file = continuation_simplex(sol_N, big_Hopf,...
-   n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
+%save_file = continuation_simplex(sol_N, big_Hopf,...
+%   n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 
 subsections = 200;
 save_file_iter = 'FHN/partial_FHN_simplex_validation';
 validation_with_subpatches(save_file, save_file_iter, subsections)
+
+for i = 1:subsections
+    save_file_iteri = append(save_file_iter,num2str(i));
+    load(save_file_iteri)
+    plot(list_of_simplices, list_of_nodes)
+    hold on
+end
