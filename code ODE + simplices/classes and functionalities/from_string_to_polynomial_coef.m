@@ -27,7 +27,7 @@ function vector_field = from_string_to_polynomial_coef(string_s, number_scalars,
 % + 3 dot x2 + x2^4 x3 l1 l2
 % and
 % 3 dot x_2 + x2 ^ 4 x3 * l_1 * l_2  (mixed notation possible)
-% NO PARENTHESIS ALLOWED, Delay must always be positive and without sign
+% NO PARENTHESIS ALLOWED, Delay can have any sign
 
 % structure: 
 % 0) delete * _ 
@@ -137,7 +137,7 @@ for i = 1:num_equations
         string_eq{i}= sprintf('+%s',string_eq{i});
     end
     position_signs = find((string_eq{i}=='+')+ (string_eq{i}=='-'));
-    for j = 1:length(position_signs) % remove signs of negative delay
+    for j = 1:length(position_signs) % remove signs of delays (positive and negative)
         if position_signs(j)>1 
             if string_eq{i}(position_signs(j)-1)==','
                 position_signs(j) = 0;
@@ -157,28 +157,49 @@ for i = 1:num_equations
     power_scalar{i}=zeros(number_scalars,n_terms(i));
     
     for j = 1:n_terms(i)
-        % preallocation of elements
-        dot{i}{j} =  zeros(number_function_unknowns,1);
-        delay{i}{j} =  zeros(number_function_unknowns,1);
-        power_vector{i}{j} =  zeros (number_function_unknowns,1);
         
-        % and what they are
+        % determine where the term is
         string_term = string_eq{i}(start_terms{i}(j):end_terms{i}(j));
+        
+        % determine the number of monomials in this term
+        % two elements increase the number of monomials: dots and delays
+        % we don't consider multiple dots yet - for future development?
+        closed_parenthesis = find (string_term==')');
+        monomial_in_term = 0;
+        for jj = closed_parenthesis
+            if length(string_term)>jj && string_term(jj+1) == '^'
+                if length(string_term)>jj+1
+                    [~,power_of_delay] = length_double(string_term, jj+2);
+                    monomial_in_term = monomial_in_term + power_of_delay;
+                else
+                    error('Power sign not followed by power')
+                end
+            else
+               monomial_in_term = monomial_in_term + 1;
+            end
+        end
+        if monomial_in_term ==0 % there are no delays, so business as usual
+            monomial_in_term = 1;
+        end
+        
+        % preallocation of elements
+        dot{i}{j} =  zeros(number_function_unknowns,monomial_in_term);
+        delay{i}{j} =  zeros(number_function_unknowns,monomial_in_term);
+        power_vector{i}{j} =  zeros (number_function_unknowns,monomial_in_term);
+        
         % determine the scalar coefficient in front
         if isempty(str2num(string_term(1:2)))
             value{i}(j) = str2num(strcat(string_term(1),'1'));
             string_term = string_term(2:end);
         else
-            % index_value = 2;
-            % while  index_value+1<=length(string_term) && ~isempty(str2num(string_term(1:index_value+1)))
-            %     index_value = index_value+1;
-            % end
-            [index_end,double] = length_double(string_term, 1);
-            value{i}(j) = double;%str2num(string_term(1:index_value));
+            [index_end,double_val] = length_double(string_term, 1);
+            value{i}(j) = double_val;
             string_term = string_term(index_end+1:end);
         end
+        
         % go along and find all elements
-        % each time somethign is found, it is also deleted
+        % each time something is found, it is also deleted
+        monomial = 1;
         while ~isempty(string_term)
            % dots
            %     each time with following powers
@@ -205,20 +226,20 @@ for i = 1:num_equations
                    %    power_starts = power_starts+1;
                    %    length_dot = length_dot+1;
                    %end
-                   [end_dot,dot{i}{j}(number_x)] = length_double(string_term,power_starts);%str2num(string_term(index_dot+6:power_starts));% % MISSING : change power storage
+                   [end_dot,dot{i}{j}(number_x,1)] = length_double(string_term,power_starts);%str2num(string_term(index_dot+6:power_starts));% % MISSING : change power storage
                else
-                   dot{i}{j}(number_x) =1;
+                   dot{i}{j}(number_x,1) =1;
                    end_dot = end_number_x;
                end
                % each time deleating the used parts
                string_term (index_dot:end_dot) =[];
-               continue % we want to  get rid of all the dots before going on with xs (otherwise trouble)
+               continue % exhaust all dots before checking for other elements
            end
-           
            
            
            % Delay
            %     each time with following powers
+           %     here we take all delays
            index_delay = strfind(string_term,'Delay(x');
            if ~isempty(index_delay)
                index_delay = index_delay(1);
@@ -237,13 +258,24 @@ for i = 1:num_equations
                        error('Signal of "," but no digit afterwards');
                    end
                    
-                   [end_delay,delay{i}{j}(number_x)] = length_double(string_term,delay_starts);
+                   [end_delay,delay_value] = length_double(string_term,delay_starts);
+                   end_delay = end_delay+1;
+                   if length(string_term)>end_delay && string_term(end_delay+1)=='^'
+                       % this delay comes with a power
+                       power_of_delay_start = end_delay+2;
+                       [end_delay,power_of_delay_value] = length_double(string_term,power_of_delay_start);
+                   else
+                       power_of_delay_value = 1;
+                   end
+                   delay{i}{j}(number_x, monomial+(0:power_of_delay_value-1)) = delay_value;
+                   monomial = monomial + power_of_delay_value;
                else
                    error('Could not determine the delay')
                end
                % each time deleating the used parts
-               string_term (index_delay:end_delay+1) =[];
-               continue % we want to  get rid of all the dots before going on with xs (otherwise trouble)
+               string_term (index_delay:end_delay) =[];
+               
+               continue % exhaust all Delays before checking for other elements
            end
            
            
@@ -257,7 +289,7 @@ for i = 1:num_equations
                end
                [end_x,number_x] = length_double(string_term, index_x+1);%str2num(string_term(index_x+1));
                if isempty(number_x)
-                   error('Dot of unknown element at %s',string_term(index_x+(0:1)));
+                   error('Unknown element at %s',string_term(index_x+(0:1)));
                end
                
                % length_x = 1;
@@ -267,9 +299,9 @@ for i = 1:num_equations
                    if isempty(str2num(string_term(power_starts)))
                        error('Signal of ^ but no digit afterwards');
                    end
-                   [end_x,power_vector{i}{j}(number_x)] = length_double(string_term,power_starts);
+                   [end_x,power_vector{i}{j}(number_x,1)] = length_double(string_term,power_starts);
                else
-                   power_vector{i}{j}(number_x) =1;
+                   power_vector{i}{j}(number_x,1) =1;
                end
                % each time deleating the used parts
                string_term (index_x:end_x) =[];
@@ -282,7 +314,7 @@ for i = 1:num_equations
                end
                [end_l,number_l] = length_double(string_term, index_l+1);%str2num(string_term(index_x+1));
                if isempty(number_l)
-                   error('Dot of unknown element at %s',string_term(index_l+(0:1)));
+                   error('Unknown scalar element at %s',string_term(index_l+(0:1)));
                end
                
                %     each time with following powers
@@ -319,12 +351,12 @@ function [index_end,double_read] = length_double(string, index)
 
 length_string = length(string);
 index_start = index;
-sign = 1;
 
+% determine how long the number is by a for loop: when it's not a number
+% anymore, then we went too far
 if strcmp(string(index_start),'+')
     index_start = index_start+1;
 elseif strcmp(string(index),'-')
-    sign = -1;
     index_start = index_start+1;
 end
 
@@ -334,7 +366,8 @@ end
 
 if isempty(str2num(string(index:length_string))) || isnan(str2double(string(index:length_string)))
     for i = index_start:length_string
-        if isempty(str2num(string(index:i)))
+        if string(i) == ',' || isempty(str2num(string(index:i)))
+            % comma is special, for comma separated elements
             break
         end
     end
@@ -343,6 +376,6 @@ else
     index_end = length_string;
 end
 
-double_read = str2double (string(index:index_end));
-
+double_read = str2num (string(index:index_end));
+double_read = double_read(1); % in case there is a comma, this checks that only the first element is computed
 end
