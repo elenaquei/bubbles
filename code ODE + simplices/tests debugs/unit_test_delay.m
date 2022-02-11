@@ -131,6 +131,28 @@ if max_error > 10^-10
     error('Test 6 - 1D')
 end
 
+
+
+x1 = [0,-1i,1,+1i,0];
+l1 = 1.5;
+x = Xi_vector(l1, x1);
+string_vector_field = 'dot x1 + l1 * Delay(x1,3.14)^2*x1 + 2 * l1 * x1';
+
+vector_field = from_string_to_polynomial_coef(string_vector_field,1,1);
+
+auto_sol = apply(vector_field, x);
+auto_sol = verifyfft_in(auto_sol, 1).';
+
+K = (-2:2);
+exact_sol =1i*K.*x1 + l1 * conv(conv(exp(1i * l1 * K * 3.14) .* x1,...
+    exp(1i * l1 * K * 3.14) .* x1,'same'),x1,'same') + 2 * l1 * x1;
+
+max_error = max(abs(auto_sol(7:11) - exact_sol));
+if max_error > 10^-10
+    error('Test 7 - 1D')
+end
+
+
 disp('The evaluation of a 1D vector field with delay and convolutions is successful')
 
 
