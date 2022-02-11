@@ -7,11 +7,11 @@ classdef polynomial_coefs
         n_equations
         n_terms % vector(n_equations)  -- number of terms per equation
         value % cell{n_equations}(n_terms) -- coefficient of the term
-        dot % cell{n_equations}{n_terms}(variables,:) -- number of derivatives applied to the given variable 
-        power_vector % cell{n_equations}{n_terms}(variables,:)
-        delay % cell{n_equations}{n_terms}(variables)
         power_scalar % cell{n_equations}(scalar_variables,n_terms)
         monomial_per_term % cell{n_equations}(n_terms) -- number of monomials per each term considered
+        dot % cell{n_equations}{n_terms}(variables,monomial_per_term(.)) -- number of derivatives applied to the given variable 
+        power_vector % cell{n_equations}{n_terms}(variables,monomial_per_term(.))
+        delay % cell{n_equations}{n_terms}(variables,monomial_per_term(.))
         %
         % 
         % EXAMPLE
@@ -388,20 +388,10 @@ classdef polynomial_coefs
                 bool = 1;
             end
             
-            % if has_delay(a)
-            %     y = apply_with_delay(a,xi_vec,bool);
-            %     return
-            % end
+            xi_vec = set_ifft(xi_vec,a.deg_vector);
             
-            xi_vec= set_ifft(xi_vec,a.deg_vector);
-            %if nargin<3
-            %    bool = 0;
-            %end
-            size_1 =a.n_equations;
+            size_1 = a.n_equations;
             size_2 = size(xi_vec.ifft_vector,2);%xi_vec.nodes*2*a.deg_vector+1;
-            K_nodes = size_2/2;
-            K = -K_nodes:(K_nodes-1); %-(xi_vec.nodes*a.deg_vector):(xi_vec.nodes*a.deg_vector);
-            help_xi_vec = reshape_Xi(xi_vec, K_nodes);%%xi_vec.nodes*a.deg_vector);
             
             y = zeros(size_1,size_2);
             if use_intlab || isintval(xi_vec)
@@ -417,36 +407,18 @@ classdef polynomial_coefs
                     end
                     index_non_zero=find(a.power_scalar{i}(:,j));
                     if isempty(index_non_zero)
-                        term = a.value{i}(j);
+                        coef_term = a.value{i}(j);
                     else
-                        term = a.value{i}(j)*prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
+                        coef_term = a.value{i}(j)*prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
                     end
+                    term_test = 1;
                     for k = 1:a.monomial_per_term{i}(j)
-                        
-                        if any(a.dot{i}{j}(:,k)>0)
-                            if a.monomial_per_term{i}(j)==1 && sum(a.dot{i}{j}(:,k))==1
-                                index = find(a.dot{i}{j}(:,k));
-                                term = term * (verifyfft_in((1i*K).^a.dot{i}{j}(index,k).*help_xi_vec.vector(index,1:(end-1)),-1).');
-                                continue
-                            else
-                                warning('General DERIVATIVES not implemented here')
-                            end
-                        end
-                        if any(a.delay{i}{j}(:,k)~=0)
-                            [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
-                            delay_x = xi_vec.delay(a.delay{i}{j}(:,k));
-                            delay_x= set_ifft(delay_x,a.deg_vector); % THIS TAKES A LOT OF MEMORY IF X IS INTVAL
-                            [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
-                            term = term .* ifft_prod .* ifft_prod_delay;
-                        else
-                            [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
-                            term = term .* ifft_prod;
-                        end
-                        
+                        term_test = term_test .* compute_monomial(xi_vec, a.power_vector{i}{j}(:,k), a.dot{i}{j}(:,k), a.delay{i}{j}(:,k), a.deg_vector);
                     end
-                    y(i,:) = y(i,:) +term; % remember: it returns the ifft!
+                    term_test = coef_term * term_test;
+                    
+                    y(i,:) = y(i,:) + term_test; % remember: it returns the ifft!
                 end
-                % y(i,:) = verifyfft_in(y(i,:),1);
             end
             
             if bool==0
@@ -455,6 +427,7 @@ classdef polynomial_coefs
             end
         end
         % end APPLY
+        
         
         
         % APPLY_SUM
@@ -516,7 +489,7 @@ classdef polynomial_coefs
         % COMPUTE_DERIVATIVE
         function [Dlambda, Dx_diag, Dx_vec, Dx_delay] = ...
                 compute_derivative(a,xi_vec)
-            % function [Dlambda, Dx] = compute_derivative(a,xi_vec,bool)
+            % function [Dlambda, Dx_diag, Dx_vec, Dx_delay] = compute_derivative(a,xi_vec,bool)
             % 
             % compute the derivative of a in xi_vec, of the same length of
             % xi_vec if bool==0
@@ -532,6 +505,8 @@ classdef polynomial_coefs
             % Dx_diag     coefficients in front of the diagonals (i.e. of
             %             the derivatives of x_dot)
             % Dx_vec      vectors that constitute the toeplix matrices
+            % Dx_delay    delay-related derivates, structure with terms
+            %             "convolution" and "exp_coef"
             global use_intlab
             size_nodes_time_deg = size_verifyfft(ones(xi_vec.nodes*2*a.deg_vector+1,1));
             Dlambda = zeros(xi_vec.size_scalar,a.n_equations,size_nodes_time_deg);
@@ -589,12 +564,13 @@ classdef polynomial_coefs
                     end
                 end
             end
+            
             psi = xi_vec.scalar(1); % the frequency
             for i = 1:xi_vec.size_vector % which unknown I'm taking derivatives of
                 for j = 1:a.n_equations
                     Dx_delay_loc= cell(a.n_terms(j),1);
                     for k = 1:a.n_terms(j)
-                        if a.delay{j}{k}(i) == 0 
+                        if all(a.delay{j}{k}(i,:) == 0)
                             % only consider the delay derivative if there
                             % is a delay in the right variable
                             Dx_delay_loc{k} = [];
@@ -602,29 +578,49 @@ classdef polynomial_coefs
                         end
                         % convolution term
                         index_non_zero = find(a.power_scalar{j}(:,k));
-                        if isempty(index_non_zero)
-                            term = a.value{j}(k);
-                        else
-                            term = a.value{j}(k) * prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{j}(index_non_zero,k).'));
+%                         if isempty(index_non_zero)
+%                             term = a.value{j}(k);
+%                         else
+%                             term = a.value{j}(k) * prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{j}(index_non_zero,k).'));
+%                         end
+%                         [~,ifft_prod] = power(xi_vec,a.power_vector{j}{k}(:));
+%                         delete_i_delay = a.delay{j}{k}(:); % taking the derivative w.r.t. i
+%                         delete_i_delay(i) =0;
+%                         delay_x = xi_vec.delay(delete_i_delay);
+%                         delay_x= set_ifft(delay_x,a.deg_vector);
+%                         [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
+%                         Dx_delay_loc{k}.convolution =  term .* verifyfft_in( ifft_prod .* ifft_prod_delay, 1);
+%                         
+%                         test = a.value{j}(k) * prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{j}(index_non_zero,k).')) * compute_monomial(xi_vec, a.power_vector{j}{k}(:,1), a.dot{j}{k}(:,1), delete_i_delay, a.deg_vector);
+%                         if any(abs(verifyfft_in(test.',1) - Dx_delay_loc{k}.convolution)>10^-14)
+%                             error()
+%                         end
+%                         
+                        
+                        term = 0;
+                        for mon1 = 1:a.monomial_per_term{j}(k) % the monomial in which the derivative is taken
+                            mon_term = 1;
+                            for mon = 1:a.monomial_per_term{j}(k) % all other monomials, computed normally
+                                if mon == mon1
+                                    continue
+                                end
+                                mon_term = mon_term .* compute_monomial(xi_vec, a.power_vector{j}{k}(:,mon), a.dot{j}{k}(:,mon), a.delay{j}{k}(:,mon), a.deg_vector);
+                            end
+                            delete_i_delay = a.delay{j}{k}(:,mon); % taking the derivative w.r.t. i
+                                delete_i_delay(i) =0;
+                            mon_term = mon_term .* compute_monomial(xi_vec, a.power_vector{j}{k}(:,mon), a.dot{j}{k}(:,mon), delete_i_delay, a.deg_vector);
+                            term = term + mon_term;
                         end
-                        [~,ifft_prod] = power(xi_vec,a.power_vector{j}{k}(:));
-                        delete_i_delay = a.delay{j}{k}(:); % taking the derivative w.r.t. i
-                        delete_i_delay(i) =0;
-                        delay_x = xi_vec.delay(delete_i_delay);
-                        delay_x= set_ifft(delay_x,a.deg_vector);
-                        [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
-                        % [~,ifft_prod_delay] = power(xi_vec.delay(a.delay{j}{k}(:)),ones(1:xi_vec.size_vector));
-                        Dx_delay_loc{k}.convolution =  term .* verifyfft_in( ifft_prod .* ifft_prod_delay, 1);
+                        Dx_delay_loc{k}.convolution = a.value{j}(k) * prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{j}(index_non_zero,k).')) * verifyfft_in(term.',1);
+                        
+                        % if any(abs(verifyfft_in(test.',1) - Dx_delay_loc{k}.convolution)>10^-14) 
+                        %      error()
+                        %  end
                         
                         
                         degree = sum(a.power_vector{j}{k}(:))+ nnz(a.delay{j}{k}(:));
                         initial_nodes = xi_vec.nodes;
                         Dx_delay_loc{k}.convolution = impose_zeros(Dx_delay_loc{k}.convolution, degree, initial_nodes);
-                        % TODO: force the tail to be 0 when possible (check
-                        % number of non-zero modes and act on it) - this is
-                        % taken care, in general, in the
-                        % "derivative_to_matrix" function, but there are
-                        % cases in which that happens tooooooo late.
                         
                         % exponential term
                         tau = a.delay{j}{k}(i);
@@ -746,6 +742,12 @@ classdef polynomial_coefs
                         % get copied)
                         %warning('Code does not support delays')
                     %else
+%                         power_vec_sum = sum(alpha.power_vector{i}{ii}(:,:),2);
+%                         
+%                         this_value = this_value * power_vec(j);
+%                         power_vec = 0*alpha.power_vector{i}{ii}; % maintain shape if multiple monomials
+%                         power_vec(j,1) =max(power_vec_sum(j) -1,0);
+
                         power_vec = sum(alpha.power_vector{i}{ii}(:,:),2);
                         
                         this_value = this_value * power_vec(j);
@@ -863,8 +865,6 @@ classdef polynomial_coefs
         % end HAS_DELAY
         
         
-        
-        
         % DISP
         function disp(alpha)
             % function disp(alpha)
@@ -872,6 +872,7 @@ classdef polynomial_coefs
             
             if alpha.n_equations==0
                 disp('       [Empty vector field,  0 equations]')
+                return
             end
             
             s = '     ';
@@ -902,16 +903,6 @@ classdef polynomial_coefs
                     s = strcat(s,term);
                     term = '';
                     
-                    if any(alpha.delay{i}{j}(:)>0)
-                        index_delay = find(alpha.delay{i}{j}(:)>0);
-                        for i_delay= 1:length(index_delay)
-                            index = index_delay(i_delay);
-                            delay_loc = alpha.delay{i_delay}{j}(index);
-                            print_delay_loc = best_double_print(delay_loc);
-                            term = sprintf('%s Delay( x%d, %s) ', term, index, print_delay_loc);
-                        end
-                    end
-                    
                     for k = 1:alpha.monomial_per_term{i}(j)
                         if any(alpha.dot{i}{j}(:,k)>0)
                             if alpha.monomial_per_term{i}(j)==1 && sum(alpha.dot{i}{j}(:,k))==1
@@ -932,6 +923,20 @@ classdef polynomial_coefs
                             end
                         end
                     end
+                    
+                    for k = 1:alpha.monomial_per_term{i}(j) 
+                        % could be made better by looking ahead and putting 
+                        % powers instead of double delays
+                        if any(alpha.delay{i}{j}(:,k)~=0)
+                            index_delay = find(alpha.delay{i}{j}(:,k)~=0);
+                            for i_delay= 1:length(index_delay)
+                                index = index_delay(i_delay);
+                                delay_loc = alpha.delay{i_delay}{j}(index,k);
+                                print_delay_loc = best_double_print(delay_loc);
+                                term = sprintf('%s Delay( x%d, %s) ', term, index, print_delay_loc);
+                            end
+                        end
+                    end
                     s = strcat(s,term);
                 end
                 s = sprintf('%s\n     ',s);
@@ -943,6 +948,40 @@ classdef polynomial_coefs
     end
 end
 
+
+
+
+function term = compute_monomial(xi, power_vector, dot, delay, deg_vector)
+% function y = compute_monomial(xi, power_vector, dot, delay, deg_vector)
+%
+% given the data for just one monomial, compute it
+
+size_2 = size(xi.ifft_vector,2);%xi_vec.nodes*2*a.deg_vector+1;
+K_nodes = size_2/2;
+K = -K_nodes:(K_nodes-1); %-(xi_vec.nodes*a.deg_vector):(xi_vec.nodes*a.deg_vector);
+help_xi_vec = reshape_Xi(xi, K_nodes);
+
+term = 1;
+if any(dot>0)
+    if sum(dot)==1
+        index = find(dot);
+        term = term * (verifyfft_in((1i*K).^dot(index).*help_xi_vec.vector(index,1:(end-1)),-1).');
+    else
+        warning('General DERIVATIVES not implemented here')
+    end
+end
+
+[~,ifft_prod] = power(xi,power_vector);
+term = term .* ifft_prod;
+
+if any(delay~=0)
+    delay_x = xi.delay(delay);
+    delay_x= set_ifft(delay_x,deg_vector); % THIS TAKES A LOT OF MEMORY IF X IS INTVAL
+    [~,ifft_prod_delay] = power(delay_x,ones(1:xi.size_vector));
+    term = term .* ifft_prod_delay;
+end
+
+end
 
 
 function s = best_double_print(x_double)
