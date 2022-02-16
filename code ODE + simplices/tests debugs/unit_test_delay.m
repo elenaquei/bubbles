@@ -1074,7 +1074,7 @@ max_error(5) = norm(auto_der.derivative_Fx_delay{1,1}{2}.exp_coef - 1i*3.14*l1) 
     norm(auto_der.derivative_Fx_delay{2,1}{2}.exp_coef - 1i*2*l1) + ...
     norm(auto_der.derivative_Fx_delay{2,2}{2}.exp_coef - 1i*3*l1);
 if max(max_error) > 10^-10
-    error('Test 4 derivative delay - 3D to 3D')
+    error('Test 4 derivative delay - 3D to 3D - multiple monomials')
 end
 
 disp('The evaluation of a 3D vector field of a 3D vector with delay and convolutions is successful')
