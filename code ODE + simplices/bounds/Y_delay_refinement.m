@@ -117,6 +117,9 @@ big_A_int = interpolation(big_A0, big_A1, big_A2);
 
 
 Y = brute_force_Y(big_A_int, alpha, x_int);
+if any(isnan(Y))
+    error('The Y bound had a NaN. Likely there is an INTLAB bug causing problems somewhere.')
+end
 end
 
 
