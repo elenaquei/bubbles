@@ -4,19 +4,17 @@ global use_intlab
 global nu
 global talkative
 global norm_weight
-norm_weight = [1,1,1,1,1,1,1,1,1,0.8,1.2].';
+norm_weight = [1,1,1,1,1,1,1,1,1,1,1].';
 talkative = 0;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
-n_modes = 20; % TOO BIG AND IT'S a problem for Y, too small and it's a problem for Z1
-step_size = 10^-3;
+n_modes = 17; % TOO BIG AND IT'S a problem for Y, too small and it's a problem for Z1
+step_size = 5*10^-6;
 plotting_instructions = 50;
 bool_Hopf = 1; % the Hopf blow up is already taken into account
 
-
-
-save_file = 'DDE_example';
+save_file = 'SI_model_data';
 
 % extract info from point_candidate
 %load('./Kevins_code/point_candidate.mat')
@@ -34,7 +32,8 @@ save_file = 'DDE_example';
 % mu = R0*exp(-p*x0);
 % 
 % xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
-load('SI_start.mat')
+load('SI_start2.mat')
+tau = 10;   % The delay must be declared.
 xi = reshape(xi, n_modes);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
@@ -90,41 +89,41 @@ scalar_equation = F_update_Hopf(scalar_equation,xi);
 zero_finding_problem = full_problem(scalar_equation,vector_field);
 full_zero_finding_problem = continuation_equation_simplex(zero_finding_problem, xi);
 y = apply(full_zero_finding_problem, xi);
-if norm(norm(y)) > 10^-6
+if norm(norm(y)) > 10^-4
     error('Initial approx too bad')
 end
 
 DF_old = derivative_to_matrix(derivative(full_zero_finding_problem, xi,0));
 f = @(x)Xi_vec2vec(apply(full_zero_finding_problem,vec2Xi_vec(x,xi)));
 
-xi = Newton_Xi(xi,full_zero_finding_problem);
+xi = Newton_2(xi,full_zero_finding_problem);
 
 first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
 
 bool_validated = 0;
 
-step_size = 10^-5;
-n_iter = 1000;
+step_size = 5*10^-6;
+n_iter = 400;
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, 0, plotting_instructions);
 load(save_file)
 
-plot_SI(list_of_simplices, list_of_nodes)
-n_simplices = length(list_of_simplices);
-for i = 1:n_simplices
-    [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-        Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-        list_of_nodes, i, bool_Hopf,save_file);
-    % [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-    %    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-    %    list_of_nodes, [], bool_Hopf,save_file);
-    
-    save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-        'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-        'list_of_frontal_nodes');
-    % guarantees you can stop the computations pretty much any time!
-end
+% plot_SI(list_of_simplices, list_of_nodes)
+% n_simplices = length(list_of_simplices);
+% for i = 1:n_simplices
+%     [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+%         Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+%         list_of_nodes, i, bool_Hopf,save_file);
+%     % [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+%     %    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+%     %    list_of_nodes, [], bool_Hopf,save_file);
+%     
+%     save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
+%         'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
+%         'list_of_frontal_nodes');
+%     % guarantees you can stop the computations pretty much any time!
+% end
 
 
 function [F, dxF, dxF_mat, dxxF_norm] = noncomputable_eqs_for_DDE(xi)
@@ -164,32 +163,19 @@ z0 = sum_x(end-2);
 z1 = sum_x(end-1);
 z2 = sum_x(end);
 
-g = @(u,epsilon) (epsilon~=0)* (exp(-epsilon*u)-1)/epsilon + (epsilon==0)*(-u);
-d1g = @(u,epsilon) (epsilon~=0)*(-exp(-epsilon*u)) + (epsilon==0)*(-1);
-d2g = @(u,epsilon) (epsilon~=0)*exp(-epsilon*u)*(-u*epsilon-1+exp(epsilon*u))/epsilon^2 + (epsilon==0)*0;
-d1d1g = @(u, epsilon) (epsilon~=0)* epsilon * exp(-epsilon*u) + (epsilon==0)*0;
-d1d2g = @(u, epsilon) (epsilon~=0)* u * exp(-epsilon*u) + (epsilon==0)*0;
-d2d2g = @(u, epsilon) (epsilon~=0)* exp(-epsilon*u)/(epsilon^3) * ...
-    (u^2*epsilon^2 + 2*u*epsilon - 2 * exp(u*epsilon) + 2) + (epsilon==0)*0;
+g = @(u,epsilon) fun_g(u,epsilon) ;
+d1g = @(u,epsilon) -exp(-epsilon*u);
+d2g = @(u,epsilon) fun_d2g(u,epsilon);
+%d1d1g = @(u, epsilon) epsilon * exp(-epsilon*u);
+%d1d2g = @(u, epsilon) u * exp(-epsilon*u);
+%d2d2g = @(u, epsilon) fun_d2d2g;
 
-abs_d1d2g = @(u, epsilon) (epsilon~=0)* u * exp(epsilon*u) + (epsilon==0)*0;
+abs_d1d2g = @(u, epsilon) abs(u) * exp(epsilon*u);
 
-abs_d2d2g_plus = @(u, epsilon) exp(epsilon*u)/(epsilon^3) * ...
-    (u^2*epsilon^2 + 2*u*epsilon - 2 * exp(u*epsilon) + 2);
-abs_d2d2g_minus = @(u, epsilon) exp(epsilon*u)/(epsilon^3) * ...
-    (u^2*epsilon^2 - 2*u*epsilon - 2 * exp(-u*epsilon) + 2);
+abs_d2d2g = @(u, epsilon) abs(fun_d2d2g(u,epsilon));
 
-abs_d2d2g = @(u, epsilon) (epsilon~=0)* max(abs_d2d2g_plus(u,epsilon),...
-    abs_d2d2g_minus(u,epsilon)) + (epsilon==0)*0;
-
-abs_d2d2g_plus = @(u, epsilon) (epsilon~=0)* exp(-epsilon*u)/(epsilon^3) * ...
-    (u^2*epsilon^2 + 2*u*epsilon - 2 * exp(u*epsilon) + 2) + (epsilon==0)*0;
-abs_d2d2g_minus = @(u, epsilon) (epsilon~=0)* exp(epsilon*u)/(epsilon^3) * ...
-    (u^2*epsilon^2 - 2*u*epsilon - 2 * exp(-u*epsilon) + 2) + (epsilon==0)*0;
-abs_d2d2g = @(u, epsilon) max( abs(abs_d2d2g_minus(u, epsilon)), abs(abs_d2d2g_plus(u, epsilon)));
-
-abs_d1d1g = @(u, epsilon) (epsilon~=0)* epsilon * exp(epsilon*u) + (epsilon==0)*0;
-abs_d1g =  @(u,epsilon) (epsilon~=0)*(exp(epsilon*u)) + (epsilon==0)*(1);
+abs_d1d1g = @(u, epsilon) abs(epsilon) * exp(epsilon*u);
+abs_d1g =  @(u,epsilon) exp(epsilon*u);
 
 F = [mu - R0*exp(-p*x); -z1 + g(p*z0, a) ; -z2 + exp(-a * p * z0)];
 if nargout == 1
@@ -239,4 +225,110 @@ dxxF_norm = abs([DpsiDF, DxDF, DaDF, DmuDF, DR0DF, DpDF, DetaDF, DetaDF, Dz0DF, 
 
 end
 
+function g = fun_g(u,epsilon)
+if isintval(epsilon)
+    if in(0,epsilon) || inf(abs(epsilon))<1E-5
+        N=4;
+        err = sup(abs(u*(epsilon*u)^(N+1)/factorial(N+2)*exp(abs(epsilon*u))));
+        while sup(err)>1e-15
+            N = N+5;
+            err = sup(abs(u*(epsilon*u)^(N+1)/factorial(N+2)*exp(abs(epsilon*u))));
+        end
+        g_center = -u*( (intval(1)./factorial(1:N+1)) * (-epsilon*u).^(0:N).');
+        if any(isnan(g_center)) % Fix elementwise power of complex intval bug.
+            slow_intval_fix = intval(zeros(N+1,1));
+            for j=1:N+1
+                slow_intval_fix(j) = (-epsilon*u)^(j-1);
+            end
+            g_center = -u*( (intval(1)./factorial(1:N+1)) * slow_intval_fix);
+        end
+        g = g_center + midrad(0,err);
+    else
+        g = 1/epsilon*(exp(-epsilon*u)-1);
+    end
+else
+    if abs(epsilon)<1E-5
+        N = 4;
+        err = abs(u*(epsilon*u)^(N+1)/factorial(N+2)*exp(abs(epsilon*u)));
+        while sup(err)>1e-15
+            N = N+5;
+            err = abs(u*(epsilon*u)^(N+1)/factorial(N+2)*exp(abs(epsilon*u)));
+        end
+        g = -u*( (1./factorial(1:N+1)) * ((-epsilon*u).^(0:N).') );
+    else
+        g = 1/epsilon*(exp(-epsilon*u)-1);
+    end
+end
+end
 
+function d2g = fun_d2g(u,epsilon)
+if isintval(epsilon)
+    if in(0,epsilon) || inf(abs(epsilon))<1E-5
+        N=4;
+        err = sup(abs(u^2*(epsilon*u)^(N+1)/factorial(N+3)*exp(abs(epsilon*u))));
+        while sup(err)>1e-15
+            N = N+5;
+            err = sup(abs(u^2*(epsilon*u)^(N+1)/factorial(N+3)*exp(abs(epsilon*u))));
+        end
+        d2g_center = u^2*( ((intval(1)./factorial(0:N))./(2:N+2)) * (-epsilon*u).^(0:N).');
+        if any(isnan(d2g_center))   % Fix elementwise power of complex intval bug.
+            slow_intval_fix = intval(zeros(N+1,1));
+            for j=1:N+1
+                slow_intval_fix(j) = (-epsilon*u)^(j-1);
+            end
+            d2g_center = u^2*( ((intval(1)./factorial(0:N))./(2:N+2)) * slow_intval_fix);
+        end
+        d2g = d2g_center + midrad(0,err);
+    else
+        d2g = (1/epsilon^2)*(1 - exp(-epsilon*u)*(epsilon*u+1));
+    end
+else
+    if abs(epsilon)<1E-5
+        N = 4;
+        err = abs(u^2*(epsilon*u)^(N+1)/factorial(N+3)*exp(abs(epsilon*u)));
+        while sup(err)>1e-15
+            N = N+5;
+            err = abs(u^2*(epsilon*u)^(N+1)/factorial(N+3)*exp(abs(epsilon*u)));
+        end
+        d2g = u^2*( ((1./factorial(0:N))./(2:N+2)) * (-epsilon*u).^(0:N).');
+    else
+        d2g = (1/epsilon^2)*(1 - exp(-epsilon*u)*(epsilon*u+1));
+    end
+end
+end
+
+function d2d2g = fun_d2d2g(u,epsilon)
+if isintval(epsilon)
+    if in(0,epsilon) || inf(abs(epsilon))<1E-5
+        N=4;
+        err = sup(abs(u^3*(epsilon*u)^(N+1)/factorial(N+4)*exp(abs(epsilon*u))));
+        while sup(err)>1e-15
+            N = N+5;
+            err = sup(abs(u^2*(epsilon*u)^(N+1)/factorial(N+4)*exp(abs(epsilon*u))));
+        end
+        d2d2g_center = -u^3*( ((intval(1)./factorial(0:N))./(3:N+3)) * (-epsilon*u).^(0:N).');
+        if any(isnan(d2d2g_center)) % Fix elementwise power of complex intval bug.
+            slow_intval_fix = intval(zeros(N+1,1));
+            for j=1:N+1
+                slow_intval_fix(j) = (-epsilon*u)^(j-1);
+            end
+            d2d2g_center = -u^3*( ((intval(1)./factorial(0:N))./(3:N+3)) *  slow_intval_fix);
+        end
+        d2d2g = d2d2g_center + midrad(0,err);
+    else
+        d2d2g = (1/epsilon^3)*(-2 + exp(-epsilon*u)*(epsilon^2*u^2 + 2*epsilon*u + 2));
+    end
+else
+    if abs(epsilon)<1E-5
+        N = 4;
+        err = abs(u^3*(epsilon*u)^(N+1)/factorial(N+4)*exp(abs(epsilon*u)));
+        while sup(err)>1e-15
+            N = N+5;
+            err = abs(u^3*(epsilon*u)^(N+1)/factorial(N+4)*exp(abs(epsilon*u)));
+        end
+        d2d2g = -u^3*( ((1./factorial(0:N))./(3:N+3)) * (-epsilon*u).^(0:N).');
+    else
+        d2d2g = (1/epsilon^3)*(-2 + exp(-epsilon*u)*(epsilon^2*u^2 + 2*epsilon*u + 2));
+    end
+end
+end

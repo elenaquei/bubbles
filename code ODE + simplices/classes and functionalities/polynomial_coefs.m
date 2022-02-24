@@ -409,7 +409,20 @@ classdef polynomial_coefs
                     if isempty(index_non_zero)
                         coef_term = a.value{i}(j);
                     else
-                        coef_term = a.value{i}(j)*prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
+                        term = a.value{i}(j)*prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
+                        %% NOTE: There is a bug in INTLAB with elementwise powers. Lines 424-435 check and repair if needed. A bit slow.
+                        if any(isnan(term))      
+                            base = xi_vec.scalar(index_non_zero);
+                            exponent = (a.power_scalar{i}(index_non_zero,j).');
+                            inner_term = zeros(length(exponent),1);
+                            if use_intlab || isintval(xi_vec)
+                                inner_term = intval(inner_term);
+                            end
+                            for expfix_ind=1:length(exponent)
+                                inner_term(expfix_ind) = base(expfix_ind)^exponent(expfix_ind);
+                            end
+                            term = a.value{i}(j)*prod(inner_term);
+                        end
                     end
                     term_test = 1;
                     for k = 1:a.monomial_per_term{i}(j)

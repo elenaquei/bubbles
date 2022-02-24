@@ -1,5 +1,5 @@
 function validation_with_subpatches(save_file, save_file_iter, subsections)
-global talkative
+global talkative bool_Hopf
 
 load(save_file)
 
@@ -29,13 +29,13 @@ for i = 1:subsections
     last_index = last_index + size_subsections;
     load(save_file)
     [partial_list_of_simplices, partial_list_of_nodes] = ...
-                subsample(list_of_simplices, indices, list_of_nodes);
+        subsample(list_of_simplices, indices, list_of_nodes);
     clear list_of_simplices list_of_nodes
     save_file_iteri = append(save_file_iter,num2str(i));
     a_posteriori_validations(partial_list_of_simplices,...
         partial_list_of_nodes, [], bool_Hopf,[],save_file_iteri);
     talkative = talkative+1;
-    if talkative 
+    if talkative
         fprintf("      Validation of patch %i finished \n", i)
     end
 end

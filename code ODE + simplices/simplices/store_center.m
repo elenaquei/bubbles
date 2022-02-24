@@ -5,7 +5,8 @@ load(save_file);
 list_of_non_frontal_nodes = setdiff(1:length(list_of_nodes),list_of_frontal_nodes);
 loc_list_of_nodes = cell(1, length(list_of_non_frontal_nodes));
 copy_index = list_of_non_frontal_nodes;
-deleted_index = [];
+%deleted_index = [];
+stored_index = [];
 for delete_i = 1:length(list_of_non_frontal_nodes)
     index = list_of_non_frontal_nodes(delete_i);
     if ~isempty(list_of_nodes{index})
