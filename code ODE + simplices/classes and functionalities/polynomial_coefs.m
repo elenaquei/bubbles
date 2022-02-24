@@ -753,6 +753,9 @@ classdef polynomial_coefs
                 beta_power_vec{i} = cell(beta_n_terms(i),1);
                 beta_der{i} = cell(beta_n_terms(i),1);
                 beta_delay{i} = cell(beta_n_terms(i),1);
+                if isintval(alpha)
+                    beta_coefs{i} = intval(zeros(beta_n_terms(i),1));
+                end
                 
                 ii_beta = 1;
                 
@@ -919,6 +922,18 @@ classdef polynomial_coefs
             alpha_intval = alpha;
             for i = 1:size(alpha.value)
                 alpha_intval.value{i} = intval(alpha.value{i});
+            end     
+        end
+        % end INTVAL
+        
+        % IS_INTVAL
+        function bool = isintval(alpha)
+            bool = 0 ;
+            for i = 1:size(alpha.value)
+                if isintval(alpha.value{i})
+                    bool = 1;
+                    return
+                end
             end     
         end
         % end INTVAL
