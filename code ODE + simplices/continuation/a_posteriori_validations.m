@@ -169,7 +169,7 @@ for j = index_to_refine
     list_of_nodes{node13_number} = new_node13;
     
     number_new_simplex1 = j;
-    number_new_simplex2 = length(list_of_simplices)+1;
+    number_new_simplex2 = length(list_of_simplices)+1;  % THIS IS WRONG if we want to use the "order" of a simplex as info
     number_new_simplex3 = length(list_of_simplices)+2;
     number_new_simplex4 = length(list_of_simplices)+3;
     numbers_new_simplices = [number_new_simplex1, number_new_simplex2, number_new_simplex3, number_new_simplex4];

@@ -5,6 +5,9 @@
 % - test higher D vector field
 % - test derivatives
 
+global use_intlab
+use_intlab = 0;
+
 
 %% PART 1: 1D vector field in 1 variable
 
@@ -793,6 +796,44 @@ if max(max_error) > 10^-10
     error('Test 6 derivative delay - 3D to 1D')
 end
 
+
+% dot x1 + l1 * Delay(x1,3.14) * Delay(x3,4)
+string_vector_field = 'dot x1 + l1 * Delay(x1,3.14) * Delay(x3,4)';
+
+vector_field = from_string_to_polynomial_coef(string_vector_field);
+
+full_zero_finding_problem = full_problem(scalar_equation,vector_field);
+
+auto_der = derivative(full_zero_finding_problem, x);
+
+Dlambda = auto_der.derivative_Flambda;
+Dx_diag = auto_der.derivative_Fx_diagonal;
+Dx_vec = auto_der.derivative_Fx_toeplix;
+Dx_delay = auto_der.derivative_Fx_delay;
+
+max_error(1) = norm(squeeze(Dlambda(1,1,:)).' ...
+    - conv(conv(Delay(x1,3.14), Delay(x3,4)),1) ...
+    - l1 * conv((1i*K*3.14).*Delay(x1,3.14),conv(Delay(x3,4),1))...
+    - l1 * conv(Delay(x1,3.14),conv((1i*K*4).*Delay(x3,4),1)));
+
+max_error(2) = norm(Dx_diag - [1;0;0]);
+
+max_error(3) = norm(squeeze(Dx_vec(1,1,:)).' - 0);
+
+% term 1,1,2 : l1 * Delay(x1,3.14) * Delay(x2,4)
+max_error(4) = norm(auto_der.derivative_Fx_delay{1,1}{2}.convolution.' - l1* conv(Delay(x3,4), one_vec))+...
+    norm(auto_der.derivative_Fx_delay{1,3}{3}.convolution.'- l1* conv(Delay(x1,3.14), one_vec));
+max_error(4) = max_error(4) + norm(auto_der.derivative_Fx_delay{1,1}{3}) + ...
+    norm(auto_der.derivative_Fx_delay{1,3}{2});
+
+max_error(5) = norm(auto_der.derivative_Fx_delay{1,1}{2}.exp_coef - 1i*3.14*l1)+ ...
+    norm(auto_der.derivative_Fx_delay{1,3}{3}.exp_coef - 1i*4*l1);
+
+if max(max_error) > 10^-10
+    error('Test 7 derivative delay - 3D to 1D - multiple monomials')
+end
+
+
 disp('The evaluation of a 1D vector field of a 3D vector with delay and convolutions is successful')
 
 
@@ -1006,6 +1047,7 @@ if max(max_error) > 10^-10
     error('Test 3 delay derivative - 3D to 3D')
 end
 
+
 % dot x1 + l1 * Delay(x1,3.14) * Delay(x2,4) + x2^2 * x3
 % dot x2 + Delay(x2,3) * Delay(x1,2) * x3 - x1 
 % dot x3 + x1
@@ -1047,9 +1089,10 @@ for i = 1:3
             if i == 3 && k == 3
                 continue
             end
-            if all([i,j,k] == [1,1,2]) || all([i,j,k] == [1,2,2]) || all([i,j,k] == [2,1,2]) || all([i,j,k] == [2,2,2])
+            if all([i,j,k] == [1,1,2]) || all([i,j,k] == [1,2,3]) || all([i,j,k] == [2,1,3]) || all([i,j,k] == [2,2,2])
                 if isempty(auto_der.derivative_Fx_delay{i,j}{k})
                     disp([i,j,k])
+
                     error('wrong size delay derivative')
                 end
             else
@@ -1064,14 +1107,14 @@ end
 % term 1,1,2 : l1 * Delay(x1,3.14) * Delay(x2,4)
 % term 2,2,2 : Delay(x2,3) * Delay(x1,2) *x3
 max_error(4) = norm(auto_der.derivative_Fx_delay{1,1}{2}.convolution.' - l1* conv(Delay(x2,4), conv(one_vec,one_vec))) + ...
-    norm(auto_der.derivative_Fx_delay{1,2}{2}.convolution.' - l1 * conv(Delay(x1,3.14), conv(one_vec,one_vec))) + ...
-    norm(auto_der.derivative_Fx_delay{2,1}{2}.convolution.' - conv(Delay(x2,3), conv(x3,one_vec))) + ...
+    norm(auto_der.derivative_Fx_delay{1,2}{3}.convolution.' - l1 * conv(Delay(x1,3.14), conv(one_vec,one_vec))) + ...
+    norm(auto_der.derivative_Fx_delay{2,1}{3}.convolution.' - conv(Delay(x2,3), conv(x3,one_vec))) + ...
     norm(auto_der.derivative_Fx_delay{2,2}{2}.convolution.' - conv(Delay(x1,2), conv(x3,one_vec)));
 
 
 max_error(5) = norm(auto_der.derivative_Fx_delay{1,1}{2}.exp_coef - 1i*3.14*l1) + ...
-    norm(auto_der.derivative_Fx_delay{1,2}{2}.exp_coef - 1i*4*l1) + ...
-    norm(auto_der.derivative_Fx_delay{2,1}{2}.exp_coef - 1i*2*l1) + ...
+    norm(auto_der.derivative_Fx_delay{1,2}{3}.exp_coef - 1i*4*l1) + ...
+    norm(auto_der.derivative_Fx_delay{2,1}{3}.exp_coef - 1i*2*l1) + ...
     norm(auto_der.derivative_Fx_delay{2,2}{2}.exp_coef - 1i*3*l1);
 if max(max_error) > 10^-10
     error('Test 4 derivative delay - 3D to 3D - multiple monomials')
@@ -1701,7 +1744,7 @@ for i = 1:3
             if i == 3 && k == 3
                 continue
             end
-            if all([i,j,k] == [1,1,2]) || all([i,j,k] == [1,2,2]) || all([i,j,k] == [2,1,2]) || all([i,j,k] == [2,2,2])
+            if all([i,j,k] == [1,1,2]) || all([i,j,k] == [1,2,3]) || all([i,j,k] == [2,1,2]) || all([i,j,k] == [2,2,3])
                 if isempty(auto_der.derivative_Fx_delay{i,j}{k})
                     disp([i,j,k])
                     error('wrong size delay derivative')
@@ -1718,15 +1761,15 @@ end
 % term 1,1,2 : l1 * Delay(x1,3.14) * Delay(x2,4)
 % term 2,2,2 : Delay(x2,3) * Delay(x1,2) *x3
 max_error(4) = norm(auto_der.derivative_Fx_delay{1,1}{2}.convolution.' - l1* conv(Delay(x2,4), conv(one_vec,one_vec))) + ...
-    norm(auto_der.derivative_Fx_delay{1,2}{2}.convolution.' - l1 * conv(Delay(x1,3.14), conv(one_vec,one_vec))) + ...
+    norm(auto_der.derivative_Fx_delay{1,2}{3}.convolution.' - l1 * conv(Delay(x1,3.14), conv(one_vec,one_vec))) + ...
     norm(auto_der.derivative_Fx_delay{2,1}{2}.convolution.' - conv(Delay(x2,3), conv(x3,one_vec))) + ...
-    norm(auto_der.derivative_Fx_delay{2,2}{2}.convolution.' - conv(Delay(x1,2), conv(x3,one_vec)));
+    norm(auto_der.derivative_Fx_delay{2,2}{3}.convolution.' - conv(Delay(x1,2), conv(x3,one_vec)));
 
 
 max_error(5) = norm(auto_der.derivative_Fx_delay{1,1}{2}.exp_coef - 1i*3.14*l1) + ...
-    norm(auto_der.derivative_Fx_delay{1,2}{2}.exp_coef - 1i*4*l1) + ...
-    norm(auto_der.derivative_Fx_delay{2,1}{2}.exp_coef - 1i*2*l1) + ...
-    norm(auto_der.derivative_Fx_delay{2,2}{2}.exp_coef - 1i*3*l1);
+norm(auto_der.derivative_Fx_delay{1,2}{3}.exp_coef - 1i*4*l1) + ...
+norm(auto_der.derivative_Fx_delay{2,1}{2}.exp_coef - 1i*2*l1) + ...
+norm(auto_der.derivative_Fx_delay{2,2}{3}.exp_coef - 1i*3*l1);
 if max(max_error) > 10^-10
     error('Test 4 derivative delay - 3D to 3D')
 end
@@ -1767,6 +1810,229 @@ max_error = norm(hand_solution - auto_mat_der);
 if max(max_error) > 10^-10
     error('Test 4 derivative delay - 3D to 3D')
 end
+
+
+string_vector_field = 'dot x1 + l1 * Delay(x1,3.14) * Delay(x1,4) + x2^2 * x3 \n dot x2 + Delay(x1,2) * Delay(x1,3)* x3 - x1 \n dot x3 + x1';
+
+vector_field = from_string_to_polynomial_coef(string_vector_field,1,3);
+
+full_zero_finding_problem = full_problem(scalar_equation,vector_field);
+
+auto_der = derivative(full_zero_finding_problem, x);
+
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), Delay(x1,4)),one_vec) ...
+    - l1*conv(conv(1i *K*3.14.*Delay(x1,3.14), Delay(x1,4)),one_vec)...
+    - l1*conv(conv(Delay(x1,3.14), 1i *K*4.*Delay(x1,4)),one_vec))+...
+    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' ...
+    - conv(conv(1i *K*2.*Delay(x1,2), Delay(x1,3)),x3)...
+    - conv(conv(Delay(x1,2), 1i *K*3.*Delay(x1,3)),x3))+...
+    norm(squeeze(auto_der.derivative_Flambda(:,3,:)).' - 0);
+
+max_error(2) = norm(auto_der.derivative_Fx_diagonal - [1,0,0;0,1,0;0,0,1]);
+
+max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix(1,1,:)).' - 0) +...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(2,1,:)).' - 2 * conv(conv(x2,x3),one_vec)) + ...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(3,1,:)).' - conv(conv(x2,x2),one_vec));
+
+max_error(3) = max_error(3) + norm(squeeze(auto_der.derivative_Fx_toeplix(1,2,:)).' + conv(one_vec, conv(one_vec, one_vec))) +...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(2,2,:)).' - 0) + ...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(3,2,:)).' - conv(conv(Delay(x1,3), Delay(x1,2)),one_vec));
+
+max_error(3) = max_error(3) + norm(squeeze(auto_der.derivative_Fx_toeplix(1,3,:)).' - conv(one_vec,conv(one_vec,one_vec))) +...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(2,3,:)).' - 0) + ...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(3,3,:)).' - 0);
+
+
+for i = 1:3
+    for j = 1:3
+        for k = 1:3
+            if i == 3 && k == 3
+                continue
+            end
+            if all([i,j,k] == [1,1,2]) || all([i,j,k] == [1,1,3]) || all([i,j,k] == [2,1,2]) || all([i,j,k] == [2,1,3])
+                if isempty(auto_der.derivative_Fx_delay{i,j}{k})
+                    disp([i,j,k])
+                    error('wrong size delay derivative')
+                end
+            else
+                if ~isempty(auto_der.derivative_Fx_delay{i,j}{k})
+                    disp([i,j,k])
+                    error('wrong size delay derivative')
+                end
+            end
+        end
+    end
+end
+% term 1,1,2 : l1 * Delay(x1,3.14) * Delay(x1,4)
+% term 2,2,2 : Delay(x1,3) * Delay(x1,2) *x3
+max_error(4) = norm(auto_der.derivative_Fx_delay{1,1}{2}.convolution.' - l1* conv(Delay(x1,4), conv(one_vec,one_vec))) + ...
+    norm(auto_der.derivative_Fx_delay{1,1}{3}.convolution.' - l1 * conv(Delay(x1,3.14), conv(one_vec,one_vec))) + ...
+    norm(auto_der.derivative_Fx_delay{2,1}{2}.convolution.' - conv(Delay(x1,3), conv(x3,one_vec))) + ...
+    norm(auto_der.derivative_Fx_delay{2,1}{3}.convolution.' - conv(Delay(x1,2), conv(x3,one_vec)));
+
+
+max_error(5) = norm(auto_der.derivative_Fx_delay{1,1}{2}.exp_coef - 1i*3.14*l1) + ...
+norm(auto_der.derivative_Fx_delay{1,1}{3}.exp_coef - 1i*4*l1) + ...
+norm(auto_der.derivative_Fx_delay{2,1}{2}.exp_coef - 1i*2*l1) + ...
+norm(auto_der.derivative_Fx_delay{2,1}{3}.exp_coef - 1i*3*l1);
+if max(max_error) > 10^-10
+    error('Test 5 derivative delay - 3D to 3D')
+end
+
+% string_vector_field = 'dot x1 + l1 * Delay(x1,3.14) * Delay(x1,4) + x2^2 * x3 \n dot x2 + Delay(x1,3) * Delay(x1,2) *x3 - x1 \n dot x3 + x1';
+auto_mat_der = derivative_to_matrix(auto_der);
+one_vec_big = conv(one_vec,one_vec);
+
+scal_coefs1 = conv(squeeze(scalar_equation.linear_coef{2}(:,1,:)).',one_vec_big);
+scal_coefs2 = conv(squeeze(scalar_equation.linear_coef{2}(:,2,:)).',one_vec_big);
+scal_coefs3 = conv(squeeze(scalar_equation.linear_coef{2}(:,3,:)).',one_vec_big);
+scal_coef = [scal_coefs1, scal_coefs2, scal_coefs3];
+dot_der = kron([1,0,0; 0,1,0;0,0,1], mat_verybigK * 1i);
+mat_conv = [ 0*conv_mat_big(conv(Delay(x1,3.14),one_vec_big)), conv_mat_big(conv(2*conv(x2,x3),one_vec)) , conv_mat_big(conv(conv(x2,x2),one_vec)) 
+    conv_mat_big(conv(-one_vec_big,one_vec)), conv_mat_big(conv(0*one_vec_big,one_vec)) , conv_mat_big(conv(conv(Delay(x1,3),Delay(x1,2)),one_vec)) 
+    conv_mat_big(conv(one_vec_big,one_vec)) , conv_mat_big(conv(0*one_vec_big,one_vec)) , conv_mat_big(conv(one_vec_big*0,one_vec)) ];
+d_lambda = [ conv(conv(Delay(x1,3.14), Delay(x1,4)),one_vec) ...
+    + l1*conv(conv(1i *K*3.14.*Delay(x1,3.14), Delay(x1,4)),one_vec)...
+    + l1*conv(conv(Delay(x1,3.14), 1i *K*4.*Delay(x1,4)),one_vec),...
+    + conv(conv(1i *K*2.*Delay(x1,2), Delay(x1,3)),x3)...
+    + conv(conv(Delay(x1,2), 1i *K*3.*Delay(x1,3)),x3),...
+    0*conv(conv(x1,x1),x1)].';
+
+
+delay_mat11 = conv_mat_big(l1*conv(Delay(x1,4),one_vec_big)) *  expm(1i*3.14*l1 * mat_verybigK);
+delay_mat12 = conv_mat_big(l1*conv(Delay(x1,3.14),one_vec_big)) *  expm(1i*4*l1 * mat_verybigK);
+delay_mat21 = conv_mat_big(conv(conv(Delay(x1,3),x3),one_vec)) *  expm(1i*2*l1 * mat_verybigK);
+delay_mat22 = conv_mat_big(conv(Delay(x1,2),conv(x3,one_vec))) *  expm(1i*3*l1 * mat_verybigK);
+delay_mat = [delay_mat11+delay_mat12, 0*delay_mat21, 0*delay_mat11
+    delay_mat21+delay_mat22, 0*delay_mat22, 0*delay_mat22
+    0*delay_mat22, 0*delay_mat22, 0*delay_mat22];
+
+hand_solution = [0, scal_coef;
+    d_lambda, dot_der + delay_mat + mat_conv];
+
+max_error = norm(hand_solution - auto_mat_der);
+
+if max(max_error) > 10^-10
+    error('Test 6 derivative delay - 3D to 3D - multiple delays on same variable')
+end
+
+
+
+string_vector_field = 'dot x1 + l1 * Delay(x1,3.14) * Delay(x1,4) * Delay(x1,3.14) * Delay(x1,4) \n dot x2 + Delay(x1,2) * Delay(x1,3)* x3 - x1 \n dot x3 + x1';
+
+vector_field = from_string_to_polynomial_coef(string_vector_field,1,3);
+% now the degree of the vector field is 4
+full_zero_finding_problem = full_problem(scalar_equation,vector_field);
+
+auto_der = derivative(full_zero_finding_problem, x);
+
+one_vec_big = conv(one_vec,one_vec);
+one_vec_2big = conv(one_vec_big,one_vec);
+
+max_error(1) = norm(squeeze(auto_der.derivative_Flambda(:,1,:)).' - conv(conv(Delay(x1,3.14), Delay(x1,4)),conv(Delay(x1,3.14), Delay(x1,4))) ...
+    - 2*l1*conv(conv(1i *K*3.14.*Delay(x1,3.14), Delay(x1,4)),conv(Delay(x1,3.14), Delay(x1,4)))...
+    - 2*l1*conv(conv(Delay(x1,3.14), 1i *K*4.*Delay(x1,4)),conv(Delay(x1,3.14), Delay(x1,4))))+...
+    norm(squeeze(auto_der.derivative_Flambda(:,2,:)).' ...
+    - conv(conv(1i *K*2.*Delay(x1,2), Delay(x1,3)),conv(x3,one_vec))...
+    - conv(conv(Delay(x1,2), 1i *K*3.*Delay(x1,3)),conv(x3,one_vec)))+...
+    norm(squeeze(auto_der.derivative_Flambda(:,3,:)).' - 0);
+
+max_error(2) = norm(auto_der.derivative_Fx_diagonal - [1,0,0;0,1,0;0,0,1]);
+
+max_error(3) = norm(squeeze(auto_der.derivative_Fx_toeplix(1,1,:)).' - 0) +...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(2,1,:)).' -  0) + ...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(3,1,:)).' - 0);
+
+max_error(3) = max_error(3) + norm(squeeze(auto_der.derivative_Fx_toeplix(1,2,:)).' + conv(one_vec_big, one_vec_big)) +...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(2,2,:)).' - 0) + ...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(3,2,:)).' - conv(conv(Delay(x1,3), Delay(x1,2)),one_vec_big));
+
+max_error(3) = max_error(3) + norm(squeeze(auto_der.derivative_Fx_toeplix(1,3,:)).' - conv(one_vec_big,one_vec_big)) +...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(2,3,:)).' - 0) + ...
+    norm(squeeze(auto_der.derivative_Fx_toeplix(3,3,:)).' - 0);
+
+
+for i = 1:3
+    for j = 1:3
+        for k = 1:3
+            if i == 3 && k == 3
+                continue
+            end
+            if all([i,j,k] == [1,1,2]) || all([i,j,k] == [1,1,3]) || all([i,j,k] == [1,1,4]) || all([i,j,k] == [1,1,5]) || all([i,j,k] == [2,1,2]) || all([i,j,k] == [2,1,3])
+                if isempty(auto_der.derivative_Fx_delay{i,j}{k})
+                    disp([i,j,k])
+                    error('wrong size delay derivative')
+                end
+            else
+                if ~isempty(auto_der.derivative_Fx_delay{i,j}{k})
+                    disp([i,j,k])
+                    error('wrong size delay derivative')
+                end
+            end
+        end
+    end
+end
+% term 1,1,2 : l1 * Delay(x1,3.14) * Delay(x1,4) * Delay(x1,3.14) * Delay(x1,4)
+% term 2,2,2 : Delay(x1,3) * Delay(x1,2) *x3
+max_error(4) = norm(auto_der.derivative_Fx_delay{1,1}{2}.convolution.' - l1* conv( conv(one_vec, Delay(x1,4)), conv(Delay(x1,3.14), Delay(x1,4)))) + ...
+    norm(auto_der.derivative_Fx_delay{1,1}{3}.convolution.' - l1 * conv( conv(Delay(x1,3.14), one_vec), conv(Delay(x1,3.14), Delay(x1,4))) )+ ...
+    norm(auto_der.derivative_Fx_delay{1,1}{4}.convolution.' - l1* conv( conv(Delay(x1,3.14), Delay(x1,4)), conv(one_vec, Delay(x1,4))) )+ ...
+    norm(auto_der.derivative_Fx_delay{1,1}{5}.convolution.' - l1 * conv( conv(Delay(x1,3.14), Delay(x1,4)), conv(Delay(x1,3.14), one_vec)) )+ ...
+    norm(auto_der.derivative_Fx_delay{2,1}{2}.convolution.' - conv(Delay(x1,3), conv(x3,one_vec_big))) + ...
+    norm(auto_der.derivative_Fx_delay{2,1}{3}.convolution.' - conv(Delay(x1,2), conv(x3,one_vec_big)));
+
+
+max_error(5) = norm(auto_der.derivative_Fx_delay{1,1}{2}.exp_coef - 1i*3.14*l1) + ...
+norm(auto_der.derivative_Fx_delay{1,1}{3}.exp_coef - 1i*4*l1) + ...
+norm(auto_der.derivative_Fx_delay{1,1}{4}.exp_coef - 1i*3.14*l1) + ...
+norm(auto_der.derivative_Fx_delay{1,1}{5}.exp_coef - 1i*4*l1) + ...
+norm(auto_der.derivative_Fx_delay{2,1}{2}.exp_coef - 1i*2*l1) + ...
+norm(auto_der.derivative_Fx_delay{2,1}{3}.exp_coef - 1i*3*l1);
+if max(max_error) > 10^-10
+    error('Test 7 derivative delay - 3D to 3D')
+end
+
+% string_vector_field = 'dot x1 + l1 * Delay(x1,3.14) * Delay(x1,4) * Delay(x1,3.14) * Delay(x1,4) \n dot x2 + Delay(x1,2) * Delay(x1,3)* x3 - x1 \n dot x3 + x1';
+auto_mat_der = derivative_to_matrix(auto_der);
+one_vec_big = conv(one_vec,one_vec);
+mat_verybigK = diag(-8:8);
+
+scal_coefs1 = conv(squeeze(scalar_equation.linear_coef{2}(:,1,:)).',one_vec_2big);
+scal_coefs2 = conv(squeeze(scalar_equation.linear_coef{2}(:,2,:)).',one_vec_2big);
+scal_coefs3 = conv(squeeze(scalar_equation.linear_coef{2}(:,3,:)).',one_vec_2big);
+scal_coef = [scal_coefs1, scal_coefs2, scal_coefs3];
+dot_der = kron([1,0,0; 0,1,0;0,0,1], mat_verybigK * 1i);
+mat_conv = [ 0*conv_mat_big(conv(Delay(x1,3.14),one_vec_2big)), 0*conv_mat_big(conv(2*conv(x2,x3),one_vec_big)) , 0*conv_mat_big(conv(conv(x2,x2),one_vec_big)) 
+    conv_mat_big(conv(-one_vec_2big,one_vec)), conv_mat_big(conv(0*one_vec_2big,one_vec)) , conv_mat_big(conv(conv(Delay(x1,3),Delay(x1,2)),one_vec_big)) 
+    conv_mat_big(conv(one_vec_2big,one_vec)) , conv_mat_big(conv(0*one_vec_2big,one_vec)) , conv_mat_big(conv(one_vec_2big*0,one_vec)) ];
+
+d_lambda = [ conv(conv(Delay(x1,3.14), Delay(x1,4)),conv(Delay(x1,3.14), Delay(x1,4))) ...
+    + 2*l1*conv(conv(1i *K*3.14.*Delay(x1,3.14), Delay(x1,4)),conv(Delay(x1,3.14), Delay(x1,4)))...
+    + 2*l1*conv(conv(Delay(x1,3.14), 1i *K*4.*Delay(x1,4)),conv(Delay(x1,3.14), Delay(x1,4))),...
+    + conv(conv(1i *K*2.*Delay(x1,2), Delay(x1,3)),conv(x3,one_vec))...
+    + conv(conv(Delay(x1,2), 1i *K*3.*Delay(x1,3)),conv(x3,one_vec)),...
+    0*conv(conv(x1,x1),conv(x1,x1))].';
+
+delay_mat11 = 2*conv_mat_big(l1* conv( conv(one_vec, Delay(x1,4)), conv(Delay(x1,3.14), Delay(x1,4)))) *  expm(1i*3.14*l1 * mat_verybigK);
+delay_mat12 = 2*conv_mat_big(l1 * conv( conv(Delay(x1,3.14), one_vec), conv(Delay(x1,3.14), Delay(x1,4)))) *  expm(1i*4*l1 * mat_verybigK);
+
+delay_mat21 = conv_mat_big(conv(conv(Delay(x1,3),x3),one_vec_big)) *  expm(1i*2*l1 * mat_verybigK);
+delay_mat22 = conv_mat_big(conv(Delay(x1,2),conv(x3,one_vec_big))) *  expm(1i*3*l1 * mat_verybigK);
+
+delay_mat = [delay_mat11+delay_mat12, 0*delay_mat21, 0*delay_mat11
+    delay_mat21+delay_mat22, 0*delay_mat22, 0*delay_mat22
+    0*delay_mat22, 0*delay_mat22, 0*delay_mat22];
+
+hand_solution = [0, scal_coef;
+    d_lambda, dot_der + delay_mat + mat_conv];
+
+max_error = norm(hand_solution - auto_mat_der);
+
+if max(max_error) > 10^-10
+    error('Test 8 derivative delay - 3D to 3D - multiple delays on same variable')
+end
+
+
 
 disp('The construction of the derivative operator of a 3D vector field of a 3D vector with delay and convolutions is successful')
 

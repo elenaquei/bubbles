@@ -17,7 +17,7 @@ bool_Hopf = 1; % the Hopf blow up is already taken into account
 save_file = 'SI_model_data';
 
 % extract info from point_candidate
-%load('./Kevins_code/point_candidate.mat')
+% load('./Kevins_code/point_candidate.mat')
 % z0 = X_ref(8:8+2*N);
 % z1 = X_ref(9+2*N:9+4*N);
 % z2 = X_ref(10+4*N:end);
@@ -39,6 +39,7 @@ n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
 n_nodes = xi.nodes;
 xi = symmetrise(xi);
+tau = 10;
 
 % create non-computable equations
 n_non_comp_eqs = 3;
