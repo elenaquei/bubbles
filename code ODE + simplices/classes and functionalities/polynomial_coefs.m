@@ -263,8 +263,8 @@ classdef polynomial_coefs
                     if sum(alpha.power_scalar{i}(:,j))>deg_scal
                         deg_scal = sum(alpha.power_scalar{i}(:,j));
                     end
-                    deg_delay = sum(alpha.delay{i}{j}~=0);
-                    deg_term_ij = sum(alpha.power_vector{i}{j}) + deg_delay;
+                    deg_delay = sum(sum(alpha.delay{i}{j}~=0));
+                    deg_term_ij = sum(sum(alpha.power_vector{i}{j})) + deg_delay;
                     if deg_term_ij>deg_vec
                         deg_vec = deg_term_ij;
                     end
@@ -521,7 +521,8 @@ classdef polynomial_coefs
                 Dx_diag = intval(Dx_diag);
             end
             for i = 1: xi_vec.size_scalar
-                Dlambda(i,:,:)=apply(coef_derivative_scal(a,i),xi_vec,1);
+                Dlambda(i,:,:)=apply(coef_derivative_scal(a,i),xi_vec,1); % this works
+                
                 if has_delay(a) && i ==1
                     der_wrt_period = der_delay_wrt_period(a,xi_vec);
                     size_der_period = size(der_wrt_period);
@@ -568,39 +569,46 @@ classdef polynomial_coefs
             psi = xi_vec.scalar(1); % the frequency
             for i = 1:xi_vec.size_vector % which unknown I'm taking derivatives of
                 for j = 1:a.n_equations
-                    Dx_delay_loc= cell(a.n_terms(j),1);
-                    for k = 1:a.n_terms(j)
-                        if all(a.delay{j}{k}(i,:) == 0)
+                    n_derivative_terms = sum(a.monomial_per_term{j}); % each monomial creates a derivative
+                    Dx_delay_loc= cell(n_derivative_terms,1);
+                    k = 1; % storage term
+                    for k_term = 1:a.n_terms(j)
+                        if all(a.delay{j}{k_term}(i,:) == 0)
                             % only consider the delay derivative if there
                             % is a delay in the right variable
                             Dx_delay_loc{k} = [];
+                            k = k + 1;
                             continue
                         end
-                        % convolution term
-                        index_non_zero = find(a.power_scalar{j}(:,k));
-                        term = 0;
-                        for mon1 = 1:a.monomial_per_term{j}(k) % the monomial in which the derivative is taken
+                        
+                        for mon1 = 1:a.monomial_per_term{j}(k_term) % the monomial in which the derivative is taken
+                            if a.delay{j}{k_term}(i ,mon1) == 0
+                                Dx_delay_loc{k} = [];
+                                k = k + 1;
+                                continue
+                            end
                             mon_term = 1;
-                            for mon = 1:a.monomial_per_term{j}(k) % all other monomials, computed normally
+                            for mon = 1:a.monomial_per_term{j}(k_term) % all other monomials, computed normally
                                 if mon == mon1
                                     continue
                                 end
-                                mon_term = mon_term .* compute_monomial(xi_vec, a.power_vector{j}{k}(:,mon), a.dot{j}{k}(:,mon), a.delay{j}{k}(:,mon), a.deg_vector);
+                                mon_term = mon_term .* compute_monomial(xi_vec, a.power_vector{j}{k_term}(:,mon), a.dot{j}{k_term}(:,mon), a.delay{j}{k_term}(:,mon), a.deg_vector);
                             end
-                            delete_i_delay = a.delay{j}{k}(:,mon); % taking the derivative w.r.t. i
-                                delete_i_delay(i) =0;
-                            mon_term = mon_term .* compute_monomial(xi_vec, a.power_vector{j}{k}(:,mon), a.dot{j}{k}(:,mon), delete_i_delay, a.deg_vector);
-                            term = term + mon_term;
+                            delete_i_delay = a.delay{j}{k_term}(:,mon1); % taking the derivative w.r.t. i
+                            delete_i_delay(i) = 0;
+                            mon_term = mon_term .* compute_monomial(xi_vec, a.power_vector{j}{k_term}(:,mon1), a.dot{j}{k_term}(:,mon1), delete_i_delay, a.deg_vector);
+                            
+                            Dx_delay_loc{k}.convolution = a.value{j}(k_term) * prod(xi_vec.scalar.^round(a.power_scalar{j}(:,k_term).')) * verifyfft_in(mon_term.',1);
+                            
+                            degree = a.deg_vector;
+                            initial_nodes = xi_vec.nodes;
+                            Dx_delay_loc{k}.convolution = impose_zeros(Dx_delay_loc{k}.convolution, degree, initial_nodes);
+                            
+                            % exponential term
+                            tau = a.delay{j}{k_term}(i,mon1);
+                            Dx_delay_loc{k}.exp_coef = 1i * psi * tau;
+                            k = k + 1;
                         end
-                        Dx_delay_loc{k}.convolution = a.value{j}(k) * prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{j}(index_non_zero,k).')) * verifyfft_in(term.',1);
-                        
-                        degree = sum(a.power_vector{j}{k}(:))+ nnz(a.delay{j}{k}(:));
-                        initial_nodes = xi_vec.nodes;
-                        Dx_delay_loc{k}.convolution = impose_zeros(Dx_delay_loc{k}.convolution, degree, initial_nodes);
-                        
-                        % exponential term
-                        tau = a.delay{j}{k}(i);
-                        Dx_delay_loc{k}.exp_coef = 1i * psi * tau;
                     end
                     Dx_delay{j,i} = Dx_delay_loc;
                 end
@@ -616,7 +624,7 @@ classdef polynomial_coefs
             if use_intlab || isintval(xi_vec)
                 D_psi = intval(D_psi);
             end
-            size_extended_vector = size(xi_vec.ifft_vector,2);%xi_vec.nodes*2*a.deg_vector+1;
+            size_extended_vector = size(xi_vec.ifft_vector,2);
             K_nodes = size_extended_vector/2;
             K = -K_nodes:(K_nodes-1);
             for i = 1:a.n_equations
@@ -624,30 +632,40 @@ classdef polynomial_coefs
                     if all(a.delay{i}{j} == 0)
                         continue
                     end
-                    index_non_zero = find(a.power_scalar{i}(:,j));
-                    if isempty(index_non_zero)
-                        scal_coef = a.value{i}(j);
-                    else
-                        scal_coef = a.value{i}(j)* prod(xi_vec.scalar(index_non_zero).^(a.power_scalar{i}(index_non_zero,j).'));
-                    end
+                    scal_coef = a.value{i}(j)* prod(xi_vec.scalar.^round(a.power_scalar{i}(:,j).'));
+                    
                     if scal_coef == 0
                         continue
                     end
-                    for k = 1:a.monomial_per_term{i}(j)
-                        
-                        if any(a.dot{i}{j}(:,k)>0)
-                            if a.monomial_per_term{i}(j)==1 && sum(a.dot{i}{j}(:,k))==1
-                                index = find(a.dot{i}{j}(:,k));
-                                term = scal_coef * (verifyfft_in((1i*K).^a.dot{i}{j}(index,k).*help_xi_vec.vector(index,1:(end-1)),-1).');
-                            else
-                                error('General DERIVATIVES not implemented here')
-                            end
+                    
+                    if any(a.dot{i}{j}(:,:)>0)
+                        if a.monomial_per_term{i}(j)==1 && sum(a.dot{i}{j}(:))==1
+                            index = find(a.dot{i}{j}(:));
+                            term_base = scal_coef * (verifyfft_in((1i*K).^a.dot{i}{j}(index,k).*help_xi_vec.vector(index,1:(end-1)),-1).');
                         else
-                            term = scal_coef;
+                            error('General DERIVATIVES not implemented here')
+                        end
+                    else
+                        term_base = scal_coef;
+                    end
+                    for k = 1:a.monomial_per_term{i}(j)
+                        % compute all vector powers, we want to keep all of
+                        % them
+                        [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
+                        term_base = term_base .* ifft_prod;
+                    end
+                    
+                    for k = 1:a.monomial_per_term{i}(j)
+                        term_other_mon = 1;
+                        for k_prime = 1:a.monomial_per_term{i}(j)
+                            if k == k_prime 
+                                continue
+                            end
+                            % else, compute the monomial directly
+                            delay_k_prime = a.delay{i}{j}(:,k_prime);
+                            term_other_mon = term_other_mon .* compute_monomial(xi_vec, zeros(xi_vec.size_vector), zeros(xi_vec.size_vector), delay_k_prime, a.deg_vector);
                         end
                         
-                        [~,ifft_prod] = power(xi_vec,a.power_vector{i}{j}(:,k));
-                        term = term .* ifft_prod;
                         indices_delay = find(a.delay{i}{j}(:,k));
                         term_loc = 0;
                         
@@ -659,10 +677,12 @@ classdef polynomial_coefs
                             delay_x = set_ifft(delay_x,a.deg_vector);
                             [~,ifft_prod_delay] = power(delay_x,ones(1:xi_vec.size_vector));
                             term_loc = term_loc + ifft_prod_delay;
+                        
                         end
-                        term = term .* term_loc;
+                        term = term_base .* term_other_mon.*term_loc;
+                        D_psi(i,:) = D_psi(i,:) + term;
                     end
-                    D_psi(i,:) = D_psi(i,:) + term;
+                    
                 end
             end
         end
@@ -777,13 +797,10 @@ classdef polynomial_coefs
                         beta_der{i}{ii_beta} = alpha.dot{i}{ii};
                         beta_delay{i}{ii_beta} = alpha.delay{i}{ii};
                         
-                        % take overwrite only the interesting elements:
+                        % overwrite only the interesting elements:
                         % the value and the power of vector
                         
                         power_vec = alpha.power_vector{i}{ii};  
-                        % this works only for single monomials - not for multiple ones
-                        % multiple monomials get to have a sum of
-                        % derivatives - > more terms!
                         
                         beta_coefs{i}(ii_beta) = alpha.value{i}(ii) * power_vec(j,k);
                         beta_power_vec{i}{ii_beta} = power_vec;
@@ -799,7 +816,9 @@ classdef polynomial_coefs
             end
             beta = polynomial_coefs(alpha.size_scalar, alpha.size_vector, alpha.n_equations, ...
                 beta_n_terms, beta_coefs, beta_power_scal, beta_power_vec, beta_der, beta_delay);
-            beta.deg_vector = alpha.deg_vector; % we want to keep the previous degrees for consistency
+            beta.deg_vector = alpha.deg_vector; 
+            % we want to keep the previous degrees for consistency in
+            % further computations
         end
         % end COEF_DERIVATIVE_VEC
         
@@ -980,6 +999,9 @@ classdef polynomial_coefs
                         end
                     end
                     s = strcat(s,term);
+                    if s(end) == '+' || s(end) == '-'
+                        s = strcat(s,'1');
+                    end
                 end
                 s = sprintf('%s\n     ',s);
             end
