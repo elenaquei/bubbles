@@ -547,7 +547,7 @@ classdef polynomial_coefs
                     Dlambda(i,j,:) =  verifyfft_in(squeeze(Dlambda(i,j,:)),1);
                     degree = 0;
                     for k = 1:a.n_terms(j)
-                        degree = max(sum(a.power_vector{j}{k})+nnz(a.delay{j}{k}),degree);
+                        degree = max(sum(sum(a.power_vector{j}{k}))+nnz(a.delay{j}{k}),degree);
                     end
                     Dlambda(i,j,:) = impose_zeros(Dlambda(i,j,:),degree, xi_vec.nodes);
                 end
