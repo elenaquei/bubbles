@@ -20,17 +20,14 @@ bool_validated = 0;
 save_file = 'Makey_Glass_data';
 
 % extract info from point_candidate
-load('./simplex DDE Hopf examples/candidate_mackey.mat')
-eta = 0;
+load('./simplex DDE Hopf examples/candidate_mackey_no_blowup.mat')
 xXi = time_series2Xi_vec(tt,yy.',n_modes);
 
-xi = Xi_vector([period, delta, tau],xXi.vector);
+xi = Xi_vector([period/(2*pi), delta, tau],xXi.vector);
 
-xi = reshape(xi, n_modes);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
 n_nodes = xi.nodes;
-xi = symmetrise(xi);
 
 % create non-computable equations
 n_non_comp_eqs = 1;
@@ -58,23 +55,14 @@ if norm(norm(y)) > 10^-4
     %error('Initial approx too bad')
 end
 
-DF_old = derivative_to_matrix(derivative(full_zero_finding_problem, xi,0));
-f = @(x)Xi_vec2vec(apply(full_zero_finding_problem,vec2Xi_vec(x,xi)));
-
 xi = Newton_2(xi,full_zero_finding_problem);
 y = apply(full_zero_finding_problem, xi);
-disp(norm(y))
-disp(xi.scalar(6))
-
-xi.scalar(6) = 0;
-scalar_equation = F_update_Hopf(scalar_equation,xi);
 
 zero_finding_problem = full_problem(scalar_equation,vector_field);
 full_zero_finding_problem = continuation_equation_simplex(zero_finding_problem, xi);
 xi = Newton_2(xi,full_zero_finding_problem);
 y = apply(full_zero_finding_problem, xi);
 disp(norm(y))
-disp(xi.scalar(6))
 
 
 first_node = node(1,xi,zero_finding_problem);
@@ -147,10 +135,6 @@ end
 if nargout == 3
     return
 end
-% wolfram alpha results
-dz0g = @(z0,z1) z1*4*z0^3;
-dz1g = @(z0,z1) 1+z0^4;
-
 dz0dz0g = @(z0,z1) z1*4*3*z0^2;
 dz0dz1g = @(z0,z1) 4*z0^3;
 dz1dz1g = @(z0,z1) 0;
