@@ -176,7 +176,7 @@ dxg = @(x,a,u) 4*(x+a*u)^3*(1+x^4) + (1+(x+a*u)^4)*4*x^3;
 dag = @(x,a,u) 4*(x+a*u)^3*u*(1+x^4);
 dug = @(x,a,u) 4*(x+a*u)^3*a*(1+x^4);
 
-F = g(x,a,z0)*z1;
+F = g(x,a,z0)*z1 - 1;
 
 if nargout == 1
     return
