@@ -4,7 +4,7 @@ global use_intlab
 global nu
 global talkative
 global norm_weight
-norm_weight = [1,1,1,1,1,1,1,1].';
+norm_weight = [1,1,1,1,1].';
 talkative = 0;
 nu = 1.001;
 use_intlab = 0;
@@ -20,11 +20,11 @@ bool_validated = 0;
 save_file = 'Makey_Glass_data';
 
 % extract info from point_candidate
-load('./simplex DDE Hopf examples/candidate_mackey_blowup_v2.mat')
+load('./simplex DDE Hopf examples/candidate_mackey.mat')
 eta = 0;
 xXi = time_series2Xi_vec(tt,yy.',n_modes);
 
-xi = Xi_vector([period, x, a, tau, delta, eta],xXi.vector);
+xi = Xi_vector([period, delta, tau],xXi.vector);
 
 xi = reshape(xi, n_modes);
 n_scal = xi.size_scalar;
@@ -36,73 +36,19 @@ xi = symmetrise(xi);
 n_non_comp_eqs = 1;
 f_non_comp = @(x) noncomputable_eqs_for_MG(x);
 
-s = cell(6,1);
-s_coef = [-1, 1, -3, -6, -4, +1];
-s{1} = ' \delta \tau z_0';
-s{2} = ' \tau Delay(z_0,-1)';
-s{3} = ' \tau x^4 Delay(z_0,-1) Delay(z_1,-1)';
-s{4} = ' x^3 a \tau Delay(z_0,-1) Delay(z_0,-1)Delay(z_1,-1)';
-s{5} = ' x^2 a^2 \tau Delay(z_0,-1) Delay(z_0,-1)Delay(z_0,-1) Delay(z_1,-1)';
-s{6} = ' x a^3 \tau Delay(z_0,-1) Delay(z_0,-1)Delay(z_0,-1)Delay(z_0,-1)Delay(z_1,-1)';
-
-s1 = cell(8,1);
-s1_coef=[4, 4, 12, 12, 12, 12, 4, 4];
-s1{1} = 'a z_1^2 x^3 ';
-s1{2} = 'a z_1^2 x^7 ';
-s1{3} = 'a^2 z_1^2 x^2 z_0 ';
-s1{4} = 'a^2 z_1^2 x^6 z_0 ';
-s1{5} = 'a^3 z_1^2 x z_0^2 ';
-s1{6} = 'a^3 z_1^2 x^5 z_0^2'; 
-s1{7} = 'a^4 z_1^2 z_0^3 ';
-s1{8} = 'a^4 z_1^2 x^4 z_0^3';
-
-F2 = '';
-for i = 1:6
-    for j = 1:8
-        coef = s_coef(i)*s1_coef(j);
-        if coef>0
-            coef_str = append('+', int2str(coef));
-        else
-            coef_str = int2str(coef);
-        end
-        F2 = append(F2, coef_str, s{i}, s1{j});
-    end
-    F2 = append (F2,'\\');
-end
-F2 = append('dot z_1 ', F2,'-eta');
-
-
-F1 = '\dot z_0+ \delta \tau z_0 +  a^3 \tau x Delay(z_0,-1)Delay(z_0,-1)Delay(z_0,-1)\\Delay(z_0,-1) Delay(z_1,-1) + 4 a^2 \tau x^2 Delay(z_0,-1)Delay(z_0,-1)Delay(z_0,-1) Delay(z_1,-1) \\+ 6 a \tau x^3 Delay(z_0,-1)Delay(z_0,-1) Delay(z_1,-1) \\+ 3 \tau x^4 Delay(z_0,-1)Delay(z_1,-1) - \tau Delay(z_0,-1) Delay(z_1,-1)';
-% human readable
- fprintf( strrep(strrep(strrep(F1, '\\' , '\n'),'\d','d'),'\t','t')); disp(' ')
- fprintf( strrep(strrep(strrep(F2, '\\' , '\n'),'\d','d'),'\t','t')); disp(' ')
-F1 = strrep(F1, '\' , '');
-F2 = strrep(F2, '\' , '');
-
-vector_field = strcat(F1, '\n', F2);
+vector_field = '- dot z_0 -delta tau z_0 + tau Delay(z_0,-1)Delay(z_1,-1) \n - dot z_1 + 4 delta tau z_0^4z_1^2 - 4 tau z_0^3z_1^2Delay(z_0,-1)Delay(z_1,-1)'; 
 
 string_vector_field = strrep(vector_field, 'psi' , 'l1');
-string_vector_field = strrep(string_vector_field, 'x' , 'l2');
-string_vector_field = strrep(string_vector_field, 'delta' , 'l5');
-string_vector_field = strrep(string_vector_field, 'tau' , 'l4');
-string_vector_field = strrep(string_vector_field, 'a ' , 'l3');
-string_vector_field = strrep(string_vector_field, 'a^' , 'l3^');
-string_vector_field = strrep(string_vector_field, 'eta' , 'l6');
+string_vector_field = strrep(string_vector_field, 'delta' , 'l2');
+string_vector_field = strrep(string_vector_field, 'tau' , 'l3');
 string_vector_field = strrep(string_vector_field, 'z_0' , 'x1');
 string_vector_field = strrep(string_vector_field, 'z_1' , 'x2');
 
-
 vector_field = from_string_to_polynomial_coef(string_vector_field,n_scal,n_vec);
 
-scalar_eq_pol = 'x - delta x - delta x^5';
-scalar_eq_pol = strrep(scalar_eq_pol, 'x' , 'l2');
-scalar_eq_pol = strrep(scalar_eq_pol, 'delta' , 'l5');
-polynomial = from_string_to_polynomial_coef(scalar_eq_pol,n_scal,n_vec);
 lin_coefficients = cell(3,1);
 lin_coefficients{2} = zeros(0,n_vec, 2*n_nodes+1);
-scalar_equation = scalar_eq(0,1,n_scal, n_vec, lin_coefficients, polynomial, n_non_comp_eqs, f_non_comp);
-
-scalar_equation = F_update_Hopf(scalar_equation,xi);
+scalar_equation = scalar_eq(0,0,n_scal, n_vec, lin_coefficients, polynomial_coefs(), n_non_comp_eqs, f_non_comp);
 
 zero_finding_problem = full_problem(scalar_equation,vector_field);
 full_zero_finding_problem = continuation_equation_simplex(zero_finding_problem, xi);
@@ -174,28 +120,20 @@ end
 
 
 % psi, x0, a, mu, R0, p, eta1, eta2],[z0;z1;z2]
-x = sum_x(2);
-a = sum_x(3);
-
 z0 = sum_x(end-1);
 z1 = sum_x(end);
 
-g = @(x,a,u) (1+(x+a*u)^4)*(1+x^4) ;
-dxg = @(x,a,u) 4*(x+a*u)^3*(1+x^4) + (1+(x+a*u)^4)*4*x^3;
-dag = @(x,a,u) 4*(x+a*u)^3*u*(1+x^4);
-dz0g = @(x,a,u) 4*(x+a*u)^3*a*(1+x^4);
+g = @(z0, z1) z1 * (1+z0^4) - 1;
 
-F = g(x,a,z0)*z1 - 1;
+F = g(z0,z1);
 
 if nargout == 1
     return
 end
-DxF = dxg(x,a,z0)*z1;
-DaF = dag(x,a,z0)*z1;
-Dz0F = dz0g(x,a,z0)*z1;
-Dz1F = g(x,a,z0);
+dz0g = @(z0,z1) z1*4*z0^3;
+dz1g = @(z0,z1) 1+z0^4;
 
-dxF = [0, DxF, DaF, 0, 0, 0, Dz0F, Dz1F];
+dxF = [0, 0, 0, dz0g(z0,z1), dz1g(z0,z1)];
 if nargout == 2
     return
 end
@@ -210,19 +148,17 @@ if nargout == 3
     return
 end
 % wolfram alpha results
-dxdxg = @(x,a,z0) 4 *(3 *(1 + x^4) *(x + a *z0)^2 + 8 *x^3* (x + a *z0)^3 + 3 *x^2* (1 + (x + a* z0)^4));
-dadxg = @(x,a,z0) 24 *z0 *(x + a* z0) *(1 + 7* x^4 + 8* a *x^3* z0 + 2 *a^2* x^2 * z0^2);
-dadag = @(x,a,z0) 12 *(1 + x^4) *z0^2 *(x + a* z0)^2;
-dadz0g = @(x,a,z0) 4 *(1 + x^4)* (x + a *z0)^2 *(x + 4 *a* z0);
-dz0dz0g = @(x,a,z0) 48* a^2* (1 + x^4) *(x + a* z0)^2;
-dz0dxg = @(x,a,z0) 16* a* (x + a* z0)^2 *(3 + 7* x^4 + 4 *a* x^3 *z0);
+dz0g = @(z0,z1) z1*4*z0^3;
+dz1g = @(z0,z1) 1+z0^4;
 
-DxDF = z1*(dxdxg(abs(x), abs(a), abs(z0)) + dadxg(abs(x), abs(a), abs(z0)) + dz0dxg(abs(x), abs(a), abs(z0)));
-DaDF = z1*(dadxg(abs(x), abs(a), abs(z0)) + dadag(abs(x), abs(a), abs(z0)) + dadz0g(abs(x), abs(a), abs(z0)));
-Dz0DF = z1*(dz0dxg(abs(x), abs(a), abs(z0)) + dadz0g(abs(x), abs(a), abs(z0)) + dz0dz0g(abs(x), abs(a), abs(z0)));
-Dz1DF = dxg(abs(x), abs(a), abs(z0)) + dag(abs(x), abs(a), abs(z0)) + dz0g(abs(x), abs(a), abs(z0));
+dz0dz0g = @(z0,z1) z1*4*3*z0^2;
+dz0dz1g = @(z0,z1) 4*z0^3;
+dz1dz1g = @(z0,z1) 0;
 
-dxxF_norm = abs([0, DxDF, DaDF, 0, 0, 0, Dz0DF, Dz1DF]);
+Dz0DF = dz0dz0g(abs(z0),abs(z1)) + dz0dz1g(abs(z0),abs(z1));
+Dz1DF = dz0dz1g(abs(z0),abs(z1)) + dz1dz1g(abs(z0),abs(z1));
+
+dxxF_norm = abs([0, 0, 0, Dz0DF, Dz1DF]);
 
 end
 

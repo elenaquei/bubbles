@@ -18,6 +18,10 @@ norm_weight_long = [weight_vector; weight_scalar; weight_vector];
 
 use_intlab = 1;
 
+% referring to the paper "Computer-assisted proofs of Hopf bubbles and ..
+% degenerate Hopf bifurcations", we follow the convention
+% STAR_1 = Z_1^{3,1} , STAR2 = Z_1^{3,2}, STAR3 = Z_1^{1,3}, STAR4 =
+% Z_1^{3,3}
 
 % we compute the derivative BEFORE we add nodes, so to have an easier
 % computation
@@ -31,19 +35,12 @@ DF = derivative(alpha_int, x_int, bool_long);
 % reshape all inputs
 if x0.nodes<128
     new_nodes = 128;
-    % [A_small0, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
-    % [A_small1, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
-    % [A_small2, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);
     
     [~, M0, P0, Q0, R0, phi0, D3F20] = create_A_of_size(A0_struct, new_nodes);
     [~, M1, P1, Q1, R1, phi1, D3F21] = create_A_of_size(A1_struct, new_nodes);
     [~, M2, P2, Q2, R2, phi2, D3F22] = create_A_of_size(A2_struct, new_nodes);
     x0 = reshape(x0, new_nodes);
-    % x1 = reshape(x1, new_nodes);
-    % x2 = reshape(x2, new_nodes);
     alpha0 = reshape(alpha0, new_nodes);
-    % alpha1 = reshape(alpha1, new_nodes);
-    % alpha2 = reshape(alpha2, new_nodes);
     DF = reshape(DF, new_nodes);
 end
 
@@ -63,8 +60,6 @@ D3F2_int = interpolation(D3F20, D3F21, D3F22);
 norm_D3F2 =diag(weight_scalar) * intval(sup(abs(D3F2_int))) * diag(weight_vector.^-1);
 norm_P = diag(weight_vector) * intval(norm_C_to_ell1(P_int, size_scalar, size_vector)) * diag(weight_scalar.^-1);
 norm_R = diag(weight_scalar) * abs(R_int) * diag(weight_scalar.^-1);
-% norm_M = intval(norm_ell1_to_ell1(M_int, size_vector));
-% norm_Q = intval(norm_ell1_to_C(Q_int, size_scalar, size_vector));
 % first term: A_s * Pi_M ( D_z Pi_infty F)
 
 % norm A star 1 with direct computation
@@ -88,8 +83,6 @@ make_conv_mat = @(vec) toeplitz(...
 
 for i =1:N
     index_i = (i-1)*size_each_section + (1:size_each_section);
-    index_i_small = (i-1)*(n_nodes*2+1) + (1:(n_nodes*2+1));
-    % center_indices_i = (i-1)*size_each_section + center_indices;
     center_indices_i_small = (i-1)*(n_nodes*2+1) + (1:2*n_nodes+1);
     tail_indices_i = (i-1)*size_each_section + tail_indices;
     for j = 1:N
@@ -135,8 +128,6 @@ norm_A_STAR1 = diag(norm_weight_long) * [norm_ell1_to_ell1(P_int * kron(D3F2_int
     norm_STAR1] * diag(weight_vector.^-1);
 
 % STAR2
-% Pi_infty_indices = ...
- %    [-n_nodes*degree:-n_nodes-1, 0*(-n_nodes:n_nodes), n_nodes+1:n_nodes*degree];
 center_indices = n_nodes*degree-1:n_nodes*degree + 2*n_nodes-1;
 derivative_parameters_F_tail = DF.derivative_Flambda;
 derivative_parameters_F_tail(:,:, center_indices) = 0;
@@ -155,14 +146,10 @@ for i = 1:size_scalar
         norm_Kinv_STAR2(j,i) = intval(norm_Fourier_sequence(K_der_F_tail));
     end
 end
-%norm_Kinv_STAR2 = sum(abs(1./intval(Pi_infty_indices(Pi_infty_indices~=0)))) * norm_STAR2;
 
 norm_A_STAR2 = diag(norm_weight_long) * [norm_C_to_ell1(P_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2, size_scalar, size_vector)
     abs(R_int * kron(D3F2_int,ones(1,1+2*nodes_loc)) * Kinv_STAR2)
     abs(phi_int)^-1 * norm_Kinv_STAR2] * diag(weight_scalar.^-1);
-%[norm_P * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
-%    norm_R.' * norm_D3F2 * abs(phi_int)^-1 * norm_Kinv_STAR2
-%    abs(phi_int)^-1 * norm_Kinv_STAR2];
 
 % STAR 3
 norm_A_STAR3 = diag(norm_weight_long) * [norm_ell1_to_ell1(M_int * STAR3, size_vector)
@@ -202,7 +189,6 @@ Z1_vector = sum(max(Z1_finite_vector,Z1_infinite_vector),2);
 
 Z1_components = sum([norm_A_STAR1, norm_A_STAR2, norm_A_STAR3 + norm_A_STAR4],2);
 Z1_scalar = Z1_components(size_vector+(1:size_scalar));
-%Z1_vector = Z1_components(1:size_vector) + Z1_components(size_vector+size_scalar+1:end);
 Z1 = sup([Z1_scalar;Z1_vector]);
 end
 
