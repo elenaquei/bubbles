@@ -85,37 +85,37 @@ for i=1:alpha.vector_field.n_equations % equation
         % add monomial per term and loop over it
         power_loc=[alpha.vector_field.power_scalar{i}(:,j).', alpha.vector_field.power_vector{i}{j}.'];
         const=abs(alpha.vector_field.value{i}(j));
-        delay_loc = alpha.vector_field.delay{i}{j};
+        abs_delay_loc = sum(abs(alpha.vector_field.delay{i}{j}),2);
         
         X = prod(x_norm.^power_loc);
-        V_delay = prod(v_norm(find(delay_loc)));
+        V_delay = prod(v_norm(find(abs_delay_loc)));
         
-        if any(delay_loc)
+        if any(abs_delay_loc)
             if power_loc(1)>0
                 delay_term1 = 0;
-                for l = 1:length(delay_loc)
-                    if delay_loc(l) == 0
+                for l = 1:length(abs_delay_loc)
+                    if abs_delay_loc(l) == 0
                         continue
                     end
-                    delay_term1 = delay_term1 + abs(delay_loc(l))/v_norm(l) * ( Kv_norm(l) + KKv_norm(l));
+                    delay_term1 = delay_term1 + abs_delay_loc(l)/v_norm(l) * ( Kv_norm(l) + KKv_norm(l));
                 end
                 delay_term1 = power_loc(1)/x_norm(1) *delay_term1;
             else
                 delay_term1 = 0;
             end
             delay_term2 = 0;
-            for l1 = 1:length(delay_loc)
-                if delay_loc(l1) == 0
+            for l1 = 1:length(abs_delay_loc)
+                if abs_delay_loc(l1) == 0
                     continue
                 end
-                for l2 = 1:length(delay_loc)
-                    if delay_loc(l2) == 0
+                for l2 = 1:length(abs_delay_loc)
+                    if abs_delay_loc(l2) == 0
                         continue
                     end
                     if l1 == l2
                         continue
                     end
-                    delay_term2 = delay_term2 + abs(delay_loc(l1))/v_norm(l1) *  Kv_norm(l1) * abs(delay_loc(l2))/v_norm(l2) *  Kv_norm(l2) ;
+                    delay_term2 = delay_term2 + abs_delay_loc(l1)/v_norm(l1) *  Kv_norm(l1) * abs_delay_loc(l2)/v_norm(l2) *  Kv_norm(l2) ;
                 end
             end
         end
@@ -125,26 +125,26 @@ for i=1:alpha.vector_field.n_equations % equation
         for k = 1:length(x_norm)
             k_is_1 = 1*(k==1);
             non_delay_term = non_delay_term + power_loc(k) /x_norm(k) *(power_loc(1) - k_is_1)/x_norm(1);
-            for l = 1:length(delay_loc)
-                if delay_loc(l) == 0
+            for l = 1:length(abs_delay_loc)
+                if abs_delay_loc(l) == 0
                     continue
                 end
-                delay_term3 = delay_term3 +  power_loc(k) /x_norm(k) * Kv_norm(l) * abs(delay_loc(l))/v_norm(l);
+                delay_term3 = delay_term3 +  power_loc(k) /x_norm(k) * Kv_norm(l) * abs(abs_delay_loc(l))/v_norm(l);
             end
         end
-        if all(delay_loc == 0)
+        if all(abs_delay_loc == 0)
             DpsiDF_ij = const * X * V_delay * non_delay_term;
             DpsiDF_i = DpsiDF_i + DpsiDF_ij;
             continue
         end
         delay_term4 = 0;
-        for k = 1:length(delay_loc)
-            if delay_loc(k) == 0
+        for k = 1:length(abs_delay_loc)
+            if abs_delay_loc(k) == 0
                 continue
             end
-            delay_term5 = sum(Kv_norm .* abs(delay_loc)./v_norm.');
+            delay_term5 = sum(Kv_norm .* abs(abs_delay_loc)./v_norm.');
             
-            delay_term4 = delay_term4 + 1/ v_norm(k) * (power_loc(1)/x_norm(1) + Lemma_bound * abs(delay_loc(k)) + delay_term5);
+            delay_term4 = delay_term4 + 1/ v_norm(k) * (power_loc(1)/x_norm(1) + Lemma_bound * abs(abs_delay_loc(k)) + delay_term5);
         end
         DpsiDF_ij = const * X * V_delay * ( delay_term1 + delay_term2 + delay_term3 + delay_term4 + non_delay_term);
         DpsiDF_i = DpsiDF_i + DpsiDF_ij;
@@ -211,7 +211,7 @@ for i=1:alpha.vector_field.n_equations % equation
         if any(alpha.vector_field.dot{i}{j})
             const = const * (modes+1); % instead of K, we directly multiply by (modes + 1)
         end
-        abs_delay_loc = abs(alpha.vector_field.delay{i}{j}).';
+        abs_delay_loc = sum(abs(alpha.vector_field.delay{i}{j}),2).';
         n_delays = length(find(abs_delay_loc));
         X = prod(x_norm.^power_loc);
         V_delay = prod(v_norm(find(abs_delay_loc)));
