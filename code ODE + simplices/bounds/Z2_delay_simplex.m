@@ -83,7 +83,7 @@ for i=1:alpha.vector_field.n_equations % equation
     DpsiDF_i = 0;
     for j=1:alpha.vector_field.n_terms(i) % element of the equation
         % add monomial per term and loop over it
-        power_loc=[alpha.vector_field.power_scalar{i}(:,j).', alpha.vector_field.power_vector{i}{j}.'];
+        power_loc=[alpha.vector_field.power_scalar{i}(:,j).', sum(alpha.vector_field.power_vector{i}{j},2).'];
         const=abs(alpha.vector_field.value{i}(j));
         abs_delay_loc = sum(abs(alpha.vector_field.delay{i}{j}),2);
         
@@ -206,7 +206,7 @@ for i=1:alpha.vector_field.n_equations % equation
         
         % add monomial per term and loop over it
         
-        power_loc=[alpha.vector_field.power_scalar{i}(:,j).', alpha.vector_field.power_vector{i}{j}.'];
+        power_loc=[alpha.vector_field.power_scalar{i}(:,j).', sum(alpha.vector_field.power_vector{i}{j},2).'];
         const=abs(alpha.vector_field.value{i}(j));
         if any(alpha.vector_field.dot{i}{j})
             const = const * (modes+1); % instead of K, we directly multiply by (modes + 1)

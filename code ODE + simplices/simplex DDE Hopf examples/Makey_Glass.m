@@ -137,6 +137,9 @@ simplices_set_up(first_node, zero_finding_problem, step_size);
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, 0, plotting_instructions);
 load(save_file)
+[list_of_simplices, index_non_validated, Interval, Z0_iter, ...
+Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
+list_of_nodes, 1, bool_Hopf,[],save_file);
 
 if bool_validated
     subsections = floor(n_iter/5);
@@ -180,7 +183,7 @@ z1 = sum_x(end);
 g = @(x,a,u) (1+(x+a*u)^4)*(1+x^4) ;
 dxg = @(x,a,u) 4*(x+a*u)^3*(1+x^4) + (1+(x+a*u)^4)*4*x^3;
 dag = @(x,a,u) 4*(x+a*u)^3*u*(1+x^4);
-dug = @(x,a,u) 4*(x+a*u)^3*a*(1+x^4);
+dz0g = @(x,a,u) 4*(x+a*u)^3*a*(1+x^4);
 
 F = g(x,a,z0)*z1 - 1;
 
@@ -189,7 +192,7 @@ if nargout == 1
 end
 DxF = dxg(x,a,z0)*z1;
 DaF = dag(x,a,z0)*z1;
-Dz0F = dug(x,a,z0)*z1;
+Dz0F = dz0g(x,a,z0)*z1;
 Dz1F = g(x,a,z0);
 
 dxF = [0, DxF, DaF, 0, 0, 0, Dz0F, Dz1F];
