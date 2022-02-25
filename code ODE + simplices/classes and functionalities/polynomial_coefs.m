@@ -1078,7 +1078,7 @@ end
 
 function s = best_double_print(x_double)
 if ~isintval(x_double) && mod(x_double,1)==0
-    s =  sprintf(' %d ', abs(x_double));
+    s =  sprintf(' %d ', x_double);
 else
     if isintval(x_double)
         x_double = mid(x_double);

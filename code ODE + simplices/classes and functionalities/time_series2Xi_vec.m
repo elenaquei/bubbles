@@ -32,7 +32,7 @@ for i=1:size_vec
     xBar{i+size_scalar}(m+1)=real(xBar{i+size_scalar}(m+1));
 end
 
-scal=[t(end)/(2*pi)];
+scal=t(end)/(2*pi);
 vec=[xBar{1+size_scalar}];
 for i=2:size_vec
     vec=[vec,xBar{i+size_scalar}];
