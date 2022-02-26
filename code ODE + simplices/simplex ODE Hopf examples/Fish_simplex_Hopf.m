@@ -26,19 +26,18 @@ if ~bool_validated
     n_iter = 500;
     % step size
     step_size = 10^-2; 
-    save_file = 'fish'; % where the solutions are stored
+    save_file = 'Fish/fish'; % where the solutions are stored
 else
     n_nodes = 9; 
     n_iter = 500;
     % step size
     step_size = 0.5*10^-2; 
-    save_file = 'fish_validated'; % where the solutions are stored
+    save_file = 'Fish/fish_validated'; % where the solutions are stored
 end
-save_file = 'fish';
+
 if ~exist('Fish', 'dir')
     mkdir('Fish')
 end
-cd('Fish')
 
 N = 3;
 DIM= N;

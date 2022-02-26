@@ -23,8 +23,8 @@ step_size = 0.02; % initial step size % 0.9*10^-2; for validation pruposes
 if ~exist('Lorenz', 'dir')
     mkdir('Lorenz')
 end
-cd('Lorenz')
-save_file = 'save_file_Lorenz'; % where the solutions are stored
+
+save_file = 'Lorenz/save_file_Lorenz'; % where the solutions are stored
 bool_validated = 0;
 
 f = @fn_Lorenz84; % We choose a map.

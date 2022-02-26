@@ -16,3 +16,6 @@ lorenz84_simplex_Hopf
 % the DDE example: SI model - takes from 3 to 10 days depending on
 % computer, very memory intensive
 SI_simplex_Hopf
+
+% Bautin bifurcation
+Bautin_simplex_Hopf
