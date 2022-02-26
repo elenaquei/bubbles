@@ -35,6 +35,7 @@ else
 end
 
 % add to path the interesting folders
+addpath(filepath)
 addpath(append(filepath, bar, 'bounds'))
 addpath(append(filepath, bar, 'classes and functionalities'))
 addpath(append(filepath, bar, 'continuation'))
