@@ -58,7 +58,7 @@ classdef simplex
         end
         
         
-        function plot_simplex(simplex, list_of_nodes, color)
+        function plot_simplex(simplex, list_of_nodes, color, variables, edge_alpha, plot_sums)
             % function plot_simplex(simplex, color)
             if nargin<3
                 if simplex.verified
@@ -69,21 +69,45 @@ classdef simplex
                     color = 'r';
                 end
             end
+            if nargin<4
+                variables = [2,3,4];
+            end
+            if nargin<5
+                edge_alpha = 1;
+            end
+            if nargin<6
+                plot_sums = [NaN;NaN;NaN];
+            end
             x_coord = zeros(1,3);
             y_coord = zeros(1,3);
             z_coord = zeros(1,3);
             label = cell(3,1);
             for i = 1:3
-                x_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(2);
-                y_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(3);
-                z_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(4);
+                if isnan(plot_sums(1))
+                    x_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(variables(1));
+                else
+                    x_coord(i) = real(sum(list_of_nodes{simplex.nodes_number(i)}.solution.vector(plot_sums(1),:)));
+                end
+                if isnan(plot_sums(2))
+                    y_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(variables(2));
+                else
+                    y_coord(i) = real(sum(list_of_nodes{simplex.nodes_number(i)}.solution.vector(plot_sums(2),:)));
+                end
+                if isnan(plot_sums(3))
+                    z_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(variables(3));
+                else
+                    z_coord(i) = real(sum(list_of_nodes{simplex.nodes_number(i)}.solution.vector(plot_sums(3),:)));
+                end
+                %x_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(6);
+                %y_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(5);
+                %z_coord(i) = list_of_nodes{simplex.nodes_number(i)}.solution.scalar(3);
                 label{i} = 'x'+string(simplex.nodes_number(i));
             end
             label_simplex = 'S' +string(simplex.number);
             center_x = mean(x_coord);
             center_y = mean(y_coord);
             center_z = mean(z_coord);
-            fill3(x_coord,y_coord,z_coord,color)
+            fill3(x_coord,y_coord,z_coord,color,'EdgeAlpha',edge_alpha)
             
             %text(x_coord,y_coord,z_coord,label,'VerticalAlignment','bottom','HorizontalAlignment','right')
             %text(center_x,center_y,center_z,label_simplex,'VerticalAlignment','bottom','HorizontalAlignment','right')

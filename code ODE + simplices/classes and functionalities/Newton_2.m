@@ -48,8 +48,8 @@ for iter=1:maxiter
     if talkative>3
         fprintf('Iteration %d, time %s\n',iter,datestr(now,13));
     end
-    yBar=apply(alpha,xBar,0); % OK
-    y=Xi_vec2vec(yBar); % working
+    yBar=apply(alpha,xBar,0); 
+    y=Xi_vec2vec(yBar); 
     x=Xi_vec2vec(xBar);
     res=(norm(yBar));
     RES(iter,1:length(res))=res;

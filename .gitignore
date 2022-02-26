@@ -16,3 +16,5 @@ writing/dynamics_main.out
 *.mp4
 
 .idea/
+
+code ODE \+ simplices/data for plotting/
