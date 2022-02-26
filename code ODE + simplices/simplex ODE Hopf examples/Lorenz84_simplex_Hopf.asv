@@ -110,7 +110,8 @@ numerical_Hopfs{1}.par_beta = beta;
 numerical_Hopfs{1}.eigenvec = eigenvec;
 numerical_Hopfs{1}.eigenval = eigenval;
 
-% numerically find the other Hopf solution! 
+% numerically find the other Hopf solution! - I'm so glad I had the data!
+% so so glad
 [x1,lambda1,eigenvec1,eigenval1] = ...
     algebraic_hopf(f,df,ddf,dddf,N,X2,phi);
 numerical_Hopfs{2}.x = x1;
@@ -122,15 +123,25 @@ numerical_Hopfs{2}.eigenval = eigenval1;
 use_intlab = 0;
 sol_Xi = Hopf_system_setup(lambda0, x0, f_lor, n_nodes,...
     eigenvec, eigenval, stability, step_size);
+% this gives us the wrong shape of things
 sol = Xi_vector([sol_Xi.scalar(1),lambda0, beta, sol_Xi.scalar(3:end)], sol_Xi.vector);
 
 polynomial = from_string_to_polynomial_coef(vectorfield2);
 big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 
+% big_Hopf.scalar_equations = big_Hopf_scalar_eqs(sol, numerical_Hopfs);
 load('stored_lorenz84.mat')
 sol_N = xi;%list_of_nodes{5}.solution;
 big_Hopf = problem_xi;%list_of_nodes{5}.problem;
+% big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,6);
+% big_Hopf.scalar_equations = remove_lin_coef(big_Hopf.scalar_equations,5);
 
+
+% test_Hopf = big_Hopf;
+% test_Hopf = F_update_Hopf(test_Hopf,sol);
+% test_Hopf = continuation_equation_simplex(test_Hopf,sol);
+% sol_N = Newton_2(sol,test_Hopf,30,10^-9);
+%
 big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 
 bool_Hopf = 1;

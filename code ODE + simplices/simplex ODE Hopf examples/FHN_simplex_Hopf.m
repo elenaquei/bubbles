@@ -6,10 +6,9 @@ global Display
 global norm_weight
 norm_weight = [];
 Display = 0;
-talkative = 1;
+talkative = 2;
 use_intlab = 0;
 RAD_MAX = 10^-2;
-
 
 try
     intval(1);
@@ -21,7 +20,11 @@ end
 nu = 1.05;
 n_nodes = 7;
 n_iter = 9000;
-save_file = 'FHN/FHN_9K_29Jan'; % path where the validation will be saved
+if ~exist('FHN', 'dir')
+    mkdir('FHN')
+end
+cd('FHN')
+save_file = 'FHN_simplices'; % path where the validation will be saved
 
 step_size = 0.01; % 0.7*10^-2
 bool_Hopf = 1;
@@ -98,7 +101,7 @@ use_intlab = 0;
 %   n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 
 subsections = 200;
-save_file_iter = 'FHN/partial_FHN_simplex_validation';
+save_file_iter = 'partial_FHN_simplex_validation';
 validation_with_subpatches(save_file, save_file_iter, subsections)
 
 for i = 1:subsections

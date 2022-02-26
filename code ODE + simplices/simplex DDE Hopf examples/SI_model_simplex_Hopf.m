@@ -5,11 +5,11 @@ global nu
 global talkative
 global norm_weight
 norm_weight = [1,1,1,1,1,1,1,1,1,1,1].';
-talkative = 0;
+talkative = 2;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
-n_modes = 17; % too big it would be a problem for Y
+n_modes = 17; 
 step_size = 5*10^-6;
 plotting_instructions = 50;
 bool_Hopf = 1; % the Hopf blow up is already taken into account
@@ -17,26 +17,16 @@ bool_Hopf = 1; % the Hopf blow up is already taken into account
 save_file = 'SI_model_data';
 
 load('SI_start_at_Hopf.mat')
+tau = 10;   % The delay must be declared.
 xi = reshape(xi, n_modes);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;
 n_nodes = xi.nodes;
 xi = symmetrise(xi);
-tau = 10;
 
 % create non-computable equations
 n_non_comp_eqs = 3;
 f_non_comp = @(x) noncomputable_eqs_for_DDE(x);
-
-% not blowed up: \dot y + y - R0 h(Delay(y, tau)) * y * (1 - y)
-
-% with polynomial embedding and blow up, with y = x + az
-% F1 = - z0 + mu * x *( 1-x) * Delay( z1, tau) + mu * Delay(z2, tau) * ( -a * z0^2 + (1-2x)*z0)
-% \dot z0 = F1
-% \dot z1 = - p * z2 * F1 + eta1
-% \dot z2 = - a p z2 * F1 + eta2
-% scalar unknowns: psi, x, a, mu, p, eta1, eta2
-% we know mu = R0 * exp(-p x)
 
 minus_F1 = '+ z0 - mu x Delay(z1,tau) + mu x^2 Delay(z1,tau) + a mu Delay(z2,tau) z0^2 - mu Delay(z2,tau) z0  + 2 x mu Delay(z2,tau) z0';
 minus_F2 = '- p   z2 z0 + p   mu x Delay(z1,tau) z2 - p   mu x^2 Delay(z1,tau) z2 - p   a mu Delay(z2,tau) z0^2 z2 + p   z2 mu Delay(z2,tau) z0  - 2 p   x mu Delay(z2,tau) z0 z2 + eta1';
@@ -93,21 +83,9 @@ save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, 0, plotting_instructions);
 load(save_file)
 
-% plot_SI(list_of_simplices, list_of_nodes)
-% n_simplices = length(list_of_simplices);
-% for i = 1:n_simplices
-%     [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-%         Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-%         list_of_nodes, i, bool_Hopf,save_file);
-%     % [list_of_simplices, index_non_validated, Interval, Z0_iter, ...
-%     %    Z1_iter, Z2_iter, Y_iter] = a_posteriori_validations(list_of_simplices,...
-%     %    list_of_nodes, [], bool_Hopf,save_file);
-%     
-%     save(save_file,'list_of_simplices','list_of_nodes','Interval','Z0_iter',...
-%         'Z1_iter','Z2_iter','Y_iter','step_size','bool_Hopf', 'bool_validated',...
-%         'list_of_frontal_nodes');
-%     % guarantees you can stop the computations pretty much any time!
-% end
+save_file_iter = "SI_model_iteration";
+secsections = 10;
+validation_with_subpatches(save_file,save_file_iter,subsections)
 
 
 function [F, dxF, dxF_mat, dxxF_norm] = noncomputable_eqs_for_DDE(xi)
@@ -150,9 +128,6 @@ z2 = sum_x(end);
 g = @(u,epsilon) fun_g(u,epsilon) ;
 d1g = @(u,epsilon) -exp(-epsilon*u);
 d2g = @(u,epsilon) fun_d2g(u,epsilon);
-%d1d1g = @(u, epsilon) epsilon * exp(-epsilon*u);
-%d1d2g = @(u, epsilon) u * exp(-epsilon*u);
-%d2d2g = @(u, epsilon) fun_d2d2g;
 
 abs_d1d2g = @(u, epsilon) abs(u) * exp(epsilon*u);
 

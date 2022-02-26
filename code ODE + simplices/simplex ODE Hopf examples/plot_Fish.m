@@ -1,4 +1,4 @@
-function plot_Church(list_simplex, list_of_nodes, index_simplices, varargin)
+function plot_Fish(list_simplex, list_of_nodes, index_simplices, varargin)
 if nargin <3 || isempty(index_simplices)
     index_simplices = 1:length(list_simplex);
 end
