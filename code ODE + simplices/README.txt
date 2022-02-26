@@ -26,10 +26,10 @@ Initialise the library by running
     start_BiValVe
 Include all examples by running
     load_examples
-Do not move the working directory to any fodler.
+Do not move the working directory to any folder.
 
 For an introduction to the library, the folder "branch ODE templates" present some easy examples.
-More examples are presented in "branch Hopf example".
+More examples are presented in "branch Hopf examples".
 All examples for 
         Church KM, Queirolo E. Computer-assisted proofs of Hopf bubbles and degenerate Hopf bifurcations, Submitted Feb 2022
 can be found in the folders "simplex ODE Hopf examples" and "simplex DDE Hopf examples", or can be run with "figure_generation".
