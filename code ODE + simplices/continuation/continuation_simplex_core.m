@@ -44,6 +44,9 @@ while i < n_iter
     % select node to grow
     node_number = select_growing_node(list_of_simplices,list_of_nodes,...
         list_of_frontal_nodes, F);
+    if isempty(node_number)
+        break
+    end
     fprintf('We grow from node %i\n',node_number)
     % grow the node
     node_i = list_of_nodes{node_number};
@@ -171,21 +174,23 @@ end
 function priority_node = select_growing_node(list_of_simplices, list_of_nodes, list_of_frontal_nodes, F)
 gap_angle_vec = 0 * list_of_frontal_nodes;
 epsilon_vec = 0 * list_of_frontal_nodes;
-a_vec = 0 * list_of_frontal_nodes;
 for i=1:length(list_of_frontal_nodes)
     node_index = list_of_frontal_nodes(i);
     node = list_of_nodes{node_index};
     DF_x = derivative_to_matrix(derivative(F, node.solution,0));
-    gap_angle_vec(i) = gap_angle(node, DF_x, list_of_simplices, list_of_nodes);
+    if manifold_cutoff(node)
+        gap_angle_vec(i) = gap_angle(node, DF_x, list_of_simplices, list_of_nodes);
+    else
+        gap_angle_vec(i) = Inf;
+    end
     epsilon_vec(i) = node.solution.scalar(3);
-    a_vec(i) = node.solution.scalar(4);
-end
-if any(a_vec>=-2E-2)
-    gap_angle_vec = gap_angle_vec(a_vec>=-2E-2);
-    epsilon_vec = epsilon_vec(a_vec>=-2E-2);
-    list_of_frontal_nodes = list_of_frontal_nodes(a_vec>=-2E-2);
 end
 
+if all(gap_angle_vec) == Inf
+    fprintf('Impossible to continue growth, since all border nodes reached the cutoff')
+    priority_node = [];
+    return
+end
 
 [~, priority_node_index] = min(abs(gap_angle_vec));
 min_gap = gap_angle_vec(priority_node_index);

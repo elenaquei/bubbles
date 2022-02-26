@@ -88,8 +88,6 @@ string_lorenz84_cont2 = strrep(string_lorenz84_cont1, 'beta' , 'l3');
 
 lor_rhs = @(x,T,beta)[(-x(2)^2-x(3)^2-alpha*x(1) + alpha*F- gamma *x(4)^2) ; (+ x(1) *x(2) - beta *x(1)* x(3) - x(2) + G);(+ beta *x(1) *x(2) + x(1)* x(3) - x(3)) ;(- delta *x(4) + gamma *x(1) *x(4) + T)];
 
-
-
 vectorfield = strrep(string_lorenz84_cont1, 'l1' , '');%'-dot x1 - x2 + l1 x1 - x1 ^ 3 - x1  x2 ^ 2\n- dot x2 + x1 + l1 x2 - x1 ^ 2 x2 - x2 ^ 3';
 vectorfield = strrep(vectorfield, 'l2' , 'l1');
 vectorfield = strrep(vectorfield, 'beta' , num2str(beta));
@@ -101,6 +99,8 @@ vectorfield2 = strrep(vectorfield2, 'l3' , 'l2');
 f_lor = from_string_to_polynomial_coef(vectorfield);
 % transformation into a vectorfield that can be used
 
+%% find two Hopf 
+
 [x0,lambda0,eigenvec,eigenval, stability] = ...
     algebraic_hopf(f,df,ddf,dddf,N,X1,phi);
 numerical_Hopfs = cell(2,1);
@@ -110,7 +110,7 @@ numerical_Hopfs{1}.par_beta = beta;
 numerical_Hopfs{1}.eigenvec = eigenvec;
 numerical_Hopfs{1}.eigenval = eigenval;
 
-% numerically find the other Hopf solution! 
+% numerically find the other Hopf solution
 [x1,lambda1,eigenvec1,eigenval1] = ...
     algebraic_hopf(f,df,ddf,dddf,N,X2,phi);
 numerical_Hopfs{2}.x = x1;
@@ -125,11 +125,11 @@ sol_Xi = Hopf_system_setup(lambda0, x0, f_lor, n_nodes,...
 sol = Xi_vector([sol_Xi.scalar(1),lambda0, beta, sol_Xi.scalar(3:end)], sol_Xi.vector);
 
 polynomial = from_string_to_polynomial_coef(vectorfield2);
-big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
+%big_Hopf = Taylor_series_Hopf(polynomial,n_nodes);
 
 load('stored_lorenz84.mat')
 sol_N = xi;%list_of_nodes{5}.solution;
-big_Hopf = problem_xi;%list_of_nodes{5}.problem;
+big_Hopf = problem_xi;
 
 big_Hopf = F_update_Hopf(big_Hopf,sol_N);
 

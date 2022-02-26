@@ -1,5 +1,5 @@
 % delay SI model 
-
+%% global and importan variables 
 global use_intlab
 global nu
 global talkative
@@ -13,6 +13,8 @@ n_modes = 17;
 step_size = 5*10^-6;
 plotting_instructions = 50;
 bool_Hopf = 1; % the Hopf blow up is already taken into account
+bool_validated = 0;
+n_iter = 400;
 
 save_file = 'SI_model_data';
 
@@ -24,9 +26,7 @@ n_vec = xi.size_vector;
 n_nodes = xi.nodes;
 xi = symmetrise(xi);
 
-% create non-computable equations
-n_non_comp_eqs = 3;
-f_non_comp = @(x) noncomputable_eqs_for_DDE(x);
+%% building the vector field and the scalar equations
 
 minus_F1 = '+ z0 - mu x Delay(z1,tau) + mu x^2 Delay(z1,tau) + a mu Delay(z2,tau) z0^2 - mu Delay(z2,tau) z0  + 2 x mu Delay(z2,tau) z0';
 minus_F2 = '- p   z2 z0 + p   mu x Delay(z1,tau) z2 - p   mu x^2 Delay(z1,tau) z2 - p   a mu Delay(z2,tau) z0^2 z2 + p   z2 mu Delay(z2,tau) z0  - 2 p   x mu Delay(z2,tau) z0 z2 + eta1';
@@ -50,14 +50,20 @@ string_vector_field = strrep(string_vector_field, 'tau' , num2str(-tau));
 
 vector_field = from_string_to_polynomial_coef(string_vector_field,n_scal,n_vec);
 
+%% define the scalar equations (including the non-polynomial ones)
+% create non-computable equations
+n_non_comp_eqs = 3;
+f_non_comp = @(x) noncomputable_eqs_for_DDE(x);
+% polynomial equation
 scalar_eq_pol = '-x + mu * x - mu x^2';
 scalar_eq_pol = strrep(scalar_eq_pol, 'x' , 'l2');
 scalar_eq_pol = strrep(scalar_eq_pol, 'mu' , 'l4');
 polynomial = from_string_to_polynomial_coef(scalar_eq_pol,n_scal,n_vec);
+% setting up scalar equations
 lin_coefficients = cell(3,1);
 lin_coefficients{2} = zeros(0,n_vec, 2*n_nodes+1);
 scalar_equation = scalar_eq(0,1,n_scal, n_vec, lin_coefficients, polynomial, n_non_comp_eqs, f_non_comp);
-
+% scalar equations for Hopf problems (include rescaling)
 scalar_equation = F_update_Hopf(scalar_equation,xi);
 
 zero_finding_problem = full_problem(scalar_equation,vector_field);
@@ -66,19 +72,13 @@ y = apply(full_zero_finding_problem, xi);
 if norm(norm(y)) > 10^-4
     error('Initial approx too bad')
 end
-
-DF_old = derivative_to_matrix(derivative(full_zero_finding_problem, xi,0));
-f = @(x)Xi_vec2vec(apply(full_zero_finding_problem,vec2Xi_vec(x,xi)));
-
+%% starting the numerical search
 xi = Newton_2(xi,full_zero_finding_problem);
 
 first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
 
-bool_validated = 0;
 
-step_size = 5*10^-6;
-n_iter = 400;
 save_file = continuation_simplex(xi, zero_finding_problem,...
     n_iter, step_size, save_file, bool_Hopf, 0, plotting_instructions);
 load(save_file)
