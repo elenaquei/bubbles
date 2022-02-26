@@ -41,7 +41,10 @@ addpath(append(filepath, bar, 'classes and functionalities'))
 addpath(append(filepath, bar, 'continuation'))
 addpath(append(filepath, bar, 'Hopf_and_saddle'))
 addpath(append(filepath, bar, 'simplices'))
-addpath(append(filepath, bar, 'tests debugs'))
+% addpath(append(filepath, bar, 'tests debugs'))
+
+fprintf('Library BiValVe started\n')
+fprintf('\n When using this library, please credit \n"Church KM, Queirolo E. Computer-assisted proofs of Hopf bubbles and degenerate Hopf bifurcations, Submitted Feb 2022"\n')
 
 f = figure;
 imshow('BiValVe.png')
