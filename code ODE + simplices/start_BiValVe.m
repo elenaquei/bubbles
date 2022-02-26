@@ -41,3 +41,8 @@ addpath(append(filepath, bar, 'continuation'))
 addpath(append(filepath, bar, 'Hopf_and_saddle'))
 addpath(append(filepath, bar, 'simplices'))
 addpath(append(filepath, bar, 'tests debugs'))
+
+f = figure;
+imshow('BiValVe.png')
+pause(0.5)
+close(f.Number)
