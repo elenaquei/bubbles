@@ -14,11 +14,8 @@ nu = 1.05;
 
 n_nodes = 7;
 n_iter = 9000;
-if ~exist('FHN', 'dir')
-    mkdir('FHN')
-end
-cd('FHN')
-save_file = 'FHN_simplices'; % path where the validation will be saved
+mkdir FHN
+save_file = 'FHN/FHN_simplices'; % path where the validation will be saved
 
 step_size = 0.01; % 0.7*10^-2
 bool_Hopf = 1;
@@ -82,7 +79,7 @@ save_file = continuation_simplex(sol_N, big_Hopf,...
    n_iter, step_size, save_file, bool_Hopf, bool_validated, plotting_instructions);
 
 subsections = 200;
-save_file_iter = 'partial_FHN_simplex_validation';
+save_file_iter = 'FHN/partial_FHN_simplex_validation';
 validation_with_subpatches(save_file, save_file_iter, subsections)
 
 for i = 1:subsections
