@@ -1,0 +1,124 @@
+\documentclass[10pt]{article}
+
+\usepackage{mystyle}
+
+%\usepackage{lineno}
+%\linenumbers
+\newcommand{\imag}{\textbf{i}}
+
+\title{Ideas on formalism}
+\author{Kevin Church\thanks{ kevin.church@mcgill.ca}  ~and Elena Queirolo\thanks{eq45@math.rutgers.edu}}
+\date{\today}
+
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Scope of this pdf: give a formalization of the problem of validating an endemic bubble.
+\end{abstract}
+
+\section{Set up}
+$$
+\dot y = f(\alpha, \beta, y)\quad y:\mathbb{R}\times X_1 \rightarrow  X_2
+$$
+where $X_1$ can be empty and $X_2$ can be $\mathbb{R}^n$ (the simplest case is just an ODE). 
+
+We expect $y$ to be periodic in time, so we can rewrite the problem as
+$$
+\dot{\tilde y }= \omega f(\alpha, \beta,\tilde y)
+$$
+where $\omega$ is the period of $y$ and $\tilde y $ is $2\pi$-periodic.
+
+We also want to introduce, for each $\beta$ that is appropriate, the values $x^*_1, x^*_2$. These are the locations of the two Hopf bifurcations that the system is undergoing, this means that $x^*_i$ satisfies:
+$$
+\begin{cases}
+f(\alpha^*_i, \beta, x^*_i) = 0 , \quad &\text{ they are equilibria}\\
+Df(\alpha^*_i, \beta, x^*_i) \xi_i = \imag \gamma \xi_i, \quad \gamma \in \mathbb{R} &\text{ they have imaginary eigevalues}
+\end{cases}
+$$
+We also want to impose an ordering on the solutions, so we should set
+$$
+\alpha_1^*<\alpha_2^*.
+$$
+
+We will - I expect - never need these values validated, but in the ODE case this is an algebraic problem, and validating the full curve of Hopf bifurcations would not be hard. We are not interested in imposing non-degeneracy, because : 
+\begin{enumerate}
+\item
+there will be one point in this curve in which it fails anyway, 
+\item we prove the existence of the periodic orbit coming out of these, what more do you want?
+\end{enumerate}
+
+Then, for any $\beta, \alpha$, we set the problem
+\begin{equation}\label{e:zero_finding}
+\begin{cases}
+\dot z = \frac{\omega}{a} f(\alpha, \beta, x + az),\quad &\text{ rescale and shift the ordit}\\
+\| z\| = 1, \quad&\text{ fixing the amplitude of the rescaled periodic orbit}\\
+& \text{ often this can be rewritten as } z\cdot \hat z = 1,\\
+\phi(z, \hat z) = 0 &\text{ some type of phase conditions based on a numerical solution}\\
+x = \mathcal{P}(\alpha,\beta), \quad &\text{ fixing an interpolation of the ``center'' depending on the parameters}
+\end{cases}
+\end{equation}
+where
+$$
+\mathcal{P}(\alpha,\beta) = \frac{\alpha - \alpha_1^*}{\alpha^*_2} (x_2^*-x_1^*) + \frac{\alpha}{\alpha_2^*} x_1^*
+$$
+
+
+
+\subsection{ODE case}
+Let us apply \eqref{e:zero_finding} to an ODE situation. Then, we can write the Taylor series of $f$ as
+$$
+f(\alpha, \beta, x+az) = f(\alpha, \beta, x) + \sum_{n=1}^K \frac{1}{n!} d^n_xf(\alpha, \beta, x) a^n z^n,
+$$
+where $K$ is the highest term of the Taylor series (we expect a finite Taylor series), then \eqref{e:zero_finding} becomes
+\begin{equation}\label{e:better_zero_finding}
+\begin{cases}
+\dot z = \omega\sum_{n=1}^K\frac{1}{n!} d^n_xf(\alpha, \beta, x) a^{n-1} z^n,\\
+\| z\| = 1, \\
+\phi(z, \hat z) = 0\\
+x = \mathcal{P}(\alpha,\beta).
+\end{cases}
+\end{equation}
+and our solution space is $y(\alpha, \beta) = ( \omega, a, x, z) \in \mathbb{R}^2 \times \mathbb{R}^n \times C_{2\pi}(\mathbb{R},\mathbb{R}^n)$.
+
+We are likely interested in representing  $z\in C_{2\pi}(\mathbb{R},\mathbb{R}^n)$ as a series, such as a Fourier series.
+The structure in that case is well-known: replace all products by convolutions and see you later.
+
+\section{Continuation}
+Assumed: let $y_i=y_i(\alpha_i, \beta_i)$ for $i=1, 2, 3$, where we assume the parameter pairs are different but not far (whatever far means). Then, we introduce the triangular simplex
+$$
+\Delta := \{ s= (s_1, s_2) \in \mathbb{R}^2_+: 0\leq s_1\leq 1, 0\leq s_2 \leq 1-s_1\}
+$$
+then, for each  $s\in\Delta$, we can interpolate an approximate solution $y_s$ as a linear interpolation, such as
+$$
+y_s =  y_1 + s_1(y_2-y_1) + s_2(y_3-y_1).
+$$
+
+\subsection{Continuation across boundary of simplex}
+
+How do we guarantee that we are validating the same thing on the two sides of a simplex? By construction: indeed, if the boundary of the two simplices in question are the same, smoothness of the problem and of the solution is given. On top of that, $C^\infty$ smootheness follows from Breden's smoothness in 1D continuation - there is no work to do in here.
+
+\subsection{Overview}
+Steps:
+\begin{enumerate}
+\item fix the parameters $\alpha, \beta$
+\item compute a numerical approximation $y$
+\item repeat steps 1 and 2 three times
+\item consider the simplex defined in the Continuation Section
+\item validate the simplex - continuity for granted
+\end{enumerate}
+
+\section{Symmetries}
+
+There is a symmetry between $(a,z(t))$ and $(-a, z(-t))$, so we can restrict our validation to $\alpha > -\epsilon$, for $\epsilon$ sufficiently large to guarantee we are indeed getting over the Hopf bifurcation.
+
+\section{Non-degeneracy conditions}
+
+This is a tough one: if we want to validate that the Hopf bifurcations on each side of the bubble, then?? 
+In the general case, ref \href{https://epubs.siam.org/doi/pdf/10.1137/20M1343464?casa_token=pO4509x3vWEAAAAA:1CsI4Dv_VDrGRcJRzTN_VfHL3K2n7GbjUf3Qj8i2yiqs1rBzky5ugliIthu_hvpiJ8a2nSwp6Q}{the article on Hopf in ODEs}, we transformed the problem into a saddle node validation problem to guarantee that $\alpha$ was undergoing a unique saddle, then you can prove that it must happen at $a=0$ due to some symmetry conditions and you are good. Otherwise, you might want to prove that $a$ is passing the zeo axes with non-zero velocity, thus adding a new unknown to our solution space $d_s a$ and check that $d_s a\neq 0$.
+
+\end{document}
+
+
+

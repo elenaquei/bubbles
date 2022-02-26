@@ -1,0 +1,159 @@
+
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm,nicefrac}
+\usepackage{mathtools}
+\usepackage{algorithm, algpseudocode}
+\usepackage{verbatim}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage[usenames]{color}
+\usepackage{catchfilebetweentags}
+\usepackage[notref,notcite,draft]{showkeys} % change to [final] to delete the labels
+% change to [draft] to put the labels
+% notcite and notref cancel the info about which label you are using for referencing
+\usepackage{todonotes}
+\usepackage{hyperref}
+
+% to add paragraph in ExecuteMetaData
+\makeatletter
+\def\CatchFBT@sanitize{%
+   \@sanitize
+   \@makeother\{%
+   \@makeother\}%
+%   \endlinechar=`\^^J% <--- This line modified
+}% \CatchFBT@sanitize
+\makeatother
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\textwidth}{5.625in}
+\setlength{\textheight}{8.25in}
+\setlength{\topmargin}{-0.4cm}
+\setlength{\evensidemargin}{1.6cm}
+\setlength{\oddsidemargin}{1.6cm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcounter{listacnt}\renewcommand{\thelistacnt}{\alph{listacnt}}
+\newenvironment{theoremlist}{\begin{list}{\textnormal{(\thelistacnt)}}%
+{\settowidth{\labelwidth}{(b)}%
+\setlength{\topsep}{1.5pt plus 0.5pt minus 0.5pt}%
+\setlength{\itemsep}{1pt plus 0.2pt minus 0.2pt}%
+\setlength{\parsep}{0.1pt plus 0.1pt minus 0.1pt}%
+\usecounter{listacnt}}}{\end{list}}
+
+
+% ==================  SHANE MATH DEFINITIONS  ==================
+% ==================  FONTS AND VARIABLE NAMES  ==================
+% ---------------------- bb fonts ---------------------- 
+\newcommand{\bb}{\mathbb{B}}
+\newcommand{\cc}{\mathbb{C}}
+\newcommand{\dd}{\mathbb{D}}
+\newcommand{\ee}{\mathbb{E}}
+\newcommand{\ff}{\mathbb{F}}
+\newcommand{\hh}{\mathbb{H}}
+\newcommand{\ii}{\mathbb{I}}
+\newcommand{\jj}{\mathbb{J}}
+\newcommand{\kk}{\mathbb{K}}
+\newcommand{\mm}{\mathbb{M}}
+\newcommand{\nn}{\mathbb{N}}
+\newcommand{\oo}{\mathbb{O}}
+\newcommand{\pp}{\mathbb{P}}
+\newcommand{\qq}{\mathbb{Q}}
+\newcommand{\rr}{\mathbb{R}}
+\newcommand{\uu}{\mathbb{U}}
+\newcommand{\vv}{\mathbb{V}}
+\newcommand{\ww}{\mathbb{W}}
+\newcommand{\xx}{\mathbb{X}}
+\newcommand{\yy}{\mathbb{Y}}
+\newcommand{\zz}{\mathbb{Z}}
+
+% ----------------------- cal fonts ----------------------
+\newcommand{\cA}{{\mathcal A}}
+\newcommand{\cB}{{\mathcal B}}
+\newcommand{\cC}{{\mathcal C}}
+\newcommand{\cD}{\mathcal{D}}
+\newcommand{\cE}{{\mathcal E}}
+\newcommand{\cF}{{\mathcal F}}
+\newcommand{\cG}{{\mathcal G}}
+\newcommand{\cH}{{\mathcal H}}
+\newcommand{\cI}{{\mathcal I}}
+\newcommand{\cJ}{{\mathcal J}}
+\newcommand{\cK}{{\mathcal K}}
+\newcommand{\cL}{{\mathcal L}}
+\newcommand{\cM}{{\mathcal M}}
+\newcommand{\cN}{{\mathcal N}}
+\newcommand{\cO}{{\mathcal O}}
+\newcommand{\cP}{{\mathcal P}}
+\newcommand{\cQ}{{\mathcal Q}}
+\newcommand{\cR}{{\mathcal R}}
+\newcommand{\cS}{{\mathcal S}}
+\newcommand{\cT}{{\mathcal T}}
+\newcommand{\cU}{{\mathcal U}}
+\newcommand{\cV}{{\mathcal V}}
+\newcommand{\cW}{{\mathcal W}}
+\newcommand{\cX}{{\mathcal X}}
+\newcommand{\cY}{{\mathcal Y}}
+\newcommand{\cZ}{{\mathcal Z}}
+
+% ADDITION
+% -------- colors
+\newcommand{\blue}[1]{{\color{blue} \textbf{#1}}}
+\newcommand{\red}[1]{{\color{red} \textbf{#1}}}
+\newcommand{\green}[1]{{\color{green} \textbf{#1}}}
+
+
+% ---------------------- interval arithmetic ---------------------- 
+\newcommand{\intrr}{\mathbb{IR}}
+\newcommand{\intcc}{\mathbb{IC}}
+\newcommand{\intval}[1]{\tilde{#1}}
+\DeclareMathOperator{\rad}{rad}
+% ---------------------- variable flair ---------------------- 
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+
+% ---------------------- operator names ---------------------- 
+\DeclareMathOperator{\coker}{coker}
+\DeclareMathOperator{\trace}{trace}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator{\image}{image}
+\DeclareMathOperator{\sign}{sign}
+\DeclareMathOperator{\inspan}{span}
+\newcommand{\pardiff}[2]{\frac{\partial #1}{\partial #2}}
+\newcommand{\ddx}[2]{\frac{d #1}{d #2}}
+
+% ---------------------- delimeters ---------------------- 
+% use \command* for automatically resized versions
+\DeclarePairedDelimiter{\setof}{\{}{\}}  
+\DeclarePairedDelimiter{\abs}{\lvert}{\rvert}  
+\DeclarePairedDelimiter{\norm}{\lVert}{\rVert}
+\DeclarePairedDelimiter{\dotp}{\langle}{\rangle}
+\DeclarePairedDelimiter{\paren}{(}{)}
+
+
+% ---------------------- misc ---------------------- 
+\renewcommand{\Re}{\text{Re}}
+\renewcommand{\Im}{\text{Im}}
+\renewcommand{\emptyset}{\O}
+\renewcommand{\forall}{\text{ for all }}
+\renewcommand{\exists}{\text{ there exists }}
+\newcommand{\ptlt}{\hskip 5pt < \hskip-7pt \cdot} % pointwise less than
+\newcommand{\ptgt}{\hskip 5pt \cdot \hskip-7pt >} % pointwise greater than
+\newcommand{\bydef}{\,\stackrel{\mbox{\tiny\textnormal{\raisebox{0ex}[0ex][0ex]{def}}}}{=}\,}
+\newcommand{\hill}{d}
+% ---------------------- theorem environments ---------------------- 
+%\numberwithin{equation}{section} UNCOMMENT TO CHANGE EQUATION NUMBERING 
+
+% amsmath theorem style (italics)
+\newtheorem{theorem}{Theorem}%[section]
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{proposition}[theorem]{Proposition}
+
+% amsmath  definition style (no italics)
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\newtheorem{example}{Example}
+
+% amsmath  remark style (no italics, no space)
+\theoremstyle{remark}
+\newtheorem{remark}{Remark}

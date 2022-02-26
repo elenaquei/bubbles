@@ -1,0 +1,395 @@
+\documentclass[10pt]{article}
+\usepackage{setspace}
+\usepackage{graphicx}
+\usepackage{amssymb}
+\usepackage{amsmath}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage{arydshln}
+\usepackage{dsfont}
+\usepackage{xcolor}
+\usepackage{enumitem}
+\usepackage{url}
+\usepackage{float}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\setlength{\textwidth}{6.325in}
+\setlength{\textheight}{8.25in}
+\setlength{\topmargin}{-0.4cm}
+\setlength{\evensidemargin}{0.6cm}
+\setlength{\oddsidemargin}{0.6cm}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+\newcounter{listacnt}\renewcommand{\thelistacnt}{\alph{listacnt}}
+\newenvironment{theoremlist}{\begin{list}{\textnormal{(\thelistacnt)}}%
+{\settowidth{\labelwidth}{(b)}%
+\setlength{\topsep}{1.5pt plus 0.5pt minus 0.5pt}%
+\setlength{\itemsep}{1pt plus 0.2pt minus 0.2pt}%
+\setlength{\parsep}{0.1pt plus 0.1pt minus 0.1pt}%
+\usecounter{listacnt}}}{\end{list}}
+\newcommand{\rr}{\mathbb{R}}
+\newcommand{\BA}{\mathcal{X}}
+\newcommand{\intrr}{\mathbb{IR}}
+\newcommand{\qq}{\mathbb{Q}}
+\newcommand{\cc}{\mathbb{C}}
+\newcommand{\zz}{\mathbb{Z}}
+\newcommand{\intcc}{\mathbb{IC}}
+\newcommand{\nn}{\mathbb{N}}
+\newcommand{\dd}{\mathbb{D}}
+\renewcommand{\Re}{\text{Re}}
+\renewcommand{\Im}{\text{Im}}
+\newcommand{\gvn}{\hspace{1mm}|\hspace{1mm}}
+\newcommand{\overbar}[1]{\mkern 1.5mu\overline{\mkern-1.5mu#1\mkern-1.5mu}\mkern 1.5mu}
+\newcommand{\intval}[1]{\tilde{#1}}
+\newcommand{\rad}{\operatorname{rad}}
+\newcommand{\norm}[1]{\left|\left| #1 \right|\right|}
+\newcommand{\abs}[1]{\left| #1 \right|}
+\newcommand{\pardiff}[2]{\frac{\partial #1}{\partial #2}}
+\DeclareMathOperator{\sgn}{sgn}
+\newcommand{\m}[1]{\mathbf{#1}}
+
+% %%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
+
+\newcommand{\bydef}{\,\stackrel{\mbox{\tiny\textnormal{\raisebox{0ex}[0ex][0ex]{def}}}}{=}\,}
+\newcommand{\ba}{\overline{a}}
+\newcommand{\bx}{\overline{x}}
+\newcommand{\setof}[1]{\left\{#1\right\}}
+\newcommand{\R}{\mathbb{R}}
+\newcommand{\Z}{\mathbb{Z}}
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\C}{\mathbb{C}}
+
+\newtheorem{thm}{Theorem}%[section]
+\newtheorem{defn}{Definition}
+\newtheorem{cor}[thm]{Corollary}
+\newtheorem{lem}[thm]{Lemma}
+\newtheorem{prop}[thm]{Proposition}
+\newtheorem{rem}{Remarks}
+\newtheorem{singRem}[rem]{Remark}
+\newtheorem{remark}[rem]{Remark}
+\newtheorem{example}{Example}
+\usepackage{multirow}
+%\numberwithin{equation}{section}
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%\UseRawInputEncoding % Forces compatiblitity with new latex UTF encoding
+\begin{document}
+
+%\title{Comparison of active cases and rolling averages in pandemic closing-reopening cycles}
+%\author{Kevin E.\ M.\ Church}
+%\date{
+%    \small McGill University, Department of Mathematics and Statistics\\%
+%    \today}
+\title{Plan B setup, some multiparameter notes, some messy bounds notes, etc.}
+\maketitle
+
+\section{Example problems?}
+Here we build a list of equations (ODE/DDE/PDE) that exhibit this structure, in the sense that a) there is a point where the degenerate Hopf bifurcation occurs, OR b) there is a parameter regime in which there is a bubble.
+\begin{itemize}
+\item Lorenz-84: either we find a bifurcation that generates the bubble, or we do a continuation of the bubble using the scheme. In the latter case, this will correspond geometrically to a ``cylinder".
+\begin{align*}
+\dot u_1&=-u_2^2 - u_3^2 - \xi_1u_1 - \xi_1\xi_6 - \xi_2 u_4^2 \\ 
+\dot u_2&=u_1u_2 - \xi_3u_1u_3-u_2+\xi_4\\
+\dot u_3&=\xi_3u_1u_2 + u_1u_3 - u_3\\
+\dot u_4&= -\xi_5u_4 + \xi_2u_1u_4 + \mu
+\end{align*}
+\textbf{We will do this example, since we know that the bubble is there and we will explicitly need Plan A to do it. Also, explicitly polynomial problem means it will be comparatively easy to set up.}
+\item Fitzhugh-Nagumo. From a figure I found in a book: it looks like there's a a parameter region where ``sharp" bubble present when there's no diffusion. Hmm... and this equation is 2D, cubic, polynomial. This is probably the lowest-dimensional, minimal complexity (in terms of the type of nonlinearity) example we could ever find that comes from a ``real-world" model. \textbf{Maybe this should be the first example... no embedding necessary, and it's simple} 
+\begin{align*}
+\dot u&=u(u-\alpha)(1-u)-w+I\\
+\dot w&=\epsilon(u-\gamma w)
+\end{align*}
+Crude experiments with MATLAB integrator: It looks like there is a singular Hopf bifurcation near $(\alpha,I,\epsilon,\gamma)=(0.1,0.4,0.305,1)$.
+\item The delay $SI$ model for which Victor was motivated to prove his general result. He proves the bubble/bifurcation exists, but we can obtain some nonlocal results concerning its diameter and growth that is not possible from the normal form. With one of $h(y,p)=1/(1+py)$ or $h(y,p)=e^{-py}$,
+$$\dot y(t) = -y(t) +R_0 h(y(t-\tau),p)y(t)(1-y(t)).$$ 
+Polynomialization can be done, and the resulting equation would be two-dimensional. \textbf{We should definitely do this example. It's the simplest DDE I've found.}
+\item Hodgkin-Huxley model. It's a 4D system of non-polynomial ODEs. Polynomial embedding would lead to a 10-dimensional ODE. \textbf{Hodgkin-Huxley is very well-known, and as such would probably be a good choice of example.}
+\item Holling-Tanner predator-prey model. A 2D non-polynomial ODE with a 4D polynomial embedding. \textbf{This model is well-studied, and the paper concerning the Hopf bubble has about 110 citations. Perhaps a reasonable choice for a 5th example if we want one?} Nondimensionalized, the model is
+\begin{align*}
+\dot U&=U(1-U)-\frac{cUV}{U+b}\\
+\dot V&=rV\left(1-\frac{V}{U}\right).
+\end{align*}
+Polynomialized, we get the quintic problem
+\begin{align*}
+\dot U&=U(1-U)-xUVW\\
+\dot V&=rV\left(1-VX\right)\\
+\dot W&=-W^2[U(1-U)-cUVW]\\
+\dot X&=-X^2[U(1-U)-cUVW]\\
+W(0)&=(U(0)+b)^{-1}\\
+X(0)&=U(0)^{-1}.
+\end{align*}
+\item Li-Rinzel simplification of the De Young-Keizer IPR (Inositol trisphosphate receptor) model. It's a four-dimensional, non-polynomial ODE with lots of Hill function nonlinearities. The polynomial embedding would be ten-dimensional. Found it in the calcium signaling book.
+\item Calcium signaling models. Apparently these are common enough that in the book ``Models of Calcium Signaling", the authors write completely off-hand and without citation/referencing, \emph{the bifurcation diagram has a ``Hopf bubble”, a feature common to many models of intracellular Ca2+ dynamics}. Seemingly, in this community, it is understood that this structure is typical and unsurprising.
+\item An enzyme-catalyzed reaction model. Not sure where it (2D ODE model with a single non-polynomial nonlinearity) originally comes from, but it appears in a 1991 paper by Hassard and Jiang. 
+\item Rainfall/shrub growth model of Wang, Shi and Zhang: for $\mu(b,\mu_0,\mu_1)=\mu_0 + \mu_1/(1+b)$,
+\begin{align*}
+\dot w&=R-\lambda wb - w\\
+\dot b&=wb - b\mu(b,\mu_0,\mu_1).
+\end{align*}
+2-dimensional, but to polynomialize it we would need an extra dimension, resulting in a three-dimensional quartic ODE. This is not a well-cited model, and we should not do it as an example. It is, however, a good idea to mention it, since there appear to be even higher degeneracy structures in here like ``mushrooms" and ``hearts".
+\item Condensed phase combustion. There is a very ugly PDE model that does this. We have no interest in studying this abomination, but we will mention it.
+\end{itemize}
+\section{Plan B: ODE}
+Let $\dot x=f(x,\alpha,\beta)$, $x\in\R^n$, be a polynomial vector field depending on scalar parameters $\alpha$ and $\beta$. Define for $\epsilon\in\R,$ $\tau>0$ and auxiliary $u\in\R^n$ the scaled vector field
+\begin{align*}
+\tilde f(y,u,\alpha,\beta,\epsilon)&=\left\{\begin{array}{ll}
+\epsilon^{-1}(f(u+\epsilon y,\alpha,\beta)-f(u,\alpha,\beta)),&\epsilon\neq 0\\
+D_xf(u,\alpha,\beta)y,&\epsilon=0.\end{array}\right.
+\end{align*}
+Then a periodic solution of period $2\pi\cdot\tau$ is equivalent to a $2\pi$-periodic solution of
+$$\dot y = \tau\tilde f(y,u,\alpha,\beta,\epsilon)$$
+and $\tilde f$ is polynomial.
+
+Since $\tilde f$ is polyomial, we can write it in the form
+$$\tilde f(y,u,\alpha,\beta,\epsilon) = \sum_{m=0}^Mp_m(u,\alpha,\beta,\epsilon)y^m$$
+for $p_m(u,\alpha,\beta,\tau,\epsilon)$ being an $m$-linear map on $\R^n$ depending smoothly on $(u,\alpha,\beta,\tau,\epsilon)$, and $y^m=[y,y,\dots,y]$ with $m$ copies of $y$ appearing in parentheses. Then the ODE for $y$ is equivalent in Fourier series $y=\sum_k e^{ikt}a_k$ to the equation
+\begin{align*}
+f_{PO}(a,u,\alpha,\beta,\tau,\epsilon)_k&\bydef-ika_k + \tau\sum_{m=0}^M\hspace{0.5mm}\sum_{n\in \Z^m_k}p_m(u,\alpha,\beta,\epsilon)[a_{n_1},\dots,a_{n_m}]=0,
+\end{align*}
+for $\Z_k^m=\{(n_1,\dots,n_m)\in\Z^m : \sum_i n_i = k\}.$ The above can of course be expressed in terms of Fourier convolutions more explicitly at the cost of heavier notation, but this is enough for the abstract setup.
+
+The ``plan B" zero-finding problem is $F(u,\tau,\epsilon,a,\alpha,\beta ; \overline u)=0$, where
+\begin{align}\label{zfp-B}
+F(u,\tau,\epsilon,a,\alpha,\beta; \overline u)=\left(\begin{array}{c}f(u,\alpha,\beta) \\ \Theta(a;\overline a) \\ G(a;\overline a) \\ f_{PO}(a,u,\alpha,\beta,\tau,\epsilon) \\  \end{array}\right).
+\end{align}
+Here $a\mapsto\Theta(a;\overline a)$ is an affine-linear phase condition that depends on some numerical data $\overline a$, $a\mapsto G(a;\overline a)$ is a linear amplitude condition. Then $F$ is defined on $X\times\R^2$, where $X=\R^n\times\R\times\R\times U$ and $U$ is a space of bi-infinite sequences with suitable decay that we will need to choose. We identify some codomain $Y$ so that $F:X\times\R^2\rightarrow Y$. In the future, we will write this map simply as $F(z;\overline z)$, for $z=(u,\tau,\epsilon,a,\alpha,\beta)$.
+
+\begin{remark}
+Gameiro, Lessard and Pugliese use $\ell^\infty$ with algebraic decay for $U$ in their paper. They were interested in more general manifolds of steady states that might not necessarily have the kind of regularity that periodic orbits have. I think we should use $U=(\ell_\nu^1)^n$ for some $\nu>1$, since we have a priori analyticity and the Banach algebra properties are nice to have.
+\end{remark}
+
+\section{Plan B: DDE}\label{sec-dde}
+A little bit changes with a delay equation. For the vector field
+$$\dot x(t)=f(x(t),x(t+\mu_1),\dots,x(t+\mu_J),\alpha,\beta)$$ for some (positive or negative) delays $\mu_1,\dots,\mu_J$, define the rescaled vector field
+\begin{align*}
+\tilde f(y_0,y_1,\dots,y_J,u,\alpha,\beta,\epsilon)=\left\{\begin{array}{ll}
+\epsilon^{-1}(f(u+\epsilon y_0,u+\epsilon y_1,\dots,u+\epsilon y_J,\alpha,\beta)-f(u,u,\dots,u,\alpha,\beta)),&\epsilon\neq 0\\
+\sum_{j=0}^J D_{x_j}f(u,\dots,u,\alpha,\beta)y_j,&\epsilon=0.\end{array}\right.
+\end{align*}
+The periodic orbit problem is equivalent to
+$$\dot y(t) = \tau\tilde f(y(t),y(t+\mu_1\tau^{-1}),\dots,y(t+\mu_J\tau^{-1}),\alpha,\beta).$$
+Note: $\tilde f$ is still polynomial, but the delays involve some non-polynomial nonlinearities. This isn't a big deal, but it is a change nonetheless.
+Denote $\tilde g(y,u,\alpha,\beta,\epsilon)=\tilde f(y_0,y_1,\dots,y_J,\alpha,\beta,\epsilon)$ for $y=(y_0,y_1,\dots,y_J)\in(\R^n)^{J+1}$. Then
+$$\tilde g(y,u,\alpha,\beta,\epsilon)=\sum_{m=0}^M p_m(u,\alpha,\beta,\epsilon)y^k.$$
+Define $h:\R^n\rightarrow(\R^n)^{J+1}$ by $h(u)=(u,u,\dots,u)$. The DDE for $y=\sum_k a_ke^{ikt}$ is then equivalent in Fourier series to $f_{PO}=0$, with
+\begin{align*}
+f_{PO}(u,a,\alpha,\beta,\tau,\epsilon)_k&\bydef-ika_k + \tau\sum_{m=0}^M\hspace{0.5mm}\sum_{n\in \Z^m_k}p_m(u,\alpha,\beta,\epsilon)[e^{in_1\tau^{-1}\mu}\odot h(a_{n_1}),\dots,e^{in_m\tau^{-1}\mu}\odot h(a_{n_m})],
+\end{align*}
+where $\mu=[\begin{array}{cccc}0&\mu_1&\cdots&\mu_J\end{array}]^\intercal$, the exponentials $e^{in\tau^{-1}\mu}$ are componentwise, and $\odot$ denotes componentwise scalar-vector multiplication: for $v\in\C^N$ and $h=(h_1,\dots,h_N)\in(\C^K)^N$, $$v\odot h = (v_1h_1,\dots,v_Nh_N).$$
+The ``big" zero-finding problem \eqref{zfp-B} is then symbolically unchanged.
+
+\begin{remark}
+With delays, it is actually better to expand in the frequency: $$y(t) = \sum_{k\in\Z}e^{ik\phi t}a_k,$$ for period $2\pi/\phi$. This is because time scaling results in the period appearing in the delay as a reciprocal, which is inconvenient. Leaving it this way, the frequency $\phi$ always will appear linearly at the level of the Fourier coefficients.
+\end{remark}
+
+\section{Multi-parameter continuation}\label{sec-cont}
+Let $F^{(M)}$ be a finite-dimensional projection of $F$, and let $X_M=\R^n\times\R\times\R\times U_M$ be the finite-dimensional domain. Suppose we have a triple $\overline x_i\in X_M$ for $i=1,2,3$ finitely-supported. Let $\phi^{(i)}_1,\phi^{(i)}_2\in X_M$ be approximate elements of the kernel of $DF^{(M)}(x_i)$, assumed linearly independent. Define $\overline\Phi_i=[\begin{array}{cc}\phi^{(i)}_1&\phi^{(i)}_2\end{array}]$. Define the interpolating zeroes and kernels
+\begin{align*}
+\overline x_s&=\overline x_0 + s_1(\overline x_1-\overline x_0) + s_2(\overline x_2-\overline x_0),\\
+\overline\Phi_s&=\overline\Phi_0 + s_1(\overline\Phi_1-\overline\Phi_0) + s_2(\overline\Phi_2 - \overline\Phi_0).
+\end{align*}
+Then, define a parameterized (by $s\in\Delta$) function $\mathcal{F}_s:\R^2\times X\times\rightarrow \R^2\times Y$ as follows:
+\begin{align}
+\label{multipara-F}\mathcal{F}_s(x)=\left(\begin{array}{c}\overline\Phi_s^\intercal(x-\overline x_s) \\  F(x;\overline x_s)\end{array}\right).
+\end{align}
+The new (square-dimension) zero-finding problem is $\mathcal{F}_s(x)=0$.
+
+\begin{remark}
+To ensure correct gluing, it is necessary that cobordant simplices use the same data on their mutual edges. This means that the amount of padding can not be adjusted during the proof, and must be decided a priori.
+\end{remark}
+
+\section{Proof of the singular bifurcation}
+What I think we really need (partially based on a conversation I had with Victor, but also intuitive) is the following.
+\begin{itemize}
+\item A locally (near the bifurcation) invertible, smooth change of parameters $(\alpha,\beta)\mapsto(\gamma_1,\gamma_2)$ such that $\gamma_2=\gamma_2(\gamma_1,\epsilon)$ (as a projected component of the manifold) is a graph near $(0,0)$, where $(\gamma_1,\gamma_2)=(0,0)$ when $(\alpha,\beta)$ is close to the singular bifurcation.
+\item $\gamma_2$ has a strict local minimum somewhere near $(0,0)$.
+\end{itemize}
+We can show that there is a local minimum using the topological argument (check an interior point and the boundary of the simplex), but to get the strictness and the graph interpretation is more complicated. To do this, it is sufficient (assuming w.l.o.g.\ that $(\gamma_1,\gamma_2)=(\alpha,\beta)$ by doing the change of variables at the beginning) that we check a posteriori:
+\begin{itemize}
+\item For all $s\in\Delta$, $$C_1(s)\bydef\det\left[\begin{array}{cc}\partial_{s_1}\alpha (\tilde u(s)) & \partial_{s_2}\alpha(\tilde u(s)) \\ \partial_{s_1}\epsilon (\tilde u(s)) & \partial_{s_2}\epsilon(\tilde u(s)) \end{array}\right]\neq 0$$with $\tilde u:\Delta\rightarrow M$ the chart we think contains the minimum. This shows that we can invert $(s_1,s_2)\mapsto(\alpha,\epsilon)$ and that $\beta$ is a graph.
+\item Check some other big mess of stuff (a Hessian) is negative definite over $\Delta$. Specifically, we check the second differential of $(\alpha,\epsilon)\mapsto\beta(\alpha,\epsilon)$ is negative definite over $\tilde u(\Delta)$, which can be equivalently stated in terms of a uniform negative definiteness of some $s$-dependent matrix, for all $s\in\Delta$, using the local invertibility of $s\mapsto(\alpha,\epsilon)$.
+\end{itemize}
+I strongly suspect that these conditions can be checked analytically after the proof is done using the rigorous enclosure.
+
+\section{Set-up and bounds for the delay SI model}
+\subsection{Naive setup: polynomialize, unfold, desingularize - it's wrong!}
+Defining $z=e^{-py}$ and introducing an unfolding parameter $\eta\in\R$, consider the system
+\begin{align*}
+\dot y&=-y + R_0z_\tau y(1-y)\\
+\dot z&=-pz[-y+R_0z_\tau y(1-y)] + \eta\\
+z(0)&=e^{-py(0)}
+\end{align*}
+where $z_\tau=z(t-\tau)$. It is straightforward to prove (in fact, it's the same proof as appears in [van den Berg/Groothedde/Lessard, 2020]) that if $(y,z)$ is a periodic solution for some $\eta\in\R$, then $\eta=0$. This unfolding parameter will compensate for the extra boundary condition $z(0)=e^{-py(0)}$ that we will need to append.
+
+We have
+\begin{align*}
+f(y,z,z_\tau,p,R_0,\eta)=\left(\begin{array}{c}-y+R_0z_\tau y(1-y) \\ pz(y-R_0z_\tau y(1-y)) + \eta \end{array}\right)
+\end{align*}
+Write $x=(y,z,z_\tau)$. The desingularized map $\tilde f(x,u,p,R_0,\eta,\epsilon)$ for amplitude variable $\epsilon$ is defined exactly like before. But wait... the rescaled vector field now \emph{does not depend on $\eta$}. Oops? Thus, we need to:
+\begin{itemize}
+\item first polynomialize, then desingularize, then introduce unfolding parameter(s), OR
+\item first desingularize, then polynomialize, then introduce unfolding parameter(s).
+\end{itemize}
+
+\subsection{Trying again...}
+Desingularizing the delay vector field \emph{first}, we get
+\begin{align*}
+\dot y= -y + g(y_\tau p,\epsilon)R_0e^{-pu}u(1-u) + R_0e^{-pu}e^{-\epsilon py_\tau}(-\epsilon y^2 + y(1-2u)),
+\end{align*}
+where $g$ is defined by
+\begin{align*}
+g(x,\epsilon)&=\left\{\begin{array}{ll}\epsilon^{-1}(e^{-\epsilon x}-1),&\epsilon\neq 0 \\ -x,&\epsilon=0.\end{array}\right.
+\end{align*}
+Observe, $\partial_x g(x,\epsilon)=-e^{-\epsilon x}$ and $$g(x,\epsilon)=-\sum_{k=1}^\infty \frac{1}{k!}x^k(-\epsilon)^{k-1}.$$
+$g$ is indeed analytic. Now we polynomialize. Define $z_2=e^{-\epsilon py}$ and $z_1=g(yp,\epsilon)$. Then
+\begin{align*}
+\dot z_1&=-e^{-\epsilon yp}p\dot y = -pz_2\big(-y + R_0e^{-pu}z_1(t-\tau)u(1-u) + R_0e^{-pu}z_2(t-\tau)(-\epsilon y^2 + y(1-2u)) \big)\\
+\dot z_2&=-\epsilon p\dot y e^{-\epsilon py} = -\epsilon p z_2\big(-y + R_0e^{-pu}z_1(t-\tau)u(1-u) + R_0e^{-pu}z_2(t-\tau)(-\epsilon y^2 + y(1-2u)) \big)
+\end{align*}
+Hence, if we define $$\tilde f(z,z^\tau,u,p,R_0,\epsilon)=\left(\begin{array}{c}1\\-pz_2\\-\epsilon pz_2\end{array}\right)\big(-z_0 + R_0e^{-pu}z_1^\tau u(1-u) + R_0e^{-pu}z_2^\tau(-\epsilon z_0^2 + z_0(1-2u)) \big)$$
+Then we get a the desingularized problem
+\begin{align*}
+\dot z&=\tilde f(z(t),z(t-\tau),u,p,R_0,\epsilon)\\
+z_1(0)&=g(z_0(0)p,\epsilon)\\
+z_2(0)&=e^{-\epsilon p z_0(0)}
+\end{align*}
+We need two unfolding parameters to compensate for the two extra boundary conditions. This can be done as follows. Define 
+$$\hat f(z,z^\tau,u,p,R_0,\epsilon,\eta_1,\eta_2)= \tilde f(z,z^\tau,u,p,R_0,\epsilon) + \left(\begin{array}{c}0\\\eta_1\\\eta_2\end{array}\right).$$
+Then one can show: if $z(t)=(z_0,z_1,z_2)(t)$ is a periodic solution of 
+\begin{align*}
+\dot z&=\hat f(z(t),z(t-\tau),u,p,R_0,\epsilon,\eta_1,\eta_2)\\
+z_1(0)&=g(z_0(0)p,\epsilon)\\
+z_2(0)&=e^{-\epsilon pz_0(0)}
+\end{align*}
+for some $\eta_1,\eta_2\in\R$, then $\eta_1=\eta_2=0$.
+
+\subsection{Defining the $F=0$ problem}
+We have two pieces of information:
+\begin{itemize}
+\item The steady-state function $f(u,p,R_0)=-u + R_0 e^{-pu}u(1-u)$
+\item The desingularized, polynomialized, unfolded vector field $\hat f(z,u,p,R_0,\epsilon,\eta_1,\eta_2)$ and boundary condition $z_1(0)=g(z_0(0)p,\epsilon)$ and $z_2(0)=e^{-\epsilon pz_0(0)}$.
+\end{itemize}
+Let's define the periodic orbit function $f_{PO}$ in Fourier. From Section \ref{sec-dde} (see the remark on the frequency), if we define $d_\tau(\phi)a_k = a_ke^{-ik\phi\tau}$, then $f_{PO}=f_{PO}(u,a,p,R_0,\epsilon,\eta_1,\eta_2,\phi)$ with
+\begin{align*}
+f_{PO}&=-i\phi Ka + \left(\begin{array}{c}-a^0 + R_0e^{-pu}d_\tau(\phi)a^1 u(1-u) + R_0e^{-pu}[d_\tau(\phi)a^2](-\epsilon a^0*a^0 + (1-2u)a^0) \\ -p a^2*(-a^0 + R_0e^{-pu}d_\tau(\phi)a^1 u(1-u) + R_0e^{-pu}[d_\tau(\phi)a^2](-\epsilon a^0*a^0 + (1-2u)a^0)) + \eta_1 \\ -\epsilon p a^2*(-a^0 + R_0e^{-pu}d_\tau(\phi)a^1 u(1-u) + R_0e^{-pu}[d_\tau(\phi)a^2](-\epsilon a^0*a^0 + (1-2u)a^0)) + \eta_2 \end{array} \right)
+\end{align*}
+where $a=(a^0,a^1,a^2)\in(\C^\Z)^3$, we write $a^j_k$ for $j\in\{0,1,2\}$ and $k\in\Z$, and $(Ka)^j_k = ka^j_k$. In this formalism, we are using the Fourier expansion
+$$z_j(t) = \sum_{k\in\Z}a^j_ke^{ik\phi t}$$
+for the unknown frequency $\phi$. Define the two boundary conditions / ``natural phase conditions": 
+$$\Theta_{BC}(a,p,\epsilon) = \left(\begin{array}{c}\sum_{k}a^{1}_k - g\left(p\sum_j a_j^0,\epsilon\right) \\ \sum_k a_k^2 - \exp\left(-\epsilon p \sum_j a_j^0 \right) \end{array}\right)$$
+Now, let $a\mapsto\Theta_{PO}(\pi^0 a;\overline a)$ and $a\mapsto G_{PO}(\pi^0 a;\overline a)$ be affine-linear phase and amplitude conditions for the periodic orbit that depend on the data $\overline a$. As functions, these depend only on the component $a^0=\pi^0 a$. Then, our big zero-finding problem is
+\begin{align*}
+F(a,u,\phi,\epsilon,R_0,p,\eta_1,\eta_2)=\left(\begin{array}{c}f_{PO}(u,a,p,R_0,\epsilon,\eta_1,\eta_2,\phi) \\ f(u,p,R_0)\\  \Theta_{BC}(a,p,\epsilon) \\ \Theta_{PO}(a;\overline a) \\ G_{PO}(a;\overline a) \end{array}\right)
+\end{align*}
+\begin{itemize}
+\item Domain is $(\C^\Z)^3\times\R\times\R\times\R\times\R\times\R\times\R\times\R\sim (\C^\Z)^3\times\R^7$.
+\item Codomain is $(\C^\Z)^3\times\R\times\C^2\times\C\times\C\sim(\C^\Z)^3\times\R\times\C^4\subset(\C^\Z)^3\times\C^5$
+\end{itemize}
+\begin{remark}
+There is some imbalance with the domain and codomain, even after taking into account the expected 2-dimensional defect from the 2d-manifold of zeros. We can allow $\epsilon,R_0,p,\eta_1,\eta_2$ to be complex, but we \emph{must} take $\phi$ to be real. If we allow $\phi$ to be complex, $a\mapsto d_\tau(\phi)a$ becomes an unbounded operator. 
+\end{remark}
+Re-order the variables so that the domain $\R^2\times X\times$ and codomain $Y$ can be written $$X = \R^5\times(\C^\Z)^3,\hspace{2mm}Y=\C^5\times (\C^\Z)^3$$
+Then, the multi-parameter continuation operator becomes $\mathcal{F}_s:\R^2\times X\rightarrow \C^2\times Y$, defined as in \eqref{multipara-F}, where we write $x = (a,u,\phi,\epsilon,R_0,p,\eta_1,\eta_2)\in X\times\R^2$. We should eventually re-order so that $(p,R_0)\in\R^2$ are thought of as the ``parameters".
+\begin{remark}
+If the kernel elements $\phi_1^{(i)}$ and $\phi_2^{(i)}$ are symmetric in the $\C^\Z$ coordinates, then the restriction of $\mathcal{F}_s$ to symmetric elements will have range in symmetric elements of $\R^2\times Y$.
+\end{remark}
+\textcolor{blue}{Do we want to work explicitly on the symmetric subspace of $\C^\Z$? It is a vector subspace (over $\C$), is closed under the convolution, and is sequentially closed under the ``usual" topologies, so is a true Banach sub-algebra. I have never done CAPs in this space, and usually instead did a posteriori checks of symmetry. Does it hurt anything? I would think not... and it would make things a bit more direct.} By an abuse of notation, let $\C^\Z$ be identified with $\C^\Z_{sym}$, the subalgebra such that $a_k=\overline{a_{-k}}$. Then we can instead take $Y=X$.
+
+\begin{remark}
+$F$ is only once differentiable. It is $C^\infty$ with respect to sequence space derivatives for \emph{fixed} $\phi$, but once you take two derivatives in $\phi$, everything goes bad in general. This needs to be handled with care later.
+\end{remark}
+
+\subsection{Incorporating the topology}
+Choose a norm on $\R^2\times X$ whose restriction to a factor of $\C^\Z$ is a scaling of $||\cdot||_\nu$, with this norm being defined by
+$$||a||_\nu = \sum_{k\in\Z}|a_k|\nu^k$$ for some $\nu\geq 1$. The idea here is that $\R^2\times X$ might be equipped with a weighted max norm relative to the factors $\R$ and $\ell_\nu^1$. This might be necessary to help condition the proofs, as components with vastly differing scales can cause issues. Equip $\R^2\times Y$ with whatever norm makes $\mathcal{F}_s:\R^2\times X\rightarrow\R^2\times Y$ well-defined and $C^1$. There are some ``usual" choices here. Note, whenever I write $\ell_\nu^1$, I mean symmetric elements.
+
+\subsection{A mild reformulation of the problem}
+Re-ordering the variables a little bit, consider 
+\begin{align*}
+F(a,u,\phi,\epsilon,R_0,p,\eta_1,\eta_2)=\left(\begin{array}{c}f(u,p,R_0)\\  \Theta_{BC}(a,p,\epsilon) \\ \Theta_{PO}(a;\overline a) \\ G_{PO}(a;\overline a) \\  f_{PO}(u,a,p,R_0,\epsilon,\eta_1,\eta_2,\phi)  \end{array}\right)
+\end{align*}
+\begin{itemize}
+\item the first entry of $F$ is a map from $\R^3$ to $\R$.
+\item the second entry can be written $\Theta_{BC}(a,p,\epsilon) = \tilde\Theta_{BC}(Ea,p,\epsilon)$, for $Ea = \sum_{k\in\Z}a_k\in\R^3$ (note: real because $a$ is symmetric)
+\item the third and fourth entries can be written $\Theta_{PO}(a;\overline a) = \langle a,q(\overline a)\rangle$ and $G_{PO}(a;\overline a)=\langle a,m(\overline a)\rangle-1,$ where $q$ and $m$ are linear.
+\end{itemize}
+Hence, we can write the combination of the third and fourth entries as an affine-linear map, while the second row is smooth with respect to $Ea$. Also, the first component of $\mathcal{F}_s$ is linear. In total, if we re-order the equations a bit,
+\begin{align*}
+\mathcal{F}_s(x)=\left(\begin{array}{c}f(\pi_u x,\pi_p x,\pi_{R_0}x)\\ \overline{\Phi_s^\intercal} (x-\overline x_s) \\ \langle\pi_a x,q(\pi_a\overline x_s)\rangle \\ \langle\pi_a x, m(\pi_a\overline x_s)\rangle-1 \\ \Theta_{BC}(E\pi_a x,\pi_p x,\pi_\epsilon x)\\ f_{PO}(\pi_u x,\pi_a x,\pi_p x,\pi_{R_0}x,\pi_\epsilon x,\pi_{\eta_1}x,\pi_{\eta_2}x,\pi_\phi x)  \end{array}\right)
+\end{align*}
+This is messy. Write $x=(y,a)$, where $a\in(\ell_\nu^1)^3$ and $y\in\R^7$. Then the first function depends only on $y$, the second through fourth are affine-linear, the fifth is a nonlinear function of $(Ea,y)$, and the final one is a nonlinear function of $a$ and $y$. Hence, write everything as follows:
+\begin{align*}
+\mathcal{F}_s(x)=\left(\begin{array}{c}f(y)\\ L(\overline x_s)x - \mathbf{c}\\ H(Ea,y)\\ -i\pi_\phi yKa + \tilde f(x)  \end{array}\right)
+\end{align*}
+Here, $a\mapsto L(\overline x_s,\overline\Phi_s^\intercal)a$ is linear (basically a bunch of inner products) and depends on the data $\overline x_s,\overline\Phi_s^\intercal$, $H:\R^3\times\R^7\rightarrow\R^2$ is smooth, $\mathbf{c}=(0,0,0,1)$, and $\tilde f = f_{PO}+i\pi_\phi yKa$ are the terms coming from the delayed vector field \emph{without} the derivative.
+\begin{remark}
+This structure will be present in general for the DDE case.
+\end{remark}
+Let us group the first three rows as $J = (f(y), L(\overline x_s)x - \mathbf{c}, H(Ea,y))$. Then, splitting Fourier modes into the finite and tail parts,
+\begin{align*}
+\mathcal{F}_s(x)=\left(\begin{array}{c}J(y,a)\\ -i\pi_\phi yKa^M + \pi^M\tilde f(y,a)\\ -i\pi_\phi yKa^\infty + \pi^\infty\tilde f(y,a)  \end{array}\right)
+\end{align*}
+Since $\tilde f$ is polynomial, it is bounded. Hence, the last row is asymptotically (in Fourier mode) dominated by the differentiation operator $K$. Define an approximation
+\begin{align*}
+\tilde{\mathcal{F}}_s(x)=\left(\begin{array}{c}J(y,a)\\ -i\pi_\phi yKa^M + \pi^M\tilde f(y,a^M) \\ -i\pi_\phi y Ka^\infty  \end{array}\right),
+\end{align*}
+Hence, 
+\begin{align*}
+D\tilde{\mathcal{F}}_0(\overline x_0)&=\left(\begin{array}{ccc}
+\partial_y J(\overline y_0,\overline a_0) & \partial_a J(\overline y_0,\overline a_0)\pi^M & \partial_a J(\overline y_0,\overline a_0)\pi^\infty \\ 
+-iK\overline a^M\pi_\phi + D_1\tilde f(\overline y_0,\overline a_0^M) & -i\pi_\phi\overline y_0 K\pi^M + D_2\tilde f(\overline y_0,\overline a_0^M) & 0\\
+0&0&-i\pi_\phi\overline y_0 K\pi^\infty \end{array}\right)\bydef A^\dagger.
+\end{align*}
+The upper $2\times 2$ block can be numerically inverted, so let $\mathbf{M}$ be a real matrix and $\mathbf{P},\m{Q},\m{A}$ be complex symmetric matrices such that 
+\begin{align*}
+\left(\begin{array}{cc}\m{M}&\m{P}\\\m{Q}&\m{A}\end{array}\right)\left(\begin{array}{cc}\partial_y J(\overline y_0,\overline a_0) & \partial_a J(\overline y_0,\overline a_0)\pi^M \\ -iK\overline a^M\pi_\phi + D_1\tilde f(\overline y_0,\overline a_0^M) & -i\pi_\phi\overline y_0 K\pi^M + D_2\tilde f(\overline y_0,\overline a_0^M) \end{array}\right)\approx I.
+\end{align*}
+Then the inverse of $D\tilde{\mathcal{F}}_0(\overline x_0)$ is approximately
+\begin{align*}
+D\tilde{\mathcal{F}}_0(\overline x_0)^{-1}\approx \left(\begin{array}{ccc}
+\m{M}&\m{P}&-\m{M}\partial_a J(\overline y_0,\overline a_0)\pi^\infty[-i\pi_\phi \overline y_0 K]^{-1}\pi^\infty\\
+\m{Q}&\m{A}&-\m{Q}\partial_aJ(\overline y_0,\overline a_0)\pi^\infty[-i\pi_\phi \overline y_0 K]^{-1}\pi^\infty\\
+0&0& [-i\pi_\phi \overline y_0 K]^{-1}\pi^\infty\end{array}\right)\bydef A.
+\end{align*}
+We will use this as the approximate inverse of $D\mathcal{F}_0(\overline x_0)$.
+
+\subsection{Radii polynomial approach, bounds, etc. (preliminary rough notes/sketches)}
+As usual, define $T_s(x) = x - A\mathcal{F}_s(x,\overline x_s,\overline\Phi_s^\intercal)$ for $s\in\Delta$  where we are including the $(\overline x_s,\overline\Phi_s^\intercal)$ in the definition of $\mathcal{F}_s$ to emphasize the dependence on the numerical interpolants of zeroes and kernels. We need to compute bounds $Y_s$, $Z_{1,s}$ and $Z_2(s,r)$ such that
+\begin{align*}
+||A\mathcal{F}_s(\overline x_s)||&\leq Y_s\\
+||AD\mathcal{F}_s(\overline x_s)||&\leq Z_{1,s}\\
+\sup_{||z||\leq 1}||A(D\mathcal{F}_s(\overline x_s+rz)-D\mathcal{F}_s(\overline x_s))||&\leq Z_{2,s}(r),
+\end{align*}
+then find $r>0$ such that
+$$p_s(r)\bydef Y_s + (Z_{1,s}+Z_{2,s}(r)-1)r$$
+satsfies $p_s(r)<0$ for all $s\in\Delta$.
+
+\subsubsection{$Y_s$ bound}
+This one is straightforward. $s\mapsto\mathcal{F}_s(\overline x_s)$ is analytic, so we can compute a tight interval enclosure by using a sufficiently high-order Taylor expansion at $s=0$. Only a finite number of modes will appear in the tail, so the bottom right entry of $A$ acting on $\mathcal{F}_s(\overline x_s)$ can still be done with a finite computation.
+
+\subsubsection{$Z_{1,s}$ bound}
+We write
+\begin{align*}
+AD\mathcal{F}_s(\overline x_s) & = I-AA^\dagger + A\big(D\mathcal{F}_s(\overline x_s)-A^\dagger\big)\\
+&=I-AA^\dagger + A\big(D\mathcal{F}_0(\overline x_0) - A^\dagger \big) + A\big(D\mathcal{F}_s(\overline x_s)-D\mathcal{F}_0(\overline x_0) \big)
+\end{align*}
+Hence, we separately compute bounds
+\begin{align*}
+||I-AA^\dagger||&\leq Z_1^0\\
+||A(D\mathcal{F}_0(\overline x_0)-A^\dagger)||&\leq Z_1^1\\
+||A(D\mathcal{F}_s(\overline x_s)-D\mathcal{F}_0(\overline x_0))||&\leq Z_{1,s}^2
+\end{align*}
+The $Z_1^0$ bound will of course be the easiest, being entirely due to numerical inversion error. The $Z_1^1$ bound will also be pretty easy. The $Z_{1,s}^2$ bound can again be handled by a Taylor expansion in $s$.
+
+\subsubsection{$Z_{2,s}$ bound}
+This bound requires some special attention because of the operator $a\mapsto d_\tau(\phi)a$ that appears in the Fourier representation of the vector field. The derivative with respect to $\phi$ is $$\frac{\partial}{\partial\phi}d_\tau(\phi)a_k = -ik\phi\tau d_\tau(\phi)a_k.$$ This is okay because the $K^{-1}$ in $A$ will kill the $k$ terms, but a second derivative $$\frac{\partial^2}{\partial\phi^2}d_\tau(\phi)a_k = -k^2\phi^2\tau^2 d_\tau(\phi)a_k$$
+can not be handled. Therefore, the usual mean value inequality trick and a second Fr\'echet derivative of $\mathcal{F}_s$ can't be used to get $Z_{2,s}$ directly. To circumvent the problem, we use van den Berg/Groothedde/Lessard's trick. Write $z=(y,a)$ and compute separately the bounds
+\begin{align*}
+\sup_{||(y,a)||\leq 1}||A(D\mathcal{F}_s(\overline x_s + r(y,a)) - D\mathcal{F}_s(\overline x_s + r(y,0)))||&\leq Z_{2,s}^1\\
+\sup_{||(y,a)||\leq 1}||A(D\mathcal{F}_s(\overline x_s + r(y,0)) - D\mathcal{F}_s(\overline x_s))||&\leq Z_{2,s}^2
+\end{align*}
+using a mean-value inequality, then take $Z_{2,s}\leq Z_{2,s}^1 + Z_{2,s}^2$. The mean-value inequality argument works because in $Z_{2,s}^1$, only one derivative in $\phi$ is needed, while in the second, since the arbitrary $a\in(\ell_\nu^1)^3$ term is not present, the $K^2$ operator will not hit any sequences with infinite support. Both results must be made uniform over $s\in\Delta$, so subsequent Taylor expansion might be necessary.
+\end{document}
