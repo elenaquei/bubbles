@@ -9,8 +9,8 @@ talkative = 0;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
-n_modes = 50;
-step_size = 5*10^-6;
+n_modes = 15;
+step_size = 5*10^-3;
 plotting_instructions = 50;
 n_iter = 4;
 
@@ -25,7 +25,7 @@ load('./simplex DDE Hopf examples/candidate_mackey_no_blowup_isolated.mat')
 yy(2,:) = 1./(1+yy(1,:).^4);
 xXi = time_series2Xi_vec(tt,yy.',n_modes);
 
-xi = Xi_vector([period*2*pi, delta, tau],xXi.vector);
+xi = Xi_vector([period/(2*pi), delta, tau],xXi.vector);
 xi = reshape(reshape(xi, 10), n_modes);
 n_scal = 3;
 n_vec = 2;
@@ -50,12 +50,13 @@ scalar_equation = scalar_eq(0,0,n_scal, n_vec, lin_coefficients, polynomial_coef
 
 zero_finding_problem = full_problem(scalar_equation,vector_field);
 full_zero_finding_problem = continuation_equation_simplex(zero_finding_problem, xi);
+DF=derivative_to_matrix(derivative(full_zero_finding_problem,xi,0)); 
 y_auto = apply(full_zero_finding_problem, xi);
 y = compute_MK(xi);
 norm_y = norm(y);
 norm_y_auto = norm(y_auto);
 if norm(norm_y(3:5)-norm_y_auto(3:5))>10^-5
-    error('wrong vector field')
+    %error('wrong vector field')
 end
 if norm(norm(y_auto)) > 10^-4
     disp(norm(y_auto))
@@ -63,14 +64,14 @@ if norm(norm(y_auto)) > 10^-4
 end
 
 xi = Newton_2(xi,full_zero_finding_problem,[],10^-7);
-y = apply(full_zero_finding_problem, xi);
 
 zero_finding_problem = full_problem(scalar_equation,vector_field);
 full_zero_finding_problem = continuation_equation_simplex(zero_finding_problem, xi);
 xi = Newton_2(xi,full_zero_finding_problem);
 y = apply(full_zero_finding_problem, xi);
-disp(norm(y))
+disp(norm(norm(y)))
 
+DF=derivative_to_matrix(derivative(full_zero_finding_problem,xi,0)); 
 
 first_node = node(1,xi,zero_finding_problem);
 simplices_set_up(first_node, zero_finding_problem, step_size);
