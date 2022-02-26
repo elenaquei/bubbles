@@ -23,7 +23,7 @@ following:
         Church KM, Queirolo E. Computer-assisted proofs of Hopf bubbles and degenerate Hopf bifurcations, Submitted Feb 2022
 
 Initialise the library by running
-    start_placeholder
+    start_BiValVe
 Include all examples by running
     load_examples
 Do not move the working directory to any fodler.
