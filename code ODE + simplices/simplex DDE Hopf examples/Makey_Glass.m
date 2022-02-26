@@ -9,7 +9,7 @@ talkative = 0;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
-n_modes = 15;
+n_modes = 20;
 step_size = 5*10^-3;
 plotting_instructions = 50;
 n_iter = 4;
@@ -24,6 +24,8 @@ load('./simplex DDE Hopf examples/candidate_mackey_no_blowup_isolated.mat')
 % tt is uniformly spaced
 yy(2,:) = 1./(1+yy(1,:).^4);
 xXi = time_series2Xi_vec(tt,yy.',n_modes);
+
+period = 2.8863;
 
 xi = Xi_vector([period/(2*pi), delta, tau],xXi.vector);
 xi = reshape(reshape(xi, 10), n_modes);
@@ -178,7 +180,7 @@ y2 =  - 1i*K.* z_1 + 4 * delta * tau * conv(z0_pow4, z1_pow2,'same') ...
     - 4 * tau * conv(conv(z0_pow3, z1_pow2, 'same'), Delayz0Delayz1,'same'); 
 
 y = xi_vector;
-y.scalar(end) = sum(z_1) -1/(1+sum(z_0)^4);
+y.scalar(end) = sum(z_1) - 1/(1+sum(z_0)^4);
 y.vector(1,:) = y1;
 y.vector(2,:) = y2;
 end

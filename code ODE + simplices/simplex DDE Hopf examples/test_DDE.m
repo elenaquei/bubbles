@@ -9,31 +9,14 @@ talkative = 0;
 nu = 1.001;
 use_intlab = 0;
 Rmax = 10^-2;
-n_modes = 17; % TOO BIG AND IT'S a problem for Y, too small and it's a problem for Z1
+n_modes = 17; % too big it would be a problem for Y
 step_size = 5*10^-6;
 plotting_instructions = 50;
 bool_Hopf = 1; % the Hopf blow up is already taken into account
 
 save_file = 'SI_model_data';
 
-% extract info from point_candidate
-% load('./Kevins_code/point_candidate.mat')
-% z0 = X_ref(8:8+2*N);
-% z1 = X_ref(9+2*N:9+4*N);
-% z2 = X_ref(10+4*N:end);
-% 
-% x0 = X_ref(1);
-% p = X_ref(2);
-% R0 = X_ref(3);
-% psi = X_ref(4);
-% a = X_ref(5);
-% eta1 = X_ref(6);
-% eta2 = X_ref(7);
-% mu = R0*exp(-p*x0);
-% 
-% xi = Xi_vector([psi, x0, a, mu, R0, p, eta1, eta2],[z0.';z1.';z2.']);
 load('SI_start2.mat')
-tau = 10;   % The delay must be declared.
 xi = reshape(xi, n_modes);
 n_scal = xi.size_scalar;
 n_vec = xi.size_vector;

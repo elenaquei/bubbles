@@ -64,10 +64,18 @@ for iter=1:maxiter
     end
     
     DFm=derivative_to_matrix(derivative(alpha,xBar,0)); 
+    %fprintf('iter = %i\n',iter)
+    %fprintf('cond(DF) = %e\n',cond(DFm))
+    %fprintf('norm(DF) = %e\n',norm(DFm))
+    %fprintf('rank(DF) = %i\n',rank(DFm))
+    %fprintf('norm(x) = %e\n\n\n', norm(norm(xBar)))
+    
     if ~use_intlab && abs(det((DFm))) > 10e-5
-        x=x-DFm\y;
+        update_value = DFm\y;
+        x=x-update_value;
     elseif use_intlab && abs(det(sup(DFm))) > 10e-5
-        x=x-DFm\y;
+        update_value = DFm\y;
+        x=x-update_value;
     else
         error('derivative is singular, iteration %d',iter)
     end
@@ -83,7 +91,6 @@ if iter==maxiter && res>min_res
     figure
     semilogy(RES)
     error('Newton did not converge')
-    return%
 end
 
 if talkative>2
