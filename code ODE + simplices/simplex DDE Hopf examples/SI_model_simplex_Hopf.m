@@ -16,7 +16,11 @@ bool_Hopf = 1; % the Hopf blow up is already taken into account
 bool_validated = 0;
 n_iter = 400;
 
-save_file = 'SI_model_data';
+if ~exist('SI_model', 'dir')
+    mkdir('SI_model')
+end
+
+save_file = 'SI_model/SI_model_data';
 
 load('SI_start_at_Hopf.mat')
 tau = 10;   % The delay must be declared.

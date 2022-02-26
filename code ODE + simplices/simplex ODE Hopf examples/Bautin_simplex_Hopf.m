@@ -24,19 +24,18 @@ if ~bool_validated
     n_iter = 70;
     % step size
     step_size = 0.5*10^-2; 
-    save_file = 'Bautin_data'; % where the solutions are stored
+    save_file = 'Bautin/Bautin_data'; % where the solutions are stored
 else
     n_nodes = 3; 
     n_iter = 70;
     % step size
     step_size = 0.5*10^-2; 
-    save_file = 'Bautin_data_validated'; % where the solutions are stored
+    save_file = 'Bautin/Bautin_data_validated'; % where the solutions are stored
 end
-save_file = 'Bautin_data';
+
 if ~exist('Bautin', 'dir')
     mkdir('Bautin')
 end
-cd('Bautin')
 
 N = 2;
 DIM= N;
