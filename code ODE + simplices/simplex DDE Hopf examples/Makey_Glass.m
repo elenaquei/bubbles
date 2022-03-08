@@ -27,8 +27,8 @@ xXi = time_series2Xi_vec(tt,yy.',n_modes);
 
 period = 2.8863;
 
-xi = Xi_vector([period/(2*pi), delta, tau],xXi.vector);
-xi = reshape(reshape(xi, 10), n_modes);
+xi = Xi_vector([(period/(2*pi))^-1, delta, tau],xXi.vector);
+%xi = reshape(reshape(xi, 10), n_modes);
 n_scal = 3;
 n_vec = 2;
 
@@ -36,7 +36,7 @@ n_vec = 2;
 n_non_comp_eqs = 1;
 f_non_comp = @(x) noncomputable_eqs_for_MG(x);
 
-vector_field = '- dot z_0 -delta tau z_0 + tau Delay(z_0,-1)Delay(z_1,-1) \n - dot z_1 + 4 delta tau z_0^4 z_1^2 - 4 tau z_0^3 z_1^2 Delay(z_0,-1) Delay(z_1,-1)'; 
+vector_field = '- psi dot z_0 -delta tau z_0 + tau Delay(z_0,-1)Delay(z_1,-1) \n - psi dot z_1 + 4 delta tau z_0^4 z_1^2 - 4 tau z_0^3 z_1^2 Delay(z_0,-1) Delay(z_1,-1)'; 
 
 string_vector_field = strrep(vector_field, 'psi' , 'l1');
 string_vector_field = strrep(string_vector_field, 'delta' , 'l2');
@@ -169,14 +169,15 @@ z_1 = xi_vector.vector(2,:);
 K = -xi_vector.nodes:xi_vector.nodes;
 Delay = @(x,t) exp(1i * psi * K * t) .* x;
 
+psi = xi_vector.scalar(1);
 z0_pow3 = conv(z_0, conv(z_0,z_0,'same'),'same');
 z0_pow4 = conv(z_0, z0_pow3,'same');
 z1_pow2 = conv(z_1,z_1,'same');
 Delayz0Delayz1 = conv(Delay(z_0,-1),Delay(z_1,-1),'same');
 
-y1 = - 1i*K .* z_0 - delta *  tau * z_0 + ...
+y1 = - 1i*psi*K .* z_0 - delta *  tau * z_0 + ...
     tau * Delayz0Delayz1;
-y2 =  - 1i*K.* z_1 + 4 * delta * tau * conv(z0_pow4, z1_pow2,'same') ...
+y2 =  - 1i*psi*K.* z_1 + 4 * delta * tau * conv(z0_pow4, z1_pow2,'same') ...
     - 4 * tau * conv(conv(z0_pow3, z1_pow2, 'same'), Delayz0Delayz1,'same'); 
 
 y = xi_vector;
